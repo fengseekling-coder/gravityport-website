@@ -52,6 +52,8 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 本仓库的 `main` 分支配置了 GitHub Actions。推送到 `main` 后，Actions 会通过专用 SSH 部署账号把网站和 `downloads/` 下载包同步到 DMIT 的 `/var/www/mosa-website/`，并执行 HTTPS 冒烟检查；`browser-extension/` 只保存在私密仓库，不发布源码目录；不会启动 Node.js，也不会反向代理 MOSA 本地服务。
 
+完整的发布、更新、扩展包和 macOS 安装包操作说明见 [`DEPLOYMENT.md`](./DEPLOYMENT.md)。
+
 更新官网的常用流程：
 
 ```bash
