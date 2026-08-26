@@ -1,0 +1,114 @@
+name: Deploy MOSA website
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mosa-website-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_REMOTE_DIR: ${{ secrets.DEPLOY_REMOTE_DIR }}
+
+    steps:
+      - name: Check out website
+        uses: actions/checkout@v4
+
+      - name: Prepare pinned SSH connection
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_PORT"
+          test -n "$DEPLOY_USER"
+          test "$DEPLOY_REMOTE_DIR" = "/var/www/mosa-website"
+          test -n "$DEPLOY_SSH_KEY"
+          test -n "$DEPLOY_KNOWN_HOSTS"
+
+          install -d -m 700 "$HOME/.ssh"
+          umask 077
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/mosa_deploy_key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+
+          test -s "$HOME/.ssh/mosa_deploy_key"
+          test -s "$HOME/.ssh/known_hosts"
+
+      - name: Check remote deployment directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh \
+            -i "$HOME/.ssh/mosa_deploy_key" \
+            -p "$DEPLOY_PORT" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "test -d '$DEPLOY_REMOTE_DIR' && test -w '$DEPLOY_REMOTE_DIR' && test -d '$DEPLOY_REMOTE_DIR/downloads' && test -w '$DEPLOY_REMOTE_DIR/downloads'"
+
+      - name: Sync website files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync \
+            --archive \
+            --compress \
+            --delete \
+            --human-readable \
+            --exclude='.*' \
+            --exclude='/README.md' \
+            --exclude='/downloads/' \
+            -e "ssh -i $HOME/.ssh/mosa_deploy_key -p $DEPLOY_PORT -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes" \
+            ./ \
+            "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_REMOTE_DIR/"
+
+      - name: Sync committed download packages without deleting server packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync \
+            --archive \
+            --compress \
+            --human-readable \
+            --exclude='.*' \
+            -e "ssh -i $HOME/.ssh/mosa_deploy_key -p $DEPLOY_PORT -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes" \
+            downloads/ \
+            "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_REMOTE_DIR/downloads/"
+
+      - name: Verify production HTTPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          site_url="https://mosa.azhuilab.com"
+
+          index_status="$(curl --fail --silent --show-error --location --max-time 20 -o /tmp/mosa-index.html -w '%{http_code}' "$site_url/")"
+          test "$index_status" = "200"
+          grep -q "MOSA" /tmp/mosa-index.html
+
+          css_status="$(curl --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/styles.css")"
+          js_status="$(curl --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/script.js")"
+          config_headers="$(curl --fail --silent --show-error --head --max-time 20 "$site_url/site-config.js")"
+          test "$css_status" = "200"
+          test "$js_status" = "200"
+          printf '%s\n' "$config_headers" | grep -Eiq '^cache-control: .*no-cache'
+
+          redirect_location="$(curl --silent --show-error --head --max-time 20 http://mosa.azhuilab.com/ | awk 'BEGIN { IGNORECASE=1 } /^location:/ { sub(/^[^:]*:[[:space:]]*/, ""); print; exit }' | tr -d '\r')"
+          test "$redirect_location" = "https://mosa.azhuilab.com/"

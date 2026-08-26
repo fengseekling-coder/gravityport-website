@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="MOSA 是一个面向 AI 创作的本地素材库，把图片、Prompt、来源和版本记录留在自己的 Mac 上。"
+    />
+    <meta name="theme-color" content="#f5f5f7" />
+    <title>MOSA · AI 创作的本地素材库</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header" data-header>
+      <div class="shell header-inner">
+        <a class="brand" href="#top" aria-label="MOSA 首页">
+          <span class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </span>
+          <span class="brand-name">MOSA</span>
+        </a>
+
+        <nav class="nav-links" aria-label="主导航">
+          <a href="#features">功能</a>
+          <a href="#workflow">支持来源</a>
+          <a href="#privacy">本地优先</a>
+          <a href="#download">下载</a>
+        </nav>
+
+        <a class="header-download" href="#download">即将上线</a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero section-pad">
+        <div class="hero-glow hero-glow-one" aria-hidden="true"></div>
+        <div class="hero-glow hero-glow-two" aria-hidden="true"></div>
+
+        <div class="shell hero-grid">
+          <div class="hero-copy reveal">
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>
+              Local visual memory for AI creation
+            </div>
+            <h1>
+              AI 生成的每一张图，<br />
+              <span>都值得被记住。</span>
+            </h1>
+            <p class="hero-lede">
+              MOSA 把散落在 ChatGPT、Gemini、Codex 等工具里的创作素材，连同 Prompt、来源与版本记录，收进你自己的 Mac。
+            </p>
+
+            <div class="hero-actions">
+              <a class="button button-primary" href="#download">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v2h14v-2" />
+                </svg>
+                即将上线
+              </a>
+              <a class="button button-secondary" href="#features">了解功能</a>
+            </div>
+
+            <div class="hero-meta" aria-label="产品特点">
+              <span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg>
+                本地存储
+              </span>
+              <span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg>
+                无 MOSA 云账号
+              </span>
+              <span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg>
+                macOS
+              </span>
+            </div>
+          </div>
+
+          <div class="product-stage reveal reveal-delay" aria-label="MOSA 产品界面示意">
+            <div class="stage-orbit orbit-one" aria-hidden="true"></div>
+            <div class="stage-orbit orbit-two" aria-hidden="true"></div>
+            <div class="app-window">
+              <div class="traffic-lights" aria-hidden="true"><span></span><span></span><span></span></div>
+              <div class="app-body">
+                <aside class="app-sidebar">
+                  <div class="app-mini-brand">MOSA</div>
+                  <div class="app-sidebar-kicker">创作资产库</div>
+                  <div class="side-group">
+                    <div class="side-item active"><span class="side-icon grid-icon"></span>全部素材 <b>248</b></div>
+                    <div class="side-item"><span class="side-icon star-icon"></span>收藏 <b>36</b></div>
+                    <div class="side-item"><span class="side-icon clock-icon"></span>最近 <b>28</b></div>
+                  </div>
+                  <div class="side-label">来源</div>
+                  <div class="side-group sources">
+                    <div class="side-item"><span class="source-dot gpt"></span>ChatGPT <b>92</b></div>
+                    <div class="side-item"><span class="source-dot gemini"></span>Gemini <b>61</b></div>
+                    <div class="side-item"><span class="source-dot codex"></span>Codex <b>54</b></div>
+                    <div class="side-item"><span class="source-dot flow"></span>Flow <b>41</b></div>
+                  </div>
+                  <div class="app-sidebar-footer"><span>⚙</span> 设置</div>
+                </aside>
+
+                <div class="app-library">
+                  <div class="library-head">
+                    <div class="library-context">
+                      <h3>全部素材</h3>
+                      <div class="type-filters" aria-hidden="true">
+                        <span class="active">▦ 全部</span>
+                        <span>▧ 图片</span>
+                        <span>▻ 视频</span>
+                      </div>
+                    </div>
+                    <div class="library-toolbar" aria-hidden="true">
+                      <span class="result-count">248 个结果</span>
+                      <span class="sort-pill">最新优先⌄</span>
+                      <span class="demo-search">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6" /><path d="m16 16 4 4" /></svg>
+                        搜索所有素材...
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="asset-grid-demo" aria-hidden="true">
+                    <article class="demo-asset ratio-portrait"><div class="demo-art art-one"><span class="art-shape a"></span><span class="art-shape b"></span></div></article>
+                    <article class="demo-asset ratio-square"><div class="demo-art art-two"><span class="art-ring"></span><span class="art-core"></span></div></article>
+                    <article class="demo-asset ratio-landscape"><div class="demo-art art-three"><span class="art-horizon"></span><span class="art-sun"></span></div></article>
+                    <article class="demo-asset ratio-tall"><div class="demo-art art-four"><span class="art-grid"></span><span class="art-block"></span></div></article>
+                    <article class="demo-asset ratio-square"><div class="demo-art art-five"></div></article>
+                    <article class="demo-asset ratio-portrait"><div class="demo-art art-six"></div></article>
+                    <article class="demo-asset ratio-tall"><div class="demo-art art-seven"></div></article>
+                    <article class="demo-asset ratio-landscape"><div class="demo-art art-eight"></div></article>
+                    <article class="demo-asset ratio-square"><div class="demo-art art-nine"></div></article>
+                    <article class="demo-asset ratio-portrait"><div class="demo-art art-ten"></div></article>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="source-strip" aria-label="支持的创作来源">
+        <div class="shell source-strip-inner">
+          <span class="source-strip-label">把这些地方的创作带回 MOSA</span>
+          <div class="source-logos">
+            <span><i>◎</i> ChatGPT</span>
+            <span><i>✦</i> Gemini</span>
+            <span><i>⌘</i> Codex</span>
+            <span><i>◫</i> Flow</span>
+            <span><i>AI</i> AI Studio</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="features section-pad" id="features">
+        <div class="shell">
+          <div class="section-heading reveal">
+            <span class="section-kicker">WHY MOSA</span>
+            <h2>不是又一个文件夹。<br />是你的 AI 创作记忆。</h2>
+            <p>图片只是结果。真正让它可复用的，是 Prompt、来源、上下文与版本关系。</p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card feature-card-large reveal">
+              <div class="feature-copy">
+                <span class="feature-number">01</span>
+                <h3>素材和 Prompt<br />不再失联</h3>
+                <p>归档生成图片时保留可获得的 Prompt、来源、时间与上下文。以后看到一张图，不需要再猜它是怎么做出来的。</p>
+              </div>
+              <div class="prompt-demo" aria-hidden="true">
+                <div class="prompt-asset"><span></span></div>
+                <div class="prompt-panel">
+                  <span class="prompt-label">PROMPT</span>
+                  <p>Minimal editorial architecture, soft morning light, quiet neutral palette…</p>
+                  <div class="prompt-tags"><span>ChatGPT</span><span>Image</span><span>v3</span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="feature-card reveal">
+              <div class="feature-icon stack-icon" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="feature-number">02</span>
+              <h3>一个本地素材库</h3>
+              <p>不同 AI 工具生成的视觉资产统一浏览、搜索、收藏、打标签，不必在多个对话与目录之间来回翻找。</p>
+            </article>
+
+            <article class="feature-card reveal">
+              <div class="feature-icon branch-icon" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+              <span class="feature-number">03</span>
+              <h3>保留版本关系</h3>
+              <p>一张图继续迭代，不再变成一堆失去关系的文件。版本路径和创作上下文跟着素材一起留下。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="workflow section-pad" id="workflow">
+        <div class="shell workflow-shell">
+          <div class="section-heading compact reveal">
+            <span class="section-kicker">WORKFLOW</span>
+            <h2>继续用你喜欢的 AI 工具。<br />MOSA 只负责把成果接住。</h2>
+          </div>
+
+          <div class="workflow-steps reveal">
+            <article>
+              <span class="step-index">01</span>
+              <div class="step-symbol">✦</div>
+              <h3>照常创作</h3>
+              <p>在 ChatGPT、Gemini、Flow、Codex 等工具里完成你的生成工作。</p>
+            </article>
+            <span class="step-line" aria-hidden="true"></span>
+            <article>
+              <span class="step-index">02</span>
+              <div class="step-symbol">↓</div>
+              <h3>自动或手动收录</h3>
+              <p>通过本地集成或 Web Capture，把可见的生成结果和关联上下文送入 MOSA。</p>
+            </article>
+            <span class="step-line" aria-hidden="true"></span>
+            <article>
+              <span class="step-index">03</span>
+              <div class="step-symbol">⌘</div>
+              <h3>沉淀为素材库</h3>
+              <p>按来源、标签、收藏与版本关系整理，随时找到过去真正有用的作品。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="privacy section-pad" id="privacy">
+        <div class="shell privacy-card reveal">
+          <div class="privacy-visual" aria-hidden="true">
+            <div class="privacy-orbit outer"></div>
+            <div class="privacy-orbit inner"></div>
+            <div class="privacy-lock">
+              <svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="3" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
+            </div>
+          </div>
+          <div class="privacy-copy">
+            <span class="section-kicker light">LOCAL FIRST</span>
+            <h2>你的素材，<br />留在你的 Mac。</h2>
+            <p>MOSA 以本地优先为设计边界。素材库运行在你的设备上，不要求 MOSA 云账号，也不会为了管理素材把整个图库上传到远端服务。</p>
+            <div class="privacy-points">
+              <span><i></i>本地素材库</span>
+              <span><i></i>本地 Web UI</span>
+              <span><i></i>无自动云同步</span>
+              <span><i></i>你掌控原始文件</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="download section-pad" id="download">
+        <div class="shell">
+          <div class="section-heading centered reveal">
+            <span class="section-kicker">DOWNLOAD</span>
+            <h2>把 MOSA 带回你的 Mac。</h2>
+            <p>桌面端管理素材，浏览器扩展负责把网页里的 AI 生成结果带回来。</p>
+          </div>
+
+          <div class="download-grid">
+            <article class="download-card primary-download reveal">
+              <div class="download-platform">
+                <svg class="apple-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M16.8 12.7c0-2.2 1.8-3.3 1.9-3.4a4.2 4.2 0 0 0-3.3-1.8c-1.4-.1-2.7.8-3.4.8-.7 0-1.8-.8-3-.8a4.5 4.5 0 0 0-3.8 2.3c-1.6 2.8-.4 6.9 1.2 9.2.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3.1-.7 1.4 0 1.9.7 3.1.7 1.3 0 2.1-1.1 2.8-2.2a10 10 0 0 0 1.3-2.6 4 4 0 0 1-2.8-3.8ZM14.5 6c.6-.8 1-1.9.9-3-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2.1-.5 2.8-1.3Z" />
+                </svg>
+                <div><span>桌面应用</span><h3>MOSA for Mac</h3></div>
+              </div>
+              <p>完整的本地素材管理体验。MOSA for Mac 即将上线。</p>
+              <div class="download-meta">
+                <span data-mac-version>即将上线</span>
+                <span>macOS</span>
+              </div>
+              <a class="button button-primary button-full" href="#" data-download="mac">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v2h14v-2" /></svg>
+                <span data-mac-label>即将上线</span>
+              </a>
+            </article>
+
+            <article class="download-card reveal">
+              <div class="download-platform">
+                <svg class="browser-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" /><path d="M3.8 9h16.4M9 20.2 14 12 9.4 3.3M20.2 15H9" />
+                </svg>
+                <div><span>浏览器扩展</span><h3>MOSA Web Capture</h3></div>
+              </div>
+              <p>用于 ChatGPT、Gemini、Flow 与 Google AI Studio 网页，把可见生成图片归档到本机 MOSA。</p>
+              <div class="download-meta">
+                <span data-extension-version>v0.11</span>
+                <span>Chrome / Chromium</span>
+              </div>
+              <a class="button button-secondary button-full" href="#" data-download="extension">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v2h14v-2" /></svg>
+                <span data-extension-label>浏览器包下载</span>
+              </a>
+            </article>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell footer-inner">
+        <div>
+          <a class="brand footer-brand" href="#top">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+            <span class="brand-name">MOSA</span>
+          </a>
+          <p>Local visual memory for AI creation.</p>
+        </div>
+        <div class="footer-links">
+          <a href="#features">功能</a>
+          <a href="#privacy">隐私</a>
+          <a href="#download">下载</a>
+          <a href="https://github.com/fengseekling-coder/mosa" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+        <span class="footer-copy">© <span data-year></span> MOSA</span>
+      </div>
+    </footer>
+
+    <div class="toast" role="status" aria-live="polite" data-toast></div>
+
+    <script src="./site-config.js"></script>
+    <script src="./script.js?v=20260826-2"></script>
+  </body>
+</html>
