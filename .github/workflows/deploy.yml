@@ -75,6 +75,7 @@ jobs:
             --human-readable \
             --exclude='.*' \
             --exclude='/README.md' \
+            --exclude='/browser-extension/' \
             --exclude='/downloads/' \
             -e "ssh -i $HOME/.ssh/mosa_deploy_key -p $DEPLOY_PORT -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes" \
             ./ \

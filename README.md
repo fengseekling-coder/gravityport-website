@@ -24,8 +24,8 @@ window.MOSA_SITE_CONFIG = Object.freeze({
     label: "Mac 版下载",
   },
   extension: {
-    version: "0.11",
-    url: "./downloads/MOSA-Web-Capture.zip",
+    version: "0.11.1",
+    url: "./downloads/MOSA-Web-Capture-0.11.1.zip",
     label: "浏览器包下载",
   },
 });
@@ -41,6 +41,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 - `styles.css`：独立视觉样式和响应式布局
 - `script.js`：下载配置、滚动动效和轻交互
 - `site-config.js`：版本号与下载地址
+- `browser-extension/`：浏览器扩展的私密源码快照和发布说明
 - `downloads/`：正式安装包/扩展包放置位置，不属于主应用目录
 
 ## 发布
@@ -49,7 +50,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 ## 自动部署
 
-本仓库的 `main` 分支配置了 GitHub Actions。推送到 `main` 后，Actions 会通过专用 SSH 部署账号把网站同步到 DMIT 的 `/var/www/mosa-website/`，并执行 HTTPS 冒烟检查；不会启动 Node.js，也不会反向代理 MOSA 本地服务。
+本仓库的 `main` 分支配置了 GitHub Actions。推送到 `main` 后，Actions 会通过专用 SSH 部署账号把网站和 `downloads/` 下载包同步到 DMIT 的 `/var/www/mosa-website/`，并执行 HTTPS 冒烟检查；`browser-extension/` 只保存在私密仓库，不发布源码目录；不会启动 Node.js，也不会反向代理 MOSA 本地服务。
 
 更新官网的常用流程：
 
@@ -61,4 +62,4 @@ git push origin main
 
 仓库 Actions 需要以下 Secrets：`DEPLOY_HOST`、`DEPLOY_PORT`、`DEPLOY_USER`、`DEPLOY_REMOTE_DIR`、`DEPLOY_SSH_KEY` 和 `DEPLOY_KNOWN_HOSTS`。其中私钥只保存在 GitHub Secrets，不放入仓库。
 
-同步时会保留服务器 `downloads/` 中仅存在于服务器的安装包；提交到仓库的正式安装包也会被同步，但不会自动删除服务器上的其他安装包。
+正式包按以下约定保存：`downloads/MOSA-Web-Capture-版本.zip`、`downloads/MOSA-版本.dmg` 或 `downloads/MOSA-版本.pkg`。提交到仓库的包会被同步；服务器 `downloads/` 中仅存在于服务器的旧包也会保留，不会被自动删除。
