@@ -336,8 +336,8 @@
               <li class="extension-step reveal">
                 <span class="extension-step-number" aria-hidden="true">03</span>
                 <div class="extension-step-copy">
-                  <h3>加载已解压的扩展程序</h3>
-                  <p>点击“加载已解压的扩展程序”，选择<strong>直接包含 <code>manifest.json</code></strong> 的解压目录，不要选 ZIP 文件或更外层的父目录。</p>
+                  <h3>加载完整插件包文件夹</h3>
+                  <p>点击“加载已解压的扩展程序”，选择解压后得到的完整插件包文件夹；打开后第一层应直接看到 <code>manifest.json</code>。不要选择 ZIP 文件、<code>manifest.json</code> 文件本身或外层父文件夹。</p>
                 </div>
               </li>
               <li class="extension-step reveal reveal-delay">
@@ -357,7 +357,7 @@
                   <h3 id="extension-package-title">包内结构</h3>
                 </div>
               </div>
-              <p>加载时选中能直接看到这些文件的那一层。</p>
+              <p>选择能直接看到这些文件的完整插件包文件夹。</p>
               <ul class="extension-package-files" aria-label="扩展包根目录文件">
                 <li><code>manifest.json</code><span>扩展入口</span></li>
                 <li><code>background.js</code><span>后台服务</span></li>
@@ -375,7 +375,7 @@
                 <span class="extension-callout-label">遇到问题先检查</span>
                 <h3 id="extension-check-title">目录和 Token 是关键</h3>
                 <ul>
-                  <li>不要选择 ZIP 文件本身，也不要选择多一层父目录。</li>
+                  <li>不要选择 ZIP 文件本身，也不要选择多一层父目录。看到 <code>manifest.json</code> 文件后，点击选择/打开该文件夹。</li>
                   <li>Token 不要放到公网、截图或 Issue。</li>
                   <li>测试连接前，先确认本机 MOSA 服务正在运行。</li>
                   <li>扩展更新后，在 <code>chrome://extensions</code> 点击刷新，再硬刷新网页。</li>
