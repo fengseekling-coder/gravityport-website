@@ -26,6 +26,7 @@
           <a href="#workflow">支持来源</a>
           <a href="#privacy">本地优先</a>
           <a href="#download">下载</a>
+          <a href="#extension-guide">安装教程</a>
         </nav>
 
         <a class="header-download" href="#download">即将上线</a>
@@ -293,9 +294,95 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v2h14v-2" /></svg>
                 <span data-extension-label>浏览器包下载</span>
               </a>
+              <a class="download-guide-link" href="#extension-guide">
+                <span>第一次安装？</span>
+                <span>查看安装教程 <span aria-hidden="true">↗</span></span>
+              </a>
             </article>
           </div>
 
+        </div>
+      </section>
+
+      <section class="extension-guide section-pad" id="extension-guide" aria-labelledby="extension-guide-title">
+        <div class="shell extension-guide-shell">
+          <div class="extension-guide-intro reveal">
+            <span class="section-kicker">INSTALL GUIDE</span>
+            <h2 id="extension-guide-title">第一次安装，<br />四步接好 Web Capture。</h2>
+            <p>这是 Chrome / Chromium 的 Manifest V3 开发者模式 ZIP 安装流程，不是 CRX，也不是商店安装。</p>
+            <a class="button button-primary guide-download" href="#download" data-download="extension">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v2h14v-2" /></svg>
+              下载 MOSA Web Capture ZIP
+            </a>
+            <p class="extension-guide-meta">当前包 <strong data-extension-version>v0.11.1</strong><span aria-hidden="true">·</span> Chrome / Chromium</p>
+          </div>
+
+          <div class="extension-guide-main">
+            <ol class="extension-steps" aria-label="MOSA Web Capture 安装步骤">
+              <li class="extension-step reveal">
+                <span class="extension-step-number" aria-hidden="true">01</span>
+                <div class="extension-step-copy">
+                  <h3>下载并解压 ZIP</h3>
+                  <p>点击上方按钮下载 MOSA Web Capture ZIP，再把 ZIP 解压到一个容易找到的本地文件夹。</p>
+                </div>
+              </li>
+              <li class="extension-step reveal reveal-delay">
+                <span class="extension-step-number" aria-hidden="true">02</span>
+                <div class="extension-step-copy">
+                  <h3>打开扩展管理页</h3>
+                  <p>在 Chrome / Chromium 地址栏输入 <code>chrome://extensions</code>，打开右上角的“开发者模式”。</p>
+                </div>
+              </li>
+              <li class="extension-step reveal">
+                <span class="extension-step-number" aria-hidden="true">03</span>
+                <div class="extension-step-copy">
+                  <h3>加载已解压的扩展程序</h3>
+                  <p>点击“加载已解压的扩展程序”，选择<strong>直接包含 <code>manifest.json</code></strong> 的解压目录，不要选 ZIP 文件或更外层的父目录。</p>
+                </div>
+              </li>
+              <li class="extension-step reveal reveal-delay">
+                <span class="extension-step-number" aria-hidden="true">04</span>
+                <div class="extension-step-copy">
+                  <h3>打开选项并测试连接</h3>
+                  <p>在扩展卡片的“详情”里打开“扩展程序选项”，填写本机 MOSA 地址（默认 <code>http://127.0.0.1:43517</code>）和与 MOSA 服务一致的 <code>Ingest Token</code>，保存后点击“测试连接”。</p>
+                </div>
+              </li>
+            </ol>
+
+            <aside class="extension-package-card reveal" aria-labelledby="extension-package-title">
+              <div class="extension-package-heading">
+                <span class="extension-package-glyph" aria-hidden="true">{ }</span>
+                <div>
+                  <span class="extension-package-label">ZIP ROOT</span>
+                  <h3 id="extension-package-title">包内结构</h3>
+                </div>
+              </div>
+              <p>加载时选中能直接看到这些文件的那一层。</p>
+              <ul class="extension-package-files" aria-label="扩展包根目录文件">
+                <li><code>manifest.json</code><span>扩展入口</span></li>
+                <li><code>background.js</code><span>后台服务</span></li>
+                <li><code>options.html</code><span>设置页</span></li>
+              </ul>
+            </aside>
+
+            <div class="extension-guide-callouts">
+              <aside class="extension-callout reveal" aria-labelledby="extension-start-title">
+                <span class="extension-callout-label">开始使用</span>
+                <h3 id="extension-start-title">刷新页面，再开始保存</h3>
+                <p>安装并设置好后，刷新 ChatGPT、Gemini、Flow 或 Google AI Studio。扩展可以自动或手动保存页面中可见的生成结果。</p>
+              </aside>
+              <aside class="extension-callout extension-callout-warning reveal reveal-delay" aria-labelledby="extension-check-title">
+                <span class="extension-callout-label">遇到问题先检查</span>
+                <h3 id="extension-check-title">目录和 Token 是关键</h3>
+                <ul>
+                  <li>不要选择 ZIP 文件本身，也不要选择多一层父目录。</li>
+                  <li>Token 不要放到公网、截图或 Issue。</li>
+                  <li>测试连接前，先确认本机 MOSA 服务正在运行。</li>
+                  <li>扩展更新后，在 <code>chrome://extensions</code> 点击刷新，再硬刷新网页。</li>
+                </ul>
+              </aside>
+            </div>
+          </div>
         </div>
       </section>
     </main>
@@ -313,6 +400,7 @@
           <a href="#features">功能</a>
           <a href="#privacy">隐私</a>
           <a href="#download">下载</a>
+          <a href="#extension-guide">安装教程</a>
           <a href="https://github.com/fengseekling-coder/mosa" target="_blank" rel="noreferrer">GitHub</a>
         </div>
         <span class="footer-copy">© <span data-year></span> MOSA</span>
@@ -322,6 +410,6 @@
     <div class="toast" role="status" aria-live="polite" data-toast></div>
 
     <script src="./site-config.js"></script>
-    <script src="./script.js?v=20260826-2"></script>
+    <script src="./script.js?v=20260827-1"></script>
   </body>
 </html>

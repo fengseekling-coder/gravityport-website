@@ -51,6 +51,12 @@ a {
   text-decoration: none;
 }
 
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid rgb(36 36 255 / 0.42);
+  outline-offset: 4px;
+}
+
 button,
 a {
   -webkit-tap-highlight-color: transparent;
@@ -1454,6 +1460,284 @@ svg {
   font-size: 11px;
 }
 
+.download-guide-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 620;
+  transition: color 160ms ease;
+}
+
+.download-guide-link span:last-child {
+  color: var(--blue);
+}
+
+.download-guide-link:hover {
+  color: var(--ink);
+}
+
+.extension-guide {
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.extension-guide-shell {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.76fr) minmax(0, 1.24fr);
+  align-items: start;
+  gap: 76px;
+}
+
+.extension-guide-intro {
+  position: sticky;
+  top: 112px;
+  max-width: 430px;
+}
+
+.extension-guide-intro h2 {
+  margin: 0;
+  font-size: clamp(40px, 4.1vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.052em;
+  font-weight: 730;
+}
+
+.extension-guide-intro > p:not(.extension-guide-meta) {
+  max-width: 400px;
+  margin: 22px 0 0;
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.guide-download {
+  margin-top: 28px;
+}
+
+.extension-guide-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 0;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.extension-guide-meta strong {
+  color: var(--ink-2);
+  font-weight: 700;
+}
+
+.extension-guide-main {
+  min-width: 0;
+}
+
+.extension-steps {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.extension-steps::before {
+  content: "";
+  position: absolute;
+  top: 28px;
+  bottom: 28px;
+  left: 44px;
+  width: 1px;
+  background: linear-gradient(var(--line-strong), rgb(36 36 255 / 0.3), var(--line-strong));
+}
+
+.extension-step {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+  padding: 22px 24px 22px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 0.76);
+  box-shadow: 0 12px 32px rgb(28 28 30 / 0.035);
+}
+
+.extension-step-number {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(36 36 255 / 0.2);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+}
+
+.extension-step-copy {
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.extension-step-copy h3,
+.extension-package-heading h3,
+.extension-callout h3 {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+
+.extension-step-copy p {
+  margin: 9px 0 0;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.72;
+}
+
+.extension-guide code,
+.extension-callout code {
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-soft);
+  color: #595960;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.88em;
+  overflow-wrap: anywhere;
+}
+
+.extension-step-copy strong {
+  color: var(--ink);
+  font-weight: 680;
+}
+
+.extension-package-card {
+  margin-top: 20px;
+  padding: 24px 28px;
+  border: 1px solid rgb(36 36 255 / 0.15);
+  border-radius: var(--radius-md);
+  background: linear-gradient(145deg, rgb(36 36 255 / 0.055), rgb(255 255 255 / 0.84));
+}
+
+.extension-package-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.extension-package-glyph {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(36 36 255 / 0.14);
+  border-radius: 14px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.extension-package-label,
+.extension-callout-label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--blue);
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: 0.12em;
+}
+
+.extension-package-card > p {
+  margin: 18px 0 0;
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.extension-package-files {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.extension-package-files li {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.76);
+}
+
+.extension-package-files code {
+  width: max-content;
+  max-width: 100%;
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.extension-package-files span {
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+.extension-guide-callouts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.extension-callout {
+  min-width: 0;
+  padding: 24px 24px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 0.62);
+}
+
+.extension-callout-warning {
+  border-color: rgb(36 36 255 / 0.14);
+  background: rgb(36 36 255 / 0.045);
+}
+
+.extension-callout p,
+.extension-callout ul {
+  margin: 12px 0 0;
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.extension-callout ul {
+  display: grid;
+  gap: 7px;
+  padding-left: 18px;
+}
+
+.extension-callout li::marker {
+  color: var(--blue);
+}
+
 .site-footer {
   padding: 48px 0;
   border-top: 1px solid var(--line);
@@ -1604,6 +1888,16 @@ svg {
     gap: 40px;
   }
 
+  .extension-guide-shell {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
+  .extension-guide-intro {
+    position: static;
+    max-width: 720px;
+  }
+
   .workflow-steps {
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
@@ -1717,6 +2011,10 @@ svg {
     min-height: 0;
   }
 
+  .extension-guide-callouts {
+    grid-template-columns: 1fr;
+  }
+
   .footer-inner {
     grid-template-columns: 1fr auto;
     gap: 28px;
@@ -1798,6 +2096,43 @@ svg {
 
   .section-heading p {
     font-size: 15px;
+  }
+
+  .extension-guide-intro h2 {
+    font-size: 38px;
+  }
+
+  .extension-step {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 12px;
+    padding: 18px;
+  }
+
+  .extension-steps::before {
+    left: 38px;
+  }
+
+  .extension-step-number {
+    width: 40px;
+    height: 40px;
+  }
+
+  .extension-step-copy h3,
+  .extension-package-heading h3,
+  .extension-callout h3 {
+    font-size: 18px;
+  }
+
+  .extension-package-card {
+    padding: 22px 20px;
+  }
+
+  .extension-package-files {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-download {
+    width: 100%;
   }
 
   .feature-grid {

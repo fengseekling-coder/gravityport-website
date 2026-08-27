@@ -5,8 +5,10 @@
   let toastTimer = null;
 
   const setText = (selector, value) => {
-    const node = document.querySelector(selector);
-    if (node && value) node.textContent = value;
+    if (!value) return;
+    document.querySelectorAll(selector).forEach((node) => {
+      node.textContent = value;
+    });
   };
 
   setText("[data-mac-version]", config.mac?.version ? `版本 ${config.mac.version}` : "即将上线");
