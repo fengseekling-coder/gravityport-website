@@ -42,6 +42,40 @@
       <div class="chart-wrap" id="trendChart" role="img" aria-label="近 30 天使用趋势"></div>
     </section>
 
+    <section class="panel link-builder-panel" aria-labelledby="linkBuilderTitle">
+      <div class="panel-heading">
+        <div><p class="panel-kicker">CAMPAIGN LINK</p><h2 id="linkBuilderTitle">渠道链接生成器</h2></div>
+        <p class="builder-help">同一个官网，只增加 ref 标签用于下载来源统计。</p>
+      </div>
+      <div class="builder-grid">
+        <label class="builder-field">
+          <span>渠道标识</span>
+          <input id="campaignRefInput" type="text" maxlength="64" autocomplete="off" spellcheck="false" placeholder="例如 bilibili_makerjackie">
+          <small>支持字母、数字、点、下划线和短横线。空格会自动转成下划线。</small>
+        </label>
+        <div class="builder-field">
+          <span>生成链接</span>
+          <div class="builder-output-row">
+            <input id="campaignUrlOutput" type="text" readonly aria-label="生成的渠道链接" value="https://mosa.azhuilab.com/">
+            <button class="copy-button" id="copyCampaignUrl" type="button">复制</button>
+          </div>
+          <small id="campaignCopyStatus" aria-live="polite">未填写渠道时为普通官网链接。</small>
+        </div>
+      </div>
+      <div class="builder-presets" aria-label="常用渠道">
+        <span>常用：</span>
+        <button type="button" data-ref-preset="bilibili">B站</button>
+        <button type="button" data-ref-preset="xiaohongshu">小红书</button>
+        <button type="button" data-ref-preset="douyin">抖音</button>
+        <button type="button" data-ref-preset="tiktok">TikTok</button>
+        <button type="button" data-ref-preset="reddit_codex">Reddit Codex</button>
+        <button type="button" data-ref-preset="x">X</button>
+        <button type="button" data-ref-preset="weibo">微博</button>
+        <button type="button" data-ref-preset="wechat_official">微信公众号</button>
+        <button type="button" data-ref-preset="youtube">YouTube</button>
+      </div>
+    </section>
+
     <section class="detail-grid">
       <article class="panel">
         <div class="panel-heading"><div><p class="panel-kicker">PLATFORM</p><h2>平台分布</h2></div></div>

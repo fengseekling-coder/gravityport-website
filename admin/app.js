@@ -4,7 +4,42 @@
   const dateTime = new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium", timeStyle: "short" });
   const refreshButton = $("refreshButton");
   const errorNotice = $("errorNotice");
+  const campaignRefInput = $("campaignRefInput");
+  const campaignUrlOutput = $("campaignUrlOutput");
+  const copyCampaignUrl = $("copyCampaignUrl");
+  const campaignCopyStatus = $("campaignCopyStatus");
   let refreshTimer = null;
+
+  function normalizeCampaignRef(value) {
+    return String(value || "")
+      .trim()
+      .replace(/\s+/g, "_")
+      .replace(/[^A-Za-z0-9._-]/g, "")
+      .slice(0, 64);
+  }
+
+  function updateCampaignUrl() {
+    const ref = normalizeCampaignRef(campaignRefInput.value);
+    if (campaignRefInput.value !== ref) campaignRefInput.value = ref;
+    const url = new URL("https://mosa.azhuilab.com/");
+    if (ref) url.searchParams.set("ref", ref);
+    campaignUrlOutput.value = url.href;
+    campaignCopyStatus.textContent = ref ? `将统计为：${ref}` : "未填写渠道时为普通官网链接。";
+  }
+
+  async function copyCampaignLink() {
+    const value = campaignUrlOutput.value;
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      campaignUrlOutput.focus();
+      campaignUrlOutput.select();
+      document.execCommand("copy");
+    }
+    copyCampaignUrl.textContent = "已复制";
+    campaignCopyStatus.textContent = "链接已复制到剪贴板。";
+    window.setTimeout(() => { copyCampaignUrl.textContent = "复制"; }, 1400);
+  }
 
   function setMetric(id, value) {
     $(id).textContent = Number.isFinite(Number(value)) ? number.format(Number(value)) : "—";
@@ -129,6 +164,16 @@
   }
 
   refreshButton.addEventListener("click", loadStats);
+  campaignRefInput.addEventListener("input", updateCampaignUrl);
+  copyCampaignUrl.addEventListener("click", copyCampaignLink);
+  document.querySelectorAll("[data-ref-preset]").forEach((button) => {
+    button.addEventListener("click", () => {
+      campaignRefInput.value = button.dataset.refPreset || "";
+      updateCampaignUrl();
+      campaignRefInput.focus();
+    });
+  });
+  updateCampaignUrl();
   void loadStats();
   refreshTimer = window.setInterval(loadStats, 60_000);
   window.addEventListener("pagehide", () => window.clearInterval(refreshTimer), { once: true });
