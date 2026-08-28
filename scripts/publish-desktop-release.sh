@@ -198,8 +198,8 @@ trap cleanup EXIT
 
 manifest_file="$temp_dir/latest.json"
 published_at="${MOSA_RELEASE_PUBLISHED_AT:-$(date -u '+%Y-%m-%dT%H:%M:%SZ')}"
-notes_zh="${MOSA_RELEASE_NOTES_ZH:-MOSA ${release_version} 当前稳定版本。}"
-notes_en="${MOSA_RELEASE_NOTES_EN:-MOSA ${release_version} current stable release.}"
+notes_zh="${MOSA_RELEASE_NOTES_ZH:-MOSA ${release_version} 桌面发布包。}"
+notes_en="${MOSA_RELEASE_NOTES_EN:-MOSA ${release_version} desktop package.}"
 
 MOSA_MANIFEST_OUTPUT="$manifest_file" \
 MOSA_MANIFEST_VERSION="$release_version" \
@@ -299,7 +299,7 @@ remote_windows_sha256="$(printf '%s\n' "$remote_hashes" | sed -n '2p')"
 [[ "$remote_windows_sha256" == "$windows_sha256" ]] || die "remote Windows ZIP hash mismatch"
 
 ssh "${ssh_args[@]}" "$ssh_target" \
-  "set -eu; mv -f '$remote_tmp/$mac_name' '$remote_dir/downloads/$mac_name'; mv -f '$remote_tmp/$windows_name' '$remote_dir/downloads/$windows_name'; mv -f '$remote_tmp/latest.json' '$remote_dir/releases/latest.json'; chmod 0644 '$remote_dir/downloads/$mac_name' '$remote_dir/downloads/$windows_name' '$remote_dir/releases/latest.json'; rmdir '$remote_tmp' || true"
+  "set -eu; install -d -m 0755 '$remote_dir/releases/history'; if [ -f '$remote_dir/releases/latest.json' ]; then cp -f '$remote_dir/releases/latest.json' '$remote_dir/releases/history/latest-$upload_tag.json'; chmod 0644 '$remote_dir/releases/history/latest-$upload_tag.json'; fi; mv -f '$remote_tmp/$mac_name' '$remote_dir/downloads/$mac_name'; mv -f '$remote_tmp/$windows_name' '$remote_dir/downloads/$windows_name'; mv -f '$remote_tmp/latest.json' '$remote_dir/releases/latest.json'; chmod 0644 '$remote_dir/downloads/$mac_name' '$remote_dir/downloads/$windows_name' '$remote_dir/releases/latest.json'; rmdir '$remote_tmp' || true"
 published=1
 
 state_dir="$(dirname "$state_file")"

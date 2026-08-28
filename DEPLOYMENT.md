@@ -75,7 +75,7 @@ cd /Users/azhuilab/codex_aigc/mosa-website
 3. 上传到服务器临时目录后，服务器端 SHA-256 与本机一致。
 4. 两个包先进入 `downloads/`，最后才原子替换 `releases/latest.json`。
 
-因此只有一个平台、正在生成中的包、损坏包或低于已发布版本的包都不会推进线上版本。旧包会保留，可直接回滚到旧文件或旧清单。
+因此只有一个平台、正在生成中的包、损坏包或低于已发布版本的包都不会推进线上版本。旧包会保留；每次替换前的旧清单也会备份到服务器 `releases/history/`，便于回滚。
 
 手动只校验、不上传：
 
@@ -188,7 +188,7 @@ downloads/MOSA-0.2.0-arm64.dmg
 downloads/MOSA-0.2.0-universal.pkg
 ```
 
-不要覆盖旧版本文件。服务器会保留旧下载包，便于回滚；切换官网当前版本只需要修改 `site-config.js`。
+不要覆盖旧版本文件。服务器会保留旧下载包，便于回滚；桌面当前版本由 `releases/latest.json` 驱动，`site-config.js` 中的桌面地址只是清单不可用时的安全回退。
 
 ## 7. 发布后检查
 

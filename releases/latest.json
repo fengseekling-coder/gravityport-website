@@ -2,8 +2,8 @@
   "version": "0.2.0",
   "publishedAt": "2026-08-28T19:54:33Z",
   "notes": {
-    "zh": "MOSA 0.2.0 当前稳定版本。",
-    "en": "MOSA 0.2.0 current stable release."
+    "zh": "MOSA 0.2.0 桌面发布包。Windows 包为预览构建，需在 Windows 实机完成运行验证。",
+    "en": "MOSA 0.2.0 desktop package. The Windows build is a preview and needs runtime verification on Windows."
   },
   "artifacts": {
     "mac": {
