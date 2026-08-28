@@ -14,9 +14,9 @@ mosa-website/
 ├── scripts/                            桌面包校验、上传和监控脚本
 ├── ops/                                macOS launchd 监控模板
 ├── browser-extension/                 私密仓库中的扩展源码快照和说明
-│   └── MOSA-Web-Capture-0.11.1/
+│   └── MOSA-Web-Capture-0.14.0/
 └── downloads/                         会发布到官网的安装包和扩展包
-    └── MOSA-Web-Capture-0.11.1.zip
+    └── MOSA-Web-Capture-0.14.0.zip
 ```
 
 公开下载地址统一使用：
@@ -97,32 +97,32 @@ cd /Users/azhuilab/codex_aigc/mosa-website
 当前浏览器扩展源码快照在：
 
 ```text
-browser-extension/MOSA-Web-Capture-0.11.1/
+browser-extension/MOSA-Web-Capture-0.14.0/
 ```
 
-新版本先新建一个版本目录，并确保目录名与 `manifest.json` 的 `version` 一致。例如 `0.11.2`：
+新版本先新建一个版本目录，并确保目录名与 `manifest.json` 的 `version` 一致。例如下一版 `0.14.1`：
 
 ```text
-browser-extension/MOSA-Web-Capture-0.11.2/
+browser-extension/MOSA-Web-Capture-0.14.1/
 ```
 
 把扩展运行文件放入该目录。扩展包至少应包含 `manifest.json`、`background.js`、`content.js`、`content.css`、`page-hook.js`、`provider-sites.js`、`options.html` 和 `options.js`。然后从版本目录内部打包，保证 ZIP 根目录直接包含 `manifest.json`：
 
 ```bash
-cd /Users/azhuilab/codex_aigc/mosa-website/browser-extension/MOSA-Web-Capture-0.11.2
-rm -f ../../downloads/MOSA-Web-Capture-0.11.2.zip
-zip -qr -X ../../downloads/MOSA-Web-Capture-0.11.2.zip .
+cd /Users/azhuilab/codex_aigc/mosa-website/browser-extension/MOSA-Web-Capture-0.14.1
+rm -f ../../downloads/MOSA-Web-Capture-0.14.1.zip
+zip -qr -X ../../downloads/MOSA-Web-Capture-0.14.1.zip .
 cd /Users/azhuilab/codex_aigc/mosa-website
-unzip -t downloads/MOSA-Web-Capture-0.11.2.zip
-unzip -l downloads/MOSA-Web-Capture-0.11.2.zip | grep 'manifest.json'
+unzip -t downloads/MOSA-Web-Capture-0.14.1.zip
+unzip -l downloads/MOSA-Web-Capture-0.14.1.zip | grep 'manifest.json'
 ```
 
 再编辑 `site-config.js`，把扩展配置切换到新包：
 
 ```js
 extension: {
-  version: "v0.11.2",
-  url: "./downloads/MOSA-Web-Capture-0.11.2.zip",
+  version: "v0.14.1",
+  url: "./downloads/MOSA-Web-Capture-0.14.1.zip",
   label: "浏览器包下载",
 },
 ```
@@ -131,7 +131,7 @@ extension: {
 
 ```bash
 git add -A
-git commit -m "Publish MOSA Web Capture 0.11.2"
+git commit -m "Publish MOSA Web Capture 0.14.1"
 git push origin main
 ```
 
@@ -183,7 +183,7 @@ git push origin main
 建议使用带版本号的稳定文件名：
 
 ```text
-downloads/MOSA-Web-Capture-0.11.2.zip
+downloads/MOSA-Web-Capture-0.14.1.zip
 downloads/MOSA-0.2.0-arm64.dmg
 downloads/MOSA-0.2.0-universal.pkg
 ```
@@ -196,7 +196,7 @@ downloads/MOSA-0.2.0-universal.pkg
 
 ```bash
 curl -fI https://mosa.azhuilab.com/
-curl -fI https://mosa.azhuilab.com/downloads/MOSA-Web-Capture-0.11.1.zip
+curl -fI https://mosa.azhuilab.com/downloads/MOSA-Web-Capture-0.14.0.zip
 ```
 
 ZIP 应返回 `200`、`Content-Type: application/zip` 和 `Content-Disposition: attachment`。若下载地址返回 `404`，先检查文件名大小写、`site-config.js` 路径和 Actions 运行结果。
