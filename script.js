@@ -12,8 +12,10 @@
   };
 
   setText("[data-mac-version]", config.mac?.version ? `版本 ${config.mac.version}` : "即将上线");
+  setText("[data-windows-version]", config.windows?.version ? `版本 ${config.windows.version}` : "即将上线");
   setText("[data-extension-version]", config.extension?.version || "v0.11");
   setText("[data-mac-label]", config.mac?.label || "即将上线");
+  setText("[data-windows-label]", config.windows?.label || "即将上线");
   setText("[data-extension-label]", config.extension?.label || "浏览器包下载");
   setText("[data-year]", String(new Date().getFullYear()));
 
@@ -25,27 +27,96 @@
     toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 3200);
   };
 
-  document.querySelectorAll("[data-download]").forEach((button) => {
-    const kind = button.dataset.download;
-    const item = config[kind] || {};
-    const url = typeof item.url === "string" ? item.url.trim() : "";
+  const pendingMessages = {
+    mac: "MOSA macOS 包尚未配置下载地址。",
+    windows: "MOSA Windows 包尚未配置下载地址。",
+    extension: "浏览器扩展包尚未配置下载地址。",
+  };
 
-    if (url) {
-      button.href = url;
-      button.setAttribute("download", "");
-      return;
+  const campaignRef = (() => {
+    const value = new URLSearchParams(window.location.search).get("ref")?.trim() || "";
+    return /^[A-Za-z0-9._-]{1,64}$/.test(value) ? value : "";
+  })();
+
+  const downloadUrl = (rawUrl) => {
+    if (!campaignRef) return rawUrl;
+    try {
+      const url = new URL(rawUrl, window.location.href);
+      url.searchParams.set("ref", campaignRef);
+      return url.href;
+    } catch {
+      return rawUrl;
     }
+  };
 
-    button.classList.add("is-pending");
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      if (kind === "mac") {
-        showToast("MOSA App 即将上线，敬请期待。");
+  const configureDownload = (kind, item) => {
+    const url = typeof item?.url === "string" ? item.url.trim() : "";
+    const buttons = document.querySelectorAll(`[data-download="${kind}"]`);
+    buttons.forEach((button) => {
+      button.classList.toggle("is-pending", !url);
+      button.removeAttribute("download");
+      if (url) {
+        button.href = downloadUrl(url);
+        button.setAttribute("download", "");
         return;
       }
-      showToast("浏览器扩展包尚未配置下载地址。");
+      button.href = "#";
+      if (button.dataset.pendingHandler === "true") return;
+      button.dataset.pendingHandler = "true";
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        showToast(pendingMessages[kind] || "下载地址尚未配置。");
+      });
     });
-  });
+  };
+
+  ["mac", "windows", "extension"].forEach((kind) => configureDownload(kind, config[kind]));
+
+  const normalizeDesktopRelease = (release) => {
+    if (!release || typeof release !== "object" || Array.isArray(release)) return null;
+    const version = typeof release.version === "string" ? release.version.trim().replace(/^v/i, "") : "";
+    if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) return null;
+
+    const makeArtifact = (platform, label) => {
+      const artifact = release.artifacts?.[platform];
+      const expectedPrefix = platform === "mac" ? "MOSA-darwin-arm64-" : "MOSA-win32-x64-";
+      if (!artifact || typeof artifact !== "object" || Array.isArray(artifact)) return null;
+      const file = typeof artifact.file === "string" ? artifact.file.trim() : "";
+      if (file !== `${expectedPrefix}${version}.zip`) return null;
+      return {
+        version: `v${version}`,
+        url: `./downloads/${encodeURIComponent(file)}`,
+        label,
+      };
+    };
+
+    const mac = makeArtifact("mac", "下载 macOS 包");
+    const windows = makeArtifact("windows", "下载 Windows 包");
+    return mac && windows ? { mac, windows } : null;
+  };
+
+  const loadDesktopRelease = async () => {
+    const feedUrl = typeof config.desktop?.feedUrl === "string" ? config.desktop.feedUrl.trim() : "";
+    if (!feedUrl || typeof window.fetch !== "function") return;
+    try {
+      const response = await window.fetch(feedUrl, {
+        headers: { accept: "application/json", "cache-control": "no-cache" },
+        cache: "no-store",
+      });
+      if (!response.ok) return;
+      const release = normalizeDesktopRelease(await response.json());
+      if (!release) return;
+      setText("[data-mac-version]", `版本 ${release.mac.version}`);
+      setText("[data-windows-version]", `版本 ${release.windows.version}`);
+      setText("[data-mac-label]", release.mac.label);
+      setText("[data-windows-label]", release.windows.label);
+      configureDownload("mac", release.mac);
+      configureDownload("windows", release.windows);
+    } catch {
+      // The checked-in config remains a safe fallback if the feed is unavailable.
+    }
+  };
+  void loadDesktopRelease();
 
   const updateHeader = () => {
     if (!header) return;

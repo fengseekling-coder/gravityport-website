@@ -1,8 +1,24 @@
 {
   "version": "0.2.0",
-  "publishedAt": "2026-08-28T17:00:00Z",
+  "publishedAt": "2026-08-28T19:54:33Z",
   "notes": {
     "zh": "MOSA 0.2.0 当前稳定版本。",
     "en": "MOSA 0.2.0 current stable release."
+  },
+  "artifacts": {
+    "mac": {
+      "platform": "macOS",
+      "arch": "arm64",
+      "file": "MOSA-darwin-arm64-0.2.0.zip",
+      "size": 128079639,
+      "sha256": "3c1c95ce64d153e48b77b9f6bb4ccd2a00a33f4f742fb5aef705771af618650b"
+    },
+    "windows": {
+      "platform": "Windows",
+      "arch": "x64",
+      "file": "MOSA-win32-x64-0.2.0.zip",
+      "size": 154121769,
+      "sha256": "b7ffc65991c386847c06dc9378387ee47f56d74c905da386d01408e137636b5a"
+    }
   }
 }

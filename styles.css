@@ -1353,9 +1353,9 @@ svg {
 }
 
 .download-grid {
-  max-width: 920px;
+  max-width: 1120px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin: 0 auto;
 }
@@ -1381,7 +1381,8 @@ svg {
   gap: 16px;
 }
 
-.download-platform > svg {
+.download-platform > svg,
+.windows-icon {
   width: 48px;
   height: 48px;
 }
@@ -1396,6 +1397,25 @@ svg {
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.download-platform > .windows-icon {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 3px;
+  padding: 5px;
+  margin-bottom: 0;
+  border-radius: 12px;
+  background: #e9e9ed;
+  color: transparent;
+  font-size: 0;
+  letter-spacing: normal;
+}
+
+.windows-icon i {
+  display: block;
+  background: #5f5f68;
 }
 
 .download-platform span {
@@ -2003,8 +2023,8 @@ svg {
   }
 
   .download-grid {
-    grid-template-columns: 1fr;
-    max-width: 560px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 760px;
   }
 
   .download-card > p {
@@ -2221,6 +2241,11 @@ svg {
   .download-card {
     min-height: 0;
     padding: 28px;
+  }
+
+  .download-grid {
+    grid-template-columns: 1fr;
+    max-width: 560px;
   }
 
   .footer-inner {

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.azhuilab.mosa.desktop-release-monitor</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/azhuilab/codex_aigc/mosa-website/scripts/publish-desktop-release.sh</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/Users/azhuilab/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>MOSA_RELEASE_SSH_KEY</key>
+    <string>/Users/azhuilab/.ssh/mosa_website_release_monitor</string>
+    <key>MOSA_RELEASE_KNOWN_HOSTS</key>
+    <string>/Users/azhuilab/.ssh/known_hosts</string>
+  </dict>
+  <key>WatchPaths</key>
+  <array>
+    <string>/Users/azhuilab/codex_aigc/mosa/out/make/zip/darwin/arm64</string>
+    <string>/Users/azhuilab/codex_aigc/mosa/out/make/zip/win32/x64</string>
+  </array>
+  <key>StartInterval</key>
+  <integer>300</integer>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>StandardOutPath</key>
+  <string>/Users/azhuilab/Library/Logs/MOSA/desktop-release-monitor.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/azhuilab/Library/Logs/MOSA/desktop-release-monitor.err.log</string>
+</dict>
+</plist>

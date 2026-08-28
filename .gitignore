@@ -3,3 +3,8 @@
 .env
 .env.*
 !.env.example
+
+# Desktop ZIPs are larger than GitHub's single-file limit and are published
+# directly from mosa/out/make/zip by the local release monitor.
+downloads/MOSA-darwin-arm64-*.zip
+downloads/MOSA-win32-x64-*.zip
