@@ -1,0 +1,11 @@
+# Add this inside the existing `server { ... }` block for mosa.azhuilab.com.
+# Keep the password file OUTSIDE /var/www so it can never be downloaded.
+
+location ^~ /admin/ {
+    auth_basic "MOSA Private Stats";
+    auth_basic_user_file /etc/nginx/.htpasswd-mosa-stats;
+
+    try_files $uri $uri/ /admin/index.html;
+    add_header Cache-Control "no-store, private" always;
+    add_header X-Robots-Tag "noindex, nofollow, noarchive" always;
+}

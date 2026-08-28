@@ -8,3 +8,7 @@
 # directly from mosa/out/make/zip by the local release monitor.
 downloads/MOSA-darwin-arm64-*.zip
 downloads/MOSA-win32-x64-*.zip
+
+# Generated on the production server from Nginx access logs. Never commit
+# private usage aggregates into the website repository.
+admin/stats.json

@@ -81,6 +81,10 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 完整的发布、更新、扩展包和 macOS 安装包操作说明见 [`DEPLOYMENT.md`](./DEPLOYMENT.md)。
 
+私有使用统计面板位于 `admin/`。生产环境由 Nginx Basic Auth 保护 `/admin/`，`scripts/install-private-stats.sh` 每 5 分钟从 Nginx access log 生成一次未提交到 Git 的 `admin/stats.json`。安装和 Nginx 配置步骤见 `DEPLOYMENT.md` 的“私有统计面板”。
+
+渠道链接可以使用 `?ref=`，例如 `https://mosa.azhuilab.com/?ref=reddit_codex`。下载按钮会保留这个短标签到下载请求，便于从 Nginx 日志区分渠道。桌面端的匿名安装/活跃统计同样复用现有更新检查请求，不需要 MOSA 账号；统计字段和关闭方式见主项目 `PRIVACY.md`。
+
 更新官网的常用流程：
 
 ```bash

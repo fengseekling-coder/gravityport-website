@@ -78,6 +78,7 @@ jobs:
             --exclude='/browser-extension/' \
             --exclude='/downloads/' \
             --exclude='/releases/' \
+            --exclude='/admin/stats.json' \
             -e "ssh -i $HOME/.ssh/mosa_deploy_key -p $DEPLOY_PORT -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes" \
             ./ \
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_REMOTE_DIR/"

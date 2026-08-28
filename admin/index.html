@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>MOSA Stats</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="dashboard-shell">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">MOSA PRIVATE</p>
+        <h1>Usage Stats</h1>
+        <p class="subtitle">匿名安装、活跃、下载与渠道数据</p>
+      </div>
+      <div class="header-actions">
+        <div class="updated" id="updatedAt">正在读取数据…</div>
+        <button class="refresh-button" id="refreshButton" type="button">刷新</button>
+      </div>
+    </header>
+
+    <section class="metric-grid" aria-label="核心指标">
+      <article class="metric-card primary"><span>匿名安装</span><strong id="anonymousInstalls">—</strong><small>已上报的安装实例</small></article>
+      <article class="metric-card"><span>首次启动</span><strong id="firstLaunches">—</strong><small>成功报告 first_launch</small></article>
+      <article class="metric-card"><span>24h DAU</span><strong id="dau">—</strong><small>过去 24 小时活跃安装</small></article>
+      <article class="metric-card"><span>7d WAU</span><strong id="wau">—</strong><small>过去 7 天活跃安装</small></article>
+      <article class="metric-card"><span>30d MAU</span><strong id="mau">—</strong><small>过去 30 天活跃安装</small></article>
+      <article class="metric-card"><span>下载请求</span><strong id="downloads">—</strong><small>安装包成功 GET 请求</small></article>
+    </section>
+
+    <section class="panel trend-panel">
+      <div class="panel-heading">
+        <div><p class="panel-kicker">LAST 30 DAYS</p><h2>增长趋势</h2></div>
+        <div class="legend" aria-label="图例">
+          <span><i class="legend-dot installs"></i>首次启动</span>
+          <span><i class="legend-dot active"></i>活跃</span>
+          <span><i class="legend-dot downloads"></i>下载</span>
+        </div>
+      </div>
+      <div class="chart-wrap" id="trendChart" role="img" aria-label="近 30 天使用趋势"></div>
+    </section>
+
+    <section class="detail-grid">
+      <article class="panel">
+        <div class="panel-heading"><div><p class="panel-kicker">PLATFORM</p><h2>平台分布</h2></div></div>
+        <div class="rank-list" id="platformList"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-heading"><div><p class="panel-kicker">VERSION</p><h2>版本分布</h2></div></div>
+        <div class="rank-list" id="versionList"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-heading"><div><p class="panel-kicker">SOURCE</p><h2>渠道来源</h2></div></div>
+        <div class="rank-list" id="refList"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-heading"><div><p class="panel-kicker">DOWNLOADS</p><h2>下载文件</h2></div></div>
+        <div class="rank-list" id="downloadList"></div>
+      </article>
+    </section>
+
+    <section class="notice" id="errorNotice" hidden></section>
+    <footer>数据来自 MOSA 匿名使用统计与 Nginx 访问日志。页面仅供私有运维使用。</footer>
+  </main>
+  <script src="./app.js" defer></script>
+</body>
+</html>

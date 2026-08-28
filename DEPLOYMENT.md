@@ -212,3 +212,73 @@ ZIP 应返回 `200`、`Content-Type: application/zip` 和 `Content-Disposition: 
 - GitHub Actions 使用 `mosa-deploy`，不是 root；该账号只写 `/var/www/mosa-website/`。
 - 自动发布也使用 `mosa-deploy`，不把 root SSH 密钥写进监控模板；本机发布密钥只保存在 `~/.ssh/`，不进入仓库或日志。
 - Nginx 配置和证书不需要随官网仓库提交，服务器配置位置是 `/etc/nginx/sites-available/mosa.azhuilab.com.conf`。
+
+## 10. 匿名安装 / 活跃与渠道统计
+
+MOSA 桌面端不会要求用户注册账号。启用匿名使用统计时，桌面端每天最多一次在既有的 `releases/latest.json` 更新检查请求上附带：`event`、随机 `install_id`、`platform`、`arch` 和 `version`。这些字段不会包含素材、Prompt、文件路径或用户账号数据。用户在应用偏好设置中关闭统计后，客户端仍会正常检查更新，只是不再附带这些字段。
+
+官网支持 `?ref=` 渠道标签。例如：
+
+```text
+https://mosa.azhuilab.com/?ref=bilibili_makerjackie
+https://mosa.azhuilab.com/?ref=reddit_codex
+```
+
+页面会把经过校验的短标签继续附在安装包下载请求上，因此 Nginx 日志可以统计每个渠道带来的下载点击。渠道标签只允许字母、数字、点、下划线和短横线，最长 64 个字符。
+
+服务器已有标准 Nginx access log 时，可以直接复制日志到安全的运维环境后运行：
+
+```bash
+node scripts/report-usage.mjs /path/to/nginx/access.log
+```
+
+输出包含：匿名安装 ID 总数、已报告首次启动数、24 小时 DAU、7 天 WAU、30 天 MAU、平台/版本请求分布、下载文件分布和 `ref` 渠道分布。脚本只读取日志，不修改服务器或应用数据。
+
+若希望进一步减少日志中的网络元数据，生产 Nginx 可为 `/releases/latest.json` 单独配置不含 `$remote_addr`、User-Agent 和 Referer 的 usage log，只保留时间与 `$request_uri`；修改 Nginx 配置后需要单独执行 `nginx -t` 再 reload，这不属于静态网站 Actions 的职责。
+
+### 私有统计面板
+
+仓库内提供了一个不依赖数据库或后端框架的私有统计页：
+
+```text
+admin/index.html
+admin/styles.css
+admin/app.js
+```
+
+生产地址建议保持为：
+
+```text
+https://mosa.azhuilab.com/admin/
+```
+
+页面读取同目录下由服务器生成的 `stats.json`，并显示匿名安装、首次启动、24h DAU、7d WAU、30d MAU、下载请求、近 30 天趋势、平台、版本、渠道与下载文件分布。`admin/stats.json` 已加入 `.gitignore`，官网 Actions 也会在 `rsync --delete` 时显式排除它，因此部署静态网站不会删除服务器上的实时统计文件。
+
+服务器部署完成后，以 root 执行一次：
+
+```bash
+cd /var/www/mosa-website
+bash scripts/install-private-stats.sh
+```
+
+脚本会先生成一次 `admin/stats.json`，然后安装 `/etc/cron.d/mosa-private-stats`，每 5 分钟重新汇总一次 `/var/log/nginx/access.log`。若日志或 Node 路径不同，可在执行前指定：
+
+```bash
+MOSA_ACCESS_LOG=/实际/nginx/access.log MOSA_NODE_BIN=/usr/bin/node bash scripts/install-private-stats.sh
+```
+
+统计页不使用 MOSA 用户账号。访问保护交给 Nginx Basic Auth，示例配置在 `ops/nginx-private-stats.conf.example`。先创建只供你自己使用的密码文件：
+
+```bash
+sudo apt-get install -y apache2-utils
+sudo htpasswd -c /etc/nginx/.htpasswd-mosa-stats mosa-admin
+```
+
+然后把 `ops/nginx-private-stats.conf.example` 中的 `location ^~ /admin/` 片段加入现有 `mosa.azhuilab.com` 的 HTTPS `server {}`，最后验证并 reload：
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+此后访问 `https://mosa.azhuilab.com/admin/` 会先弹出浏览器用户名/密码认证。`/admin/stats.json` 也处于同一受保护路径，不能绕过页面直接公开访问。页面自身还带 `noindex` 与 `X-Robots-Tag`，但真正的访问边界仍以 Nginx Basic Auth 为准。
