@@ -10,6 +10,7 @@ mosa-website/
 ├── styles.css                         页面样式
 ├── script.js                          页面交互和下载按钮
 ├── site-config.js                     版本号和正式下载地址
+├── releases/latest.json               桌面客户端更新检查清单
 ├── browser-extension/                 私密仓库中的扩展源码快照和说明
 │   └── MOSA-Web-Capture-0.11.1/
 └── downloads/                         会发布到官网的安装包和扩展包
@@ -44,6 +45,8 @@ git push origin main
 4. 执行首页、CSS、JS、HTTPS 和 HTTP→HTTPS 冒烟检查。
 
 静态文件更新不需要启动 Node.js，也不需要重启或 reload Nginx。`index.html` 和 `site-config.js` 配置为不缓存，修改下载地址后会及时生效。
+
+桌面客户端固定读取 `https://mosa.azhuilab.com/releases/latest.json` 检查新版本。发布桌面新版时，除了更新下载按钮，还要同步更新该文件的 `version`、`publishedAt` 和双语 `notes`。客户端不会接受该 JSON 提供任意跳转 URL；“前往官网下载”始终打开固定的 MOSA 官网。
 
 ## 3. 发布浏览器扩展包
 
@@ -117,6 +120,19 @@ git push origin main
 ```
 
 没有正式安装包时，保持 `mac.version` 和 `mac.url` 为空，官网会继续显示“即将上线”，不要创建占位文件或假下载链接。超大的安装包不要强行提交 Git；可以放到 GitHub Release、对象存储或 CDN，并把完整 URL 写进 `site-config.js`。
+
+只有安装包已经真实可下载时才提升 `releases/latest.json` 的版本号，避免客户端提示一个尚未提供下载的新版本。例如发布 `0.2.1`：
+
+```json
+{
+  "version": "0.2.1",
+  "publishedAt": "2026-09-01T10:00:00Z",
+  "notes": {
+    "zh": "修复素材收录稳定性并优化性能。",
+    "en": "Improves capture reliability and performance."
+  }
+}
+```
 
 ## 5. 文件命名约定
 
