@@ -1,4 +1,5 @@
 window.MOSA_SITE_CONFIG = Object.freeze({
+  downloadsEnabled: false,
   desktop: {
     feedUrl: "./releases/latest.json",
   },

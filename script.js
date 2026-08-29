@@ -1,5 +1,7 @@
 (function () {
   const config = window.MOSA_SITE_CONFIG || {};
+  const downloadsEnabled = config.downloadsEnabled !== false;
+  const pendingLabel = "即将上线";
   const header = document.querySelector("[data-header]");
   const toast = document.querySelector("[data-toast]");
   let toastTimer = null;
@@ -11,12 +13,13 @@
     });
   };
 
-  setText("[data-mac-version]", config.mac?.version ? `版本 ${config.mac.version}` : "即将上线");
-  setText("[data-windows-version]", config.windows?.version ? `版本 ${config.windows.version}` : "即将上线");
-  setText("[data-extension-version]", config.extension?.version || "v0.11");
-  setText("[data-mac-label]", config.mac?.label || "即将上线");
-  setText("[data-windows-label]", config.windows?.label || "即将上线");
-  setText("[data-extension-label]", config.extension?.label || "浏览器包下载");
+  setText("[data-mac-version]", downloadsEnabled && config.mac?.version ? `版本 ${config.mac.version}` : pendingLabel);
+  setText("[data-windows-version]", downloadsEnabled && config.windows?.version ? `版本 ${config.windows.version}` : pendingLabel);
+  setText("[data-extension-version]", downloadsEnabled ? config.extension?.version || "v0.11" : pendingLabel);
+  setText("[data-mac-label]", downloadsEnabled ? config.mac?.label || pendingLabel : pendingLabel);
+  setText("[data-windows-label]", downloadsEnabled ? config.windows?.label || pendingLabel : pendingLabel);
+  setText("[data-extension-label]", downloadsEnabled ? config.extension?.label || "浏览器包下载" : pendingLabel);
+  setText("[data-extension-guide-label]", downloadsEnabled ? "下载 MOSA Web Capture ZIP" : pendingLabel);
   setText("[data-year]", String(new Date().getFullYear()));
 
   const showToast = (message) => {
@@ -28,9 +31,9 @@
   };
 
   const pendingMessages = {
-    mac: "MOSA macOS 包尚未配置下载地址。",
-    windows: "MOSA Windows 包尚未配置下载地址。",
-    extension: "浏览器扩展包尚未配置下载地址。",
+    mac: "MOSA macOS 下载即将上线，暂时不提供下载。",
+    windows: "MOSA Windows 下载即将上线，暂时不提供下载。",
+    extension: "浏览器扩展下载即将上线，暂时不提供下载。",
   };
 
   const campaignRef = (() => {
@@ -50,11 +53,12 @@
   };
 
   const configureDownload = (kind, item) => {
-    const url = typeof item?.url === "string" ? item.url.trim() : "";
+    const url = downloadsEnabled && typeof item?.url === "string" ? item.url.trim() : "";
     const buttons = document.querySelectorAll(`[data-download="${kind}"]`);
     buttons.forEach((button) => {
       button.classList.toggle("is-pending", !url);
       button.removeAttribute("download");
+      button.toggleAttribute("aria-disabled", !url);
       if (url) {
         button.href = downloadUrl(url);
         button.setAttribute("download", "");
@@ -96,6 +100,7 @@
   };
 
   const loadDesktopRelease = async () => {
+    if (!downloadsEnabled) return;
     const feedUrl = typeof config.desktop?.feedUrl === "string" ? config.desktop.feedUrl.trim() : "";
     if (!feedUrl || typeof window.fetch !== "function") return;
     try {
