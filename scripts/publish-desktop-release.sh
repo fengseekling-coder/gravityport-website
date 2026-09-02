@@ -331,5 +331,5 @@ umask 077
 printf '%s\n' "$release_signature" > "$state_file"
 chmod 0600 "$state_file"
 
-log "已发布 MOSA $release_version：macOS ${mac_size} bytes，Windows ${windows_size} bytes。"
+log "已发布 MOSA ${release_version}：macOS ${mac_size} bytes，Windows ${windows_size} bytes。"
 log "SHA-256 已在本机与服务器两端核对。"
