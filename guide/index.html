@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="MOSA Web Capture 安装教程。" />
+    <meta name="theme-color" content="#f4f4f7" />
+    <link rel="canonical" href="https://mosa.azhuilab.com/guide/" />
+    <link rel="icon" href="../assets/mosa-mark.svg" type="image/svg+xml" />
+    <title>MOSA Web Capture · 安装教程</title>
+    <link rel="stylesheet" href="./styles.css?v=20260902-v2" />
+  </head>
+  <body>
+    <header class="guide-header">
+      <div class="guide-shell guide-header-inner">
+        <a class="guide-brand" href="../"><span class="guide-mark"><i></i><i></i><i></i><i></i></span><b>MOSA</b></a>
+        <a class="guide-back" href="../">返回官网</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="guide-hero">
+        <div class="guide-shell guide-hero-inner">
+          <span class="guide-kicker">WEB CAPTURE / INSTALL GUIDE</span>
+          <h1>四步接好<br />MOSA Web Capture。</h1>
+          <p>浏览器扩展负责把网页里的 AI 生成结果送进本机 MOSA。正式下载开放后，按照下面的步骤安装即可。</p>
+          <a class="guide-button" href="../#download">前往下载页 <span>↗</span></a>
+        </div>
+      </section>
+
+      <section class="guide-content">
+        <div class="guide-shell guide-grid">
+          <ol class="guide-steps">
+            <li><span class="step-number">01</span><div><h2>下载并解压 ZIP</h2><p>下载 MOSA Web Capture ZIP 后，把它解压到一个固定的本地文件夹。不要直接在 ZIP 压缩包里加载扩展。</p></div></li>
+            <li><span class="step-number">02</span><div><h2>打开扩展管理页</h2><p>在 Chrome / Chromium 地址栏输入 <code>chrome://extensions</code>，然后打开右上角的“开发者模式”。</p></div></li>
+            <li><span class="step-number">03</span><div><h2>加载完整插件包文件夹</h2><p>点击“加载已解压的扩展程序”，选择解压后的插件文件夹。打开后第一层应该能直接看到 <code>manifest.json</code>。</p></div></li>
+            <li><span class="step-number">04</span><div><h2>填写本机地址并测试连接</h2><p>在扩展选项里填写本机 MOSA 地址，默认是 <code>http://127.0.0.1:43517</code>，并填写与 MOSA 服务一致的 <code>Ingest Token</code>，保存后点击“测试连接”。</p></div></li>
+          </ol>
+
+          <aside class="guide-side">
+            <div class="package-card">
+              <span class="side-label">ZIP ROOT</span>
+              <h2>确认你选对了目录</h2>
+              <p>被选择的文件夹第一层应该直接看到这些文件：</p>
+              <ul><li><code>manifest.json</code><span>扩展入口</span></li><li><code>background.js</code><span>后台服务</span></li><li><code>options.html</code><span>设置页</span></li></ul>
+            </div>
+            <div class="tip-card">
+              <span class="side-label">TROUBLESHOOTING</span>
+              <h2>连接不上时先检查</h2>
+              <ul><li>MOSA 桌面端是否正在运行。</li><li>地址是否仍为本机地址，而不是公网地址。</li><li>Token 是否与 MOSA 当前服务一致。</li><li>扩展更新后，是否在扩展管理页点击了刷新。</li></ul>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer class="guide-footer"><div class="guide-shell"><span>© 2026 MOSA</span><a href="../privacy/">隐私政策</a></div></footer>
+  </body>
+</html>

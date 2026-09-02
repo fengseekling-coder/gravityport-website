@@ -49,6 +49,8 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 - `styles.css`：独立视觉样式和响应式布局
 - `script.js`：下载配置、滚动动效和轻交互
 - `site-config.js`：版本号与下载地址
+- `guide/`：MOSA Web Capture 独立安装教程，避免技术步骤挤占官网首页主叙事
+- `robots.txt` / `sitemap.xml`：搜索引擎抓取与站点地图
 - `releases/latest.json`：桌面版本、校验值和平台包清单
 - `browser-extension/`：浏览器扩展的私密源码快照和发布说明
 - `downloads/`：正式安装包/扩展包放置位置，不属于主应用目录

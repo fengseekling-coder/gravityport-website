@@ -1,4 +1,5 @@
 (function () {
+  document.documentElement.classList.add("motion-ready");
   const config = window.MOSA_SITE_CONFIG || {};
   const downloadsEnabled = config.downloadsEnabled !== false;
   const pendingLabel = "即将上线";
@@ -138,8 +139,25 @@
   const communityQrImage = document.querySelector(".community-qr img");
   let communityTrigger = null;
 
+  const ensureCommunityQr = () => {
+    if (!communityQrImage) return;
+    const source = communityQrImage.dataset.src?.trim();
+    if (!source) return;
+    if (!communityQrImage.hasAttribute("src")) {
+      communityQrImage.src = source;
+    }
+    const updateCopyState = () => {
+      if (communityCopyButton && communityQrImage.complete && communityQrImage.naturalWidth) {
+        communityCopyButton.disabled = false;
+      }
+    };
+    updateCopyState();
+    communityQrImage.addEventListener("load", updateCopyState, { once: true });
+  };
+
   const openCommunityDialog = (trigger) => {
     if (!communityDialog || communityDialog.open) return;
+    ensureCommunityQr();
     communityTrigger = trigger;
     document.body.classList.add("community-dialog-open");
     communityDialog.showModal();

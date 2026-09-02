@@ -1,4 +1,5 @@
 .preview.log
+.audit-*.png
 .DS_Store
 .env
 .env.*
