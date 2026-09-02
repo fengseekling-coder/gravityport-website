@@ -9,7 +9,7 @@
     />
     <meta name="theme-color" content="#f5f5f7" />
     <title>MOSA · AI 创作的本地素材库</title>
-    <link rel="stylesheet" href="./styles.css?v=20260827-1" />
+    <link rel="stylesheet" href="./styles.css?v=20260902-1" />
   </head>
   <body>
     <header class="site-header" data-header>
@@ -27,9 +27,13 @@
           <a href="#privacy">本地优先</a>
           <a href="#download">下载</a>
           <a href="#extension-guide">安装教程</a>
+          <button class="nav-community" type="button" data-community-open aria-haspopup="dialog">加入交流群</button>
         </nav>
 
-        <a class="header-download" href="#download">即将上线</a>
+        <div class="header-actions">
+          <button class="header-community" type="button" data-community-open aria-haspopup="dialog">加入交流群</button>
+          <a class="header-download" href="#download">即将上线</a>
+        </div>
       </div>
     </header>
 
@@ -417,15 +421,35 @@
           <a href="./privacy/">隐私政策</a>
           <a href="#download">下载</a>
           <a href="#extension-guide">安装教程</a>
+          <button class="footer-community" type="button" data-community-open aria-haspopup="dialog">加入交流群</button>
           <a href="https://github.com/fengseekling-coder/mosa" target="_blank" rel="noreferrer">GitHub</a>
         </div>
         <span class="footer-copy">© <span data-year></span> MOSA</span>
       </div>
     </footer>
 
+    <dialog class="community-dialog" data-community-dialog aria-labelledby="community-dialog-title" aria-describedby="community-dialog-description">
+      <div class="community-dialog-copy">
+        <span class="community-dialog-label">MOSA COMMUNITY</span>
+        <h2 id="community-dialog-title">加入 MOSA 创作者交流群</h2>
+        <p id="community-dialog-description">和正在搭建素材库的创作者一起，交流跨平台素材管理、Prompt 整理与 AI 创作工作流。</p>
+        <div class="community-dialog-note">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v2h14v-2" /></svg>
+          <span>使用微信扫描二维码加入</span>
+        </div>
+      </div>
+      <figure class="community-qr">
+        <img src="./assets/mosa-community-qr.jpg" alt="MOSA AI 创作者跨平台素材管理交流群二维码" />
+        <figcaption>群二维码会定期更新，请以此页面展示为准。</figcaption>
+      </figure>
+      <button class="community-dialog-close" type="button" data-community-close aria-label="关闭交流群二维码">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+      </button>
+    </dialog>
+
     <div class="toast" role="status" aria-live="polite" data-toast></div>
 
     <script src="./site-config.js"></script>
-    <script src="./script.js?v=20260828-1"></script>
+    <script src="./script.js?v=20260902-1"></script>
   </body>
 </html>

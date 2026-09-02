@@ -130,6 +130,35 @@
   updateHeader();
   window.addEventListener("scroll", updateHeader, { passive: true });
 
+  const communityDialog = document.querySelector("[data-community-dialog]");
+  const communityOpeners = document.querySelectorAll("[data-community-open]");
+  const communityCloser = document.querySelector("[data-community-close]");
+  let communityTrigger = null;
+
+  const openCommunityDialog = (trigger) => {
+    if (!communityDialog || communityDialog.open) return;
+    communityTrigger = trigger;
+    document.body.classList.add("community-dialog-open");
+    communityDialog.showModal();
+    communityCloser?.focus();
+  };
+
+  communityOpeners.forEach((opener) => {
+    opener.addEventListener("click", () => openCommunityDialog(opener));
+  });
+
+  communityCloser?.addEventListener("click", () => communityDialog?.close());
+
+  communityDialog?.addEventListener("click", (event) => {
+    if (event.target === communityDialog) communityDialog.close();
+  });
+
+  communityDialog?.addEventListener("close", () => {
+    document.body.classList.remove("community-dialog-open");
+    communityTrigger?.focus();
+    communityTrigger = null;
+  });
+
   const revealItems = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window) {
     const observer = new IntersectionObserver(
