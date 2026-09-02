@@ -2,7 +2,7 @@
   document.documentElement.classList.add("motion-ready");
   const config = window.MOSA_SITE_CONFIG || {};
   const downloadsEnabled = config.downloadsEnabled !== false;
-  const pendingLabel = "即将上线";
+  const pendingLabel = downloadsEnabled ? "正在获取最新版本" : "即将上线";
   const header = document.querySelector("[data-header]");
   const toast = document.querySelector("[data-toast]");
   let toastTimer = null;
@@ -32,8 +32,8 @@
   };
 
   const pendingMessages = {
-    mac: "MOSA macOS 下载即将上线，暂时不提供下载。",
-    windows: "MOSA Windows 下载即将上线，暂时不提供下载。",
+    mac: downloadsEnabled ? "暂时无法获取最新 macOS 安装包，请稍后重试。" : "MOSA macOS 下载即将上线，暂时不提供下载。",
+    windows: downloadsEnabled ? "暂时无法获取最新 Windows 安装包，请稍后重试。" : "MOSA Windows 下载即将上线，暂时不提供下载。",
     extension: "浏览器扩展下载即将上线，暂时不提供下载。",
   };
 

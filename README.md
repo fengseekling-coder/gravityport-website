@@ -14,7 +14,7 @@ python3 -m http.server 8080
 
 ## 配置下载地址
 
-下载按钮统一在 `site-config.js` 配置：
+桌面下载按钮只读取 `releases/latest.json`：页面不会内置旧桌面包地址，因此只会提供当前清单中的最新 macOS / Windows 成对版本。`site-config.js` 只保留浏览器扩展的静态下载地址：
 
 ```js
 window.MOSA_SITE_CONFIG = Object.freeze({
@@ -22,13 +22,13 @@ window.MOSA_SITE_CONFIG = Object.freeze({
     feedUrl: "./releases/latest.json",
   },
   mac: {
-    version: "v0.2.0",
-    url: "./downloads/MOSA-darwin-arm64-0.2.0.zip",
+    version: "",
+    url: "",
     label: "下载 macOS 包",
   },
   windows: {
-    version: "v0.2.0",
-    url: "./downloads/MOSA-win32-x64-0.2.0.zip",
+    version: "",
+    url: "",
     label: "下载 Windows 包",
   },
   extension: {
@@ -39,9 +39,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 });
 ```
 
-也可以把 `url` 改成 GitHub Release、对象存储或 CDN 的完整下载地址。
-
-如果 `url` 为空，按钮不会跳转到不存在的文件，而是提示“尚未配置下载地址”。这是为了避免官网出现假下载链接。
+桌面清单无法读取时，桌面下载按钮不会跳转到旧包或不存在的文件；用户会看到重试提示。这确保官网始终只提供最新版本。
 
 ## 目录
 
@@ -65,7 +63,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 本仓库的 `main` 分支配置了 GitHub Actions。推送到 `main` 后，Actions 会通过专用 SSH 部署账号把网站和 `downloads/` 下载包同步到 DMIT 的 `/var/www/mosa-website/`，并执行 HTTPS 冒烟检查；`browser-extension/` 只保存在私密仓库，不发布源码目录；不会启动 Node.js，也不会反向代理 MOSA 本地服务。
 
-桌面 ZIP 约 128–154 MB，超过 GitHub 单文件限制，不提交到 Git。macOS 本机的监控任务会观察 `/Users/azhuilab/codex_aigc/mosa/out/make/zip/`：当 macOS arm64 和 Windows x64 的同版本 ZIP 都写完后，自动校验 ZIP、计算 SHA-256，通过受限 `mosa-deploy` 账号上传到网站，并原子更新 `releases/latest.json`。旧版本文件不会删除。
+桌面 ZIP 约 128–154 MB，超过 GitHub 单文件限制，不提交到 Git。macOS 本机的监控任务会观察 `/Users/azhuilab/codex_aigc/mosa/out/make/zip/`：当 macOS arm64 和 Windows x64 的同版本 ZIP 都写完后，自动校验 ZIP、计算 SHA-256，通过受限 `mosa-deploy` 账号上传到网站，并原子更新 `releases/latest.json`。服务器仅保留最新四个完整桌面版本（当前版本加三个历史版本）；扩展 ZIP 与不成对文件不会被这项清理触及。
 
 首次启用监控：
 
@@ -97,4 +95,4 @@ git push origin main
 
 仓库 Actions 需要以下 Secrets：`DEPLOY_HOST`、`DEPLOY_PORT`、`DEPLOY_USER`、`DEPLOY_REMOTE_DIR`、`DEPLOY_SSH_KEY` 和 `DEPLOY_KNOWN_HOSTS`。其中私钥只保存在 GitHub Secrets，不放入仓库。
 
-正式包按以下约定保存：`downloads/MOSA-Web-Capture-版本.zip`、`downloads/MOSA-版本.dmg` 或 `downloads/MOSA-版本.pkg`。浏览器扩展 ZIP 可以提交并由 Actions 同步；桌面 ZIP 由本机监控程序直接发布。服务器 `downloads/` 中仅存在于服务器的旧包也会保留，不会被自动删除。
+正式包按以下约定保存：`downloads/MOSA-Web-Capture-版本.zip`、`downloads/MOSA-版本.dmg` 或 `downloads/MOSA-版本.pkg`。浏览器扩展 ZIP 可以提交并由 Actions 同步；桌面 ZIP 由本机监控程序直接发布。服务器只保留最新四组完整的桌面 ZIP，旧包不出现在官网页面。

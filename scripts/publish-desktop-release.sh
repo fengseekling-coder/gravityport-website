@@ -11,6 +11,9 @@ log() {
 }
 
 source_root="${MOSA_RELEASE_SOURCE_DIR:-/Users/azhuilab/codex_aigc/mosa/out/make/zip}"
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+retention_selector="$script_dir/select-desktop-release-retention.mjs"
+desktop_retention_count=4
 ssh_host="${MOSA_RELEASE_SSH_HOST:-179.253.232.244}"
 ssh_user="${MOSA_RELEASE_SSH_USER:-mosa-deploy}"
 ssh_port="${MOSA_RELEASE_SSH_PORT:-22}"
@@ -32,6 +35,7 @@ command -v node >/dev/null 2>&1 || die "node is required"
 command -v unzip >/dev/null 2>&1 || die "unzip is required"
 command -v shasum >/dev/null 2>&1 || die "shasum is required"
 command -v stat >/dev/null 2>&1 || die "stat is required"
+[[ -r "$retention_selector" ]] || die "desktop retention selector is missing: $retention_selector"
 
 file_size() {
   local candidate="$1"
@@ -301,6 +305,25 @@ remote_windows_sha256="$(printf '%s\n' "$remote_hashes" | sed -n '2p')"
 ssh "${ssh_args[@]}" "$ssh_target" \
   "set -eu; install -d -m 0755 '$remote_dir/releases/history'; if [ -f '$remote_dir/releases/latest.json' ]; then cp -f '$remote_dir/releases/latest.json' '$remote_dir/releases/history/latest-$upload_tag.json'; chmod 0644 '$remote_dir/releases/history/latest-$upload_tag.json'; fi; mv -f '$remote_tmp/$mac_name' '$remote_dir/downloads/$mac_name'; mv -f '$remote_tmp/$windows_name' '$remote_dir/downloads/$windows_name'; mv -f '$remote_tmp/latest.json' '$remote_dir/releases/latest.json'; chmod 0644 '$remote_dir/downloads/$mac_name' '$remote_dir/downloads/$windows_name' '$remote_dir/releases/latest.json'; rmdir '$remote_tmp' || true"
 published=1
+
+remote_desktop_files="$(ssh "${ssh_args[@]}" "$ssh_target" \
+  "find '$remote_dir/downloads' -maxdepth 1 -type f -printf '%f\\n'")"
+stale_desktop_pairs="$(printf '%s\n' "$remote_desktop_files" | node "$retention_selector" "$desktop_retention_count")" \
+  || die "could not select retained desktop release pairs"
+
+if [[ -n "$stale_desktop_pairs" ]]; then
+  removed_desktop_versions=0
+  while IFS=$'\t' read -r stale_mac_name stale_windows_name; do
+    [[ "$stale_mac_name" =~ ^MOSA-darwin-arm64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
+      || die "invalid macOS retention filename: $stale_mac_name"
+    [[ "$stale_windows_name" =~ ^MOSA-win32-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
+      || die "invalid Windows retention filename: $stale_windows_name"
+    ssh "${ssh_args[@]}" "$ssh_target" \
+      "rm -f -- '$remote_dir/downloads/$stale_mac_name' '$remote_dir/downloads/$stale_windows_name'"
+    ((removed_desktop_versions += 1))
+  done <<< "$stale_desktop_pairs"
+  log "已清理 $removed_desktop_versions 个超出保留上限的完整桌面版本。"
+fi
 
 state_dir="$(dirname "$state_file")"
 install -d -m 0700 "$state_dir"

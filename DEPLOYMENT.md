@@ -75,7 +75,7 @@ cd /Users/azhuilab/codex_aigc/mosa-website
 3. 上传到服务器临时目录后，服务器端 SHA-256 与本机一致。
 4. 两个包先进入 `downloads/`，最后才原子替换 `releases/latest.json`。
 
-因此只有一个平台、正在生成中的包、损坏包或低于已发布版本的包都不会推进线上版本。旧包会保留；每次替换前的旧清单也会备份到服务器 `releases/history/`，便于回滚。
+因此只有一个平台、正在生成中的包、损坏包或低于已发布版本的包都不会推进线上版本。每次替换前的旧清单会备份到服务器 `releases/history/`，便于回滚。桌面包会保留最新四个完整版本（当前版本加三个历史版本）：发布器在新包与 `releases/latest.json` 原子切换完成后，才删除更旧的 macOS / Windows 成对 ZIP；浏览器扩展 ZIP 和不成对文件不会被删除。
 
 手动只校验、不上传：
 
@@ -188,7 +188,7 @@ downloads/MOSA-0.2.0-arm64.dmg
 downloads/MOSA-0.2.0-universal.pkg
 ```
 
-不要覆盖旧版本文件。服务器会保留旧下载包，便于回滚；桌面当前版本由 `releases/latest.json` 驱动，`site-config.js` 中的桌面地址只是清单不可用时的安全回退。
+不要覆盖旧版本文件。服务器保留最新四组完整桌面 ZIP，便于回滚；桌面当前版本和官网下载地址都只由 `releases/latest.json` 驱动。清单暂时不可用时，官网不会回退到旧包，而是提示稍后重试。
 
 ## 7. 发布后检查
 
@@ -203,7 +203,7 @@ ZIP 应返回 `200`、`Content-Type: application/zip` 和 `Content-Disposition: 
 
 ## 8. 回滚
 
-如果新版本有问题，把 `site-config.js` 的地址改回旧包并推送即可；也可以使用 Git 的 `git revert` 回滚对应提交。旧包不会被自动删除，因此不需要直接登录服务器清理文件。
+如果新版本有问题，使用最近三份服务器保留包之一重新发布对应的 `releases/latest.json` 即可；也可以使用 Git 的 `git revert` 回滚页面变更。不要直接删除服务器上的桌面 ZIP；发布器会在下一次成功发布后按四版本策略自动清理超出的完整包对。
 
 ## 9. 安全边界
 

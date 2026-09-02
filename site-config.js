@@ -4,13 +4,13 @@ window.MOSA_SITE_CONFIG = Object.freeze({
     feedUrl: "./releases/latest.json",
   },
   mac: {
-    version: "v0.2.1",
-    url: "./downloads/MOSA-darwin-arm64-0.2.1.zip",
+    version: "",
+    url: "",
     label: "下载 macOS 包",
   },
   windows: {
-    version: "v0.2.1",
-    url: "./downloads/MOSA-win32-x64-0.2.1.zip",
+    version: "",
+    url: "",
     label: "下载 Windows 包",
   },
   extension: {
