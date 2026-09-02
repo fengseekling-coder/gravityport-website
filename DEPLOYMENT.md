@@ -215,7 +215,7 @@ ZIP 应返回 `200`、`Content-Type: application/zip` 和 `Content-Disposition: 
 
 ## 10. 匿名安装 / 活跃与渠道统计
 
-MOSA 桌面端不会要求用户注册账号。桌面端每天最多一次在既有的 `releases/latest.json` 更新检查请求上附带：`event`、随机 `install_id`、`platform`、`arch` 和 `version`。这些字段不会包含素材、Prompt、文件路径或用户账号数据；应用设置中不提供关闭该最小匿名统计的开关。
+MOSA 桌面端不会要求用户注册账号。正式桌面版每天最多一次向 `releases/latest.json` 发送独立的无响应体匿名使用请求，附带：`event`、随机且持久化的 `install_id`、`platform`、`arch` 和 `version`。它与安装包下载渠道解耦，因此从官网、GitHub 或直接分享获得的正式安装包都会使用同一上报机制。这些字段不会包含素材、Prompt、文件路径或用户账号数据；应用设置中不提供关闭该最小匿名统计的开关。
 
 官网支持 `?ref=` 渠道标签。例如：
 
