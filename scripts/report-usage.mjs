@@ -15,6 +15,8 @@ if (!logPath || (outputIndex >= 0 && !outputPath)) {
 const DAY_MS = 24 * 60 * 60 * 1000;
 const now = Date.now();
 const TREND_DAYS = 30;
+const INSTALLATION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const USAGE_EVENTS = new Set(["first_launch", "daily_active"]);
 
 function parseNginxTimestamp(value) {
   const match = /^(\d{2})\/([A-Za-z]{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2}) ([+-]\d{4})$/.exec(value);
@@ -74,13 +76,13 @@ for (const line of content.split(/\r?\n/)) {
   if (!parsed) continue;
   const { method, status, time, url } = parsed;
 
-  if (url.pathname === "/releases/latest.json") {
+  if (url.pathname === "/releases/latest.json" && status >= 200 && status < 300) {
     const event = url.searchParams.get("event") || "";
     const installId = url.searchParams.get("install_id") || "";
     const platform = url.searchParams.get("platform") || "";
     const arch = url.searchParams.get("arch") || "";
     const version = url.searchParams.get("version") || "";
-    if (!/^[0-9a-f-]{36}$/i.test(installId) || !["first_launch", "daily_active"].includes(event)) continue;
+    if (!INSTALLATION_ID_PATTERN.test(installId) || !USAGE_EVENTS.has(event)) continue;
     const current = installs.get(installId) || {
       first: Infinity,
       last: -Infinity,
