@@ -1904,12 +1904,33 @@ svg {
 
 .community-dialog-note {
   display: inline-flex;
+  width: max-content;
+  min-height: 38px;
   align-items: center;
   gap: 8px;
-  margin-top: 28px;
-  color: var(--ink-2);
+  margin-top: 26px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
   font-size: 12px;
   font-weight: 620;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.community-dialog-note:hover:not(:disabled) {
+  border-color: rgb(36 36 255 / 0.24);
+  background: var(--blue-soft);
+  color: var(--blue);
+  transform: translateY(-1px);
+}
+
+.community-dialog-note:disabled {
+  cursor: wait;
+  opacity: 0.68;
 }
 
 .community-dialog-note svg,

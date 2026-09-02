@@ -9,7 +9,7 @@
     />
     <meta name="theme-color" content="#f5f5f7" />
     <title>MOSA · AI 创作的本地素材库</title>
-    <link rel="stylesheet" href="./styles.css?v=20260902-2" />
+    <link rel="stylesheet" href="./styles.css?v=20260902-3" />
   </head>
   <body>
     <header class="site-header" data-header>
@@ -433,10 +433,10 @@
         <span class="community-dialog-label">MOSA COMMUNITY</span>
         <h2 id="community-dialog-title">加入 MOSA 创作者交流群</h2>
         <p id="community-dialog-description">和正在搭建素材库的创作者一起，交流跨平台素材管理、Prompt 整理与 AI 创作工作流。</p>
-        <div class="community-dialog-note">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v2h14v-2" /></svg>
-          <span>使用微信扫描二维码加入</span>
-        </div>
+        <button class="community-dialog-note" type="button" data-community-copy>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h10v14H9zM5 19H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1" /></svg>
+          <span data-community-copy-label>复制二维码图片</span>
+        </button>
       </div>
       <figure class="community-qr">
         <img src="./assets/mosa-community-qr.jpg" alt="MOSA AI 创作者跨平台素材管理交流群二维码" />
@@ -450,6 +450,6 @@
     <div class="toast" role="status" aria-live="polite" data-toast></div>
 
     <script src="./site-config.js"></script>
-    <script src="./script.js?v=20260902-1"></script>
+    <script src="./script.js?v=20260902-2"></script>
   </body>
 </html>

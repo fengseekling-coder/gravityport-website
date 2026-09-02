@@ -133,6 +133,9 @@
   const communityDialog = document.querySelector("[data-community-dialog]");
   const communityOpeners = document.querySelectorAll("[data-community-open]");
   const communityCloser = document.querySelector("[data-community-close]");
+  const communityCopyButton = document.querySelector("[data-community-copy]");
+  const communityCopyLabel = document.querySelector("[data-community-copy-label]");
+  const communityQrImage = document.querySelector(".community-qr img");
   let communityTrigger = null;
 
   const openCommunityDialog = (trigger) => {
@@ -157,6 +160,71 @@
     document.body.classList.remove("community-dialog-open");
     communityTrigger?.focus();
     communityTrigger = null;
+  });
+
+  const clamp = (value, minimum, maximum) => Math.min(Math.max(value, minimum), maximum);
+
+  const percentage = (value, fallback) => {
+    if (!value?.endsWith("%")) return fallback;
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? clamp(parsed / 100, 0, 1) : fallback;
+  };
+
+  const createCommunityQrBlob = () => {
+    if (!communityQrImage?.complete || !communityQrImage.naturalWidth || !communityQrImage.naturalHeight) {
+      throw new Error("QR image is unavailable");
+    }
+
+    const style = window.getComputedStyle(communityQrImage);
+    const box = communityQrImage.getBoundingClientRect();
+    const horizontalBorders = Number.parseFloat(style.borderLeftWidth) + Number.parseFloat(style.borderRightWidth);
+    const verticalBorders = Number.parseFloat(style.borderTopWidth) + Number.parseFloat(style.borderBottomWidth);
+    const width = box.width - horizontalBorders;
+    const height = box.height - verticalBorders;
+    const scale = Math.max(width / communityQrImage.naturalWidth, height / communityQrImage.naturalHeight);
+    const sourceWidth = width / scale;
+    const sourceHeight = height / scale;
+    const [horizontalPosition, verticalPosition] = style.objectPosition.split(/\s+/);
+    const sourceX = clamp(
+      (communityQrImage.naturalWidth - sourceWidth) * percentage(horizontalPosition, 0.5),
+      0,
+      communityQrImage.naturalWidth - sourceWidth,
+    );
+    const sourceY = clamp(
+      (communityQrImage.naturalHeight - sourceHeight) * percentage(verticalPosition, 0.5),
+      0,
+      communityQrImage.naturalHeight - sourceHeight,
+    );
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(sourceWidth);
+    canvas.height = Math.round(sourceHeight);
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas is unavailable");
+    context.drawImage(communityQrImage, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height);
+
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("QR image export failed"))), "image/png");
+    });
+  };
+
+  communityCopyButton?.addEventListener("click", async () => {
+    if (!window.ClipboardItem || !navigator.clipboard?.write) {
+      showToast("当前浏览器不支持直接复制图片，请使用最新版浏览器。");
+      return;
+    }
+
+    communityCopyButton.disabled = true;
+    if (communityCopyLabel) communityCopyLabel.textContent = "正在复制…";
+    try {
+      const imageBlob = createCommunityQrBlob();
+      await navigator.clipboard.write([new window.ClipboardItem({ "image/png": imageBlob })]);
+      showToast("二维码图片已复制，可直接粘贴到微信。");
+    } catch {
+      showToast("复制失败，请允许浏览器访问剪贴板后重试。");
+    } finally {
+      communityCopyButton.disabled = false;
+      if (communityCopyLabel) communityCopyLabel.textContent = "复制二维码图片";
+    }
   });
 
   const revealItems = document.querySelectorAll(".reveal");
