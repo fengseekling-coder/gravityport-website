@@ -1,16 +1,16 @@
 window.MOSA_SITE_CONFIG = Object.freeze({
-  downloadsEnabled: false,
+  downloadsEnabled: true,
   desktop: {
     feedUrl: "./releases/latest.json",
   },
   mac: {
-    version: "v0.2.0",
-    url: "./downloads/MOSA-darwin-arm64-0.2.0.zip",
+    version: "v0.2.1",
+    url: "./downloads/MOSA-darwin-arm64-0.2.1.zip",
     label: "下载 macOS 包",
   },
   windows: {
-    version: "v0.2.0",
-    url: "./downloads/MOSA-win32-x64-0.2.0.zip",
+    version: "v0.2.1",
+    url: "./downloads/MOSA-win32-x64-0.2.1.zip",
     label: "下载 Windows 包",
   },
   extension: {
