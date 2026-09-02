@@ -1843,6 +1843,10 @@ svg {
   cursor: pointer;
 }
 
+.community-dialog:not([open]) {
+  display: none;
+}
+
 .community-dialog {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 315px;
