@@ -1945,14 +1945,16 @@ svg {
 .community-qr img {
   position: relative;
   z-index: 1;
-  width: 100%;
+  width: calc(100% - 16px);
+  justify-self: center;
+  margin-top: 20px;
   aspect-ratio: 1;
   border: 8px solid #fff;
   border-radius: 16px;
   background: #fff;
   box-shadow: 0 16px 38px rgb(36 36 255 / 0.14);
   object-fit: cover;
-  object-position: center;
+  object-position: center 42%;
 }
 
 .community-qr figcaption {
