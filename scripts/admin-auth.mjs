@@ -134,6 +134,7 @@ function send(response, status, body = "", headers = {}) {
   const payload = Buffer.from(body, "utf8");
   response.writeHead(status, {
     "Cache-Control": "no-store",
+    "Content-Type": "text/plain; charset=utf-8",
     "Content-Length": payload.length,
     ...headers,
   });

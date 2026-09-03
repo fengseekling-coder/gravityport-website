@@ -48,7 +48,8 @@ install -d -m 0755 "${SITE_ROOT}/admin"
 install -d -m 0700 "${STATE_DIR}"
 "${NODE_BIN}" "${SITE_ROOT}/scripts/report-usage.mjs" "${ACCESS_LOG}" --state "${STATE_FILE}" --output "${SITE_ROOT}/admin/stats.json"
 
-install -d -o root -g www-data -m 0750 "${AUTH_STATE_DIR}"
+install -d -o root -g www-data -m 0770 "${AUTH_STATE_DIR}"
+chmod 0770 "${AUTH_STATE_DIR}"
 if [[ ! -e "${AUTH_STATE_FILE}" ]]; then
   install -o www-data -g www-data -m 0600 /dev/null "${AUTH_STATE_FILE}"
 else

@@ -81,6 +81,7 @@ test("admin auth creates a persistent 30-day session cookie", async () => {
     const unauthorized = await fetch(`http://127.0.0.1:${port}/auth`);
     assert.equal(unauthorized.status, 401);
     assert.equal(unauthorized.headers.get("www-authenticate"), null);
+    assert.match(unauthorized.headers.get("content-type"), /^text\/plain; charset=utf-8$/);
 
     await stopServer(server.child);
     server = startServer(environment);
