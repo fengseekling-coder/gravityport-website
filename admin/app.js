@@ -137,7 +137,8 @@
     setMetric("dau", data.dau24h);
     setMetric("wau", data.wau7d);
     setMetric("mau", data.mau30d);
-    setMetric("downloads", data.totalDownloadRequests);
+    setMetric("desktopDownloads", data.totalDesktopDownloadRequests);
+    setMetric("extensionDownloads", data.totalExtensionDownloadRequests);
     renderRankList("platformList", data.platformInstalls, { darwin: "macOS", win32: "Windows" });
     renderRankList("versionList", data.versionInstalls);
     renderRankList("refList", data.downloadsByRef, { direct: "Direct / 无 ref" });

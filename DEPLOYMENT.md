@@ -224,15 +224,25 @@ https://mosa.azhuilab.com/?ref=bilibili_makerjackie
 https://mosa.azhuilab.com/?ref=reddit_codex
 ```
 
-页面会把经过校验的短标签继续附在安装包下载请求上，因此 Nginx 日志可以统计每个渠道带来的下载点击。渠道标签只允许字母、数字、点、下划线和短横线，最长 64 个字符。
+页面会把经过校验的短标签继续附在下载请求上，因此 Nginx 日志可以统计每个渠道带来的下载点击。渠道标签只允许字母、数字、点、下划线和短横线，最长 64 个字符。下载统计保留“成功 GET 请求数”口径，不把它误称为独立下载用户；同一设备重复下载、重试或断点续传都可能形成多个请求。私有面板会另外拆分桌面安装包与 Web Capture 扩展包，避免把扩展下载混入桌面安装包指标。
 
-服务器已有标准 Nginx access log 时，可以直接复制日志到安全的运维环境后运行：
+服务器已有标准 Nginx access log 时，可以直接复制日志到安全的运维环境后运行一次性汇总：
 
 ```bash
 node scripts/report-usage.mjs /path/to/nginx/access.log
 ```
 
-输出包含：匿名安装 ID 总数、已报告首次启动数、24 小时 DAU、7 天 WAU、30 天 MAU、平台/版本请求分布、下载文件分布和 `ref` 渠道分布。脚本只读取日志，不修改服务器或应用数据。
+输出包含：匿名安装 ID 总数、已报告首次启动数、24 小时 DAU、7 天 WAU、30 天 MAU、平台/版本请求分布、桌面包/扩展包下载请求、下载文件分布和 `ref` 渠道分布。一次性模式只读取当前日志，不修改服务器或应用数据。
+
+生产环境应使用持久化增量模式：
+
+```bash
+node scripts/report-usage.mjs /var/log/nginx/access.log \
+  --state /var/lib/mosa-stats/usage-state.json \
+  --output /var/www/mosa-website/admin/stats.json
+```
+
+此模式会自动发现同目录下常见的 `access.log.1`、`access.log.2.gz` 和日期式轮转文件，用文件游标与内容指纹识别已经处理过的部分。日志重命名、压缩或普通轮转后不会重复累计；历史总数保存在私有 state 文件中，也不会因为旧日志被 Nginx 删除而回退。state 文件必须放在 Web 根目录之外，不应通过 Nginx 暴露。
 
 若希望进一步减少日志中的网络元数据，生产 Nginx 可为 `/releases/latest.json` 单独配置不含 `$remote_addr`、User-Agent 和 Referer 的 usage log，只保留时间与 `$request_uri`；修改 Nginx 配置后需要单独执行 `nginx -t` 再 reload，这不属于静态网站 Actions 的职责。
 
@@ -252,7 +262,7 @@ admin/app.js
 https://mosa.azhuilab.com/admin/
 ```
 
-页面读取同目录下由服务器生成的 `stats.json`，并显示匿名安装、首次启动、24h DAU、7d WAU、30d MAU、下载请求、近 30 天趋势、平台、版本、渠道与下载文件分布。`admin/stats.json` 已加入 `.gitignore`，官网 Actions 也会在 `rsync --delete` 时显式排除它，因此部署静态网站不会删除服务器上的实时统计文件。
+页面读取同目录下由服务器生成的 `stats.json`，并显示匿名安装、首次启动、24h DAU、7d WAU、30d MAU、桌面包下载、扩展包下载、近 30 天全部下载请求趋势、平台、版本、渠道与下载文件分布。`admin/stats.json` 已加入 `.gitignore`，官网 Actions 也会在 `rsync --delete` 时显式排除它，因此部署静态网站不会删除服务器上的实时统计文件。
 
 服务器部署完成后，以 root 执行一次：
 
@@ -261,10 +271,10 @@ cd /var/www/mosa-website
 bash scripts/install-private-stats.sh
 ```
 
-脚本会先生成一次 `admin/stats.json`，然后安装 `/etc/cron.d/mosa-private-stats`，每 5 分钟重新汇总一次 `/var/log/nginx/access.log`。若日志或 Node 路径不同，可在执行前指定：
+脚本会创建权限为 `0700` 的 `/var/lib/mosa-stats/`，先把当前及可见的轮转日志增量写入 `usage-state.json`，生成一次 `admin/stats.json`，然后安装 `/etc/cron.d/mosa-private-stats`，每 5 分钟继续从上次游标处读取。若日志、Node 或私有状态目录不同，可在执行前指定：
 
 ```bash
-MOSA_ACCESS_LOG=/实际/nginx/access.log MOSA_NODE_BIN=/usr/bin/node bash scripts/install-private-stats.sh
+MOSA_ACCESS_LOG=/实际/nginx/access.log MOSA_NODE_BIN=/usr/bin/node MOSA_STATS_STATE_DIR=/实际/私有目录 bash scripts/install-private-stats.sh
 ```
 
 统计页不使用 MOSA 用户账号。访问保护交给 Nginx Basic Auth，示例配置在 `ops/nginx-private-stats.conf.example`。先创建只供你自己使用的密码文件：

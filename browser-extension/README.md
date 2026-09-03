@@ -19,7 +19,7 @@ downloads/MOSA-Web-Capture-0.14.0.zip
 1. 从官网下载安装 ZIP 并解压。
 2. Chrome / Chromium 打开 `chrome://extensions`，开启“开发者模式”。
 3. 选择“加载已解压的扩展程序”，选择解压后、直接包含 `manifest.json` 的目录。
-4. 在扩展选项中填写本机 MOSA 地址和 Web Capture Token。
+4. 先启动 MOSA Desktop，再打开扩展选项。扩展会自动发现本机服务并完成安全配对，用户无需填写地址或 Token；点击“测试连接”确认即可。
 
 这个 ZIP 是开发者模式用的扩展包，不是签名的 CRX；MOSA Web Capture 仍然只连接本机 `127.0.0.1` 或 `localhost`，不要把 MOSA 的 `43517` 端口暴露到公网。
 

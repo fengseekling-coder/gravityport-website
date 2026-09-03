@@ -3,6 +3,8 @@ set -euo pipefail
 
 SITE_ROOT="${MOSA_SITE_ROOT:-/var/www/mosa-website}"
 ACCESS_LOG="${MOSA_ACCESS_LOG:-/var/log/nginx/access.log}"
+STATE_DIR="${MOSA_STATS_STATE_DIR:-/var/lib/mosa-stats}"
+STATE_FILE="${STATE_DIR}/usage-state.json"
 NODE_BIN="${MOSA_NODE_BIN:-$(command -v node || true)}"
 CRON_FILE="/etc/cron.d/mosa-private-stats"
 
@@ -24,10 +26,11 @@ if [[ ! -f "${SITE_ROOT}/scripts/report-usage.mjs" ]]; then
 fi
 
 install -d -m 0755 "${SITE_ROOT}/admin"
-"${NODE_BIN}" "${SITE_ROOT}/scripts/report-usage.mjs" "${ACCESS_LOG}" --output "${SITE_ROOT}/admin/stats.json"
+install -d -m 0700 "${STATE_DIR}"
+"${NODE_BIN}" "${SITE_ROOT}/scripts/report-usage.mjs" "${ACCESS_LOG}" --state "${STATE_FILE}" --output "${SITE_ROOT}/admin/stats.json"
 
 cat > "${CRON_FILE}" <<EOF
-*/5 * * * * root ${NODE_BIN} ${SITE_ROOT}/scripts/report-usage.mjs ${ACCESS_LOG} --output ${SITE_ROOT}/admin/stats.json >/dev/null 2>&1
+*/5 * * * * root ${NODE_BIN} ${SITE_ROOT}/scripts/report-usage.mjs ${ACCESS_LOG} --state ${STATE_FILE} --output ${SITE_ROOT}/admin/stats.json >/dev/null 2>&1
 EOF
 chmod 0644 "${CRON_FILE}"
 
