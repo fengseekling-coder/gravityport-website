@@ -14,8 +14,8 @@ window.MOSA_SITE_CONFIG = Object.freeze({
     label: "下载 Windows 包",
   },
   extension: {
-    version: "v0.14.0",
-    url: "./downloads/MOSA-Web-Capture-0.14.0.zip",
+    version: "v0.14.5",
+    url: "./downloads/MOSA-Web-Capture-0.14.5.zip",
     label: "浏览器包下载",
   },
 });
