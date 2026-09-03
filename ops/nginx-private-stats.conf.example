@@ -38,7 +38,7 @@ location = /_mosa_admin_auth {
 
 location = /admin/ {
     auth_request /_mosa_admin_auth;
-    error_page 401 =302 /admin/login.html;
+    error_page 401 =302 https://mosa.azhuilab.com/admin/login.html;
     try_files /admin/index.html =404;
     add_header Cache-Control "no-store, private" always;
     add_header X-Robots-Tag "noindex, nofollow, noarchive" always;
