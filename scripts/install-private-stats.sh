@@ -7,6 +7,13 @@ STATE_DIR="${MOSA_STATS_STATE_DIR:-/var/lib/mosa-stats}"
 STATE_FILE="${STATE_DIR}/usage-state.json"
 NODE_BIN="${MOSA_NODE_BIN:-$(command -v node || true)}"
 CRON_FILE="/etc/cron.d/mosa-private-stats"
+AUTH_PORT="${MOSA_AUTH_PORT:-39127}"
+AUTH_STATE_DIR="${MOSA_AUTH_STATE_DIR:-/var/lib/mosa-stats-auth}"
+AUTH_STATE_FILE="${AUTH_STATE_DIR}/sessions.json"
+AUTH_PASSWORD_FILE="${MOSA_AUTH_PASSWORD_FILE:-/etc/nginx/.htpasswd-mosa-stats}"
+AUTH_SERVICE_NAME="mosa-private-stats-auth.service"
+AUTH_UNIT_SOURCE="${SITE_ROOT}/ops/mosa-private-stats-auth.service.example"
+AUTH_UNIT_FILE="/etc/systemd/system/${AUTH_SERVICE_NAME}"
 
 if [[ "${EUID}" -ne 0 ]]; then
   echo "Run this installer as root so it can read Nginx logs and install cron." >&2
@@ -14,6 +21,10 @@ if [[ "${EUID}" -ne 0 ]]; then
 fi
 if [[ -z "${NODE_BIN}" || ! -x "${NODE_BIN}" ]]; then
   echo "Node.js is required on the server. Set MOSA_NODE_BIN if it is installed elsewhere." >&2
+  exit 1
+fi
+if [[ ! "${AUTH_PORT}" =~ ^[0-9]+$ || "${AUTH_PORT}" -lt 1 || "${AUTH_PORT}" -gt 65535 ]]; then
+  echo "MOSA_AUTH_PORT must be a valid TCP port." >&2
   exit 1
 fi
 if [[ ! -r "${ACCESS_LOG}" ]]; then
@@ -24,15 +35,49 @@ if [[ ! -f "${SITE_ROOT}/scripts/report-usage.mjs" ]]; then
   echo "Missing ${SITE_ROOT}/scripts/report-usage.mjs" >&2
   exit 1
 fi
+if [[ ! -f "${SITE_ROOT}/scripts/admin-auth.mjs" || ! -f "${AUTH_UNIT_SOURCE}" ]]; then
+  echo "Missing private stats auth service files under ${SITE_ROOT}." >&2
+  exit 1
+fi
+if ! getent group www-data >/dev/null; then
+  echo "The www-data group is required for the private stats auth service." >&2
+  exit 1
+fi
 
 install -d -m 0755 "${SITE_ROOT}/admin"
 install -d -m 0700 "${STATE_DIR}"
 "${NODE_BIN}" "${SITE_ROOT}/scripts/report-usage.mjs" "${ACCESS_LOG}" --state "${STATE_FILE}" --output "${SITE_ROOT}/admin/stats.json"
+
+install -d -o root -g www-data -m 0750 "${AUTH_STATE_DIR}"
+if [[ ! -e "${AUTH_STATE_FILE}" ]]; then
+  install -o www-data -g www-data -m 0600 /dev/null "${AUTH_STATE_FILE}"
+else
+  chown www-data:www-data "${AUTH_STATE_FILE}"
+  chmod 0600 "${AUTH_STATE_FILE}"
+fi
+if [[ -f "${AUTH_PASSWORD_FILE}" ]]; then
+  chown root:www-data "${AUTH_PASSWORD_FILE}"
+  chmod 0640 "${AUTH_PASSWORD_FILE}"
+fi
+
+sed \
+  -e "s|__MOSA_NODE_BIN__|${NODE_BIN}|g" \
+  -e "s|__MOSA_SITE_ROOT__|${SITE_ROOT}|g" \
+  -e "s|__MOSA_AUTH_PASSWORD_FILE__|${AUTH_PASSWORD_FILE}|g" \
+  -e "s|__MOSA_AUTH_STATE_FILE__|${AUTH_STATE_FILE}|g" \
+  -e "s|__MOSA_AUTH_STATE_DIR__|${AUTH_STATE_DIR}|g" \
+  -e "s|__MOSA_AUTH_PORT__|${AUTH_PORT}|g" \
+  "${AUTH_UNIT_SOURCE}" > "${AUTH_UNIT_FILE}"
+chmod 0644 "${AUTH_UNIT_FILE}"
 
 cat > "${CRON_FILE}" <<EOF
 */5 * * * * root ${NODE_BIN} ${SITE_ROOT}/scripts/report-usage.mjs ${ACCESS_LOG} --state ${STATE_FILE} --output ${SITE_ROOT}/admin/stats.json >/dev/null 2>&1
 EOF
 chmod 0644 "${CRON_FILE}"
 
+systemctl daemon-reload
+systemctl enable --now "${AUTH_SERVICE_NAME}"
+
 echo "Private stats refresh installed: every 5 minutes."
-echo "Next: configure Nginx Basic Auth using ops/nginx-private-stats.conf.example."
+echo "Private stats login service installed: 30-day cookie sessions on 127.0.0.1:${AUTH_PORT}."
+echo "Next: configure Nginx session auth using ops/nginx-private-stats.conf.example."

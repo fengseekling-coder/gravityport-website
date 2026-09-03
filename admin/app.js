@@ -153,6 +153,10 @@
     errorNotice.hidden = true;
     try {
       const response = await fetch(`./stats.json?t=${Date.now()}`, { cache: "no-store", credentials: "same-origin" });
+      if (response.status === 401) {
+        window.location.replace("./login.html?expired=1");
+        return;
+      }
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       render(await response.json());
     } catch (error) {

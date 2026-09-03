@@ -40,6 +40,8 @@ h1 { margin: 0; font-size: clamp(32px, 5vw, 48px); line-height: 1; letter-spacin
 .refresh-button { min-height: 34px; padding: 0 14px; border: 1px solid var(--border); border-radius: 9px; color: var(--text); background: var(--panel-strong); cursor: pointer; }
 .refresh-button:hover { border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
 .refresh-button:disabled { cursor: default; opacity: .55; }
+.logout-button { display: inline-flex; min-height: 34px; align-items: center; padding: 0 12px; border: 1px solid var(--border); border-radius: 9px; color: var(--muted); background: transparent; font-size: 12px; text-decoration: none; }
+.logout-button:hover { border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); color: var(--text); }
 
 .metric-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
 .metric-card, .panel { border: 1px solid var(--border); background: var(--panel); box-shadow: var(--shadow); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }

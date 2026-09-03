@@ -248,12 +248,14 @@ node scripts/report-usage.mjs /var/log/nginx/access.log \
 
 ### 私有统计面板
 
-仓库内提供了一个不依赖数据库或后端框架的私有统计页：
+仓库内提供了一个静态私有统计页，以及只负责登录会话的轻量 Node.js 服务：
 
 ```text
 admin/index.html
+admin/login.html
 admin/styles.css
 admin/app.js
+scripts/admin-auth.mjs
 ```
 
 生产地址建议保持为：
@@ -264,9 +266,13 @@ https://mosa.azhuilab.com/admin/
 
 页面读取同目录下由服务器生成的 `stats.json`，并显示匿名安装、首次启动、24h DAU、7d WAU、30d MAU、桌面包下载、扩展包下载、近 30 天全部下载请求趋势、平台、版本、渠道与下载文件分布。`admin/stats.json` 已加入 `.gitignore`，官网 Actions 也会在 `rsync --delete` 时显式排除它，因此部署静态网站不会删除服务器上的实时统计文件。
 
-服务器部署完成后，以 root 执行一次：
+服务器部署完成后，先确保 Node.js、`apache2-utils` 和现有密码文件已经准备好，再以 root 执行一次：
 
 ```bash
+apt-get install -y apache2-utils
+if [ ! -f /etc/nginx/.htpasswd-mosa-stats ]; then
+  htpasswd -c /etc/nginx/.htpasswd-mosa-stats mosa-admin
+fi
 cd /var/www/mosa-website
 bash scripts/install-private-stats.sh
 ```
@@ -277,18 +283,13 @@ bash scripts/install-private-stats.sh
 MOSA_ACCESS_LOG=/实际/nginx/access.log MOSA_NODE_BIN=/usr/bin/node MOSA_STATS_STATE_DIR=/实际/私有目录 bash scripts/install-private-stats.sh
 ```
 
-统计页不使用 MOSA 用户账号。访问保护交给 Nginx Basic Auth，示例配置在 `ops/nginx-private-stats.conf.example`。先创建只供你自己使用的密码文件：
+同一个密码文件也用于登录会话校验；如果文件已经存在，不要再次使用 `-c`，直接保留它即可。脚本还会安装并启动 `mosa-private-stats-auth.service`，它只监听 `127.0.0.1:39127`，状态文件位于 Web 根目录之外的 `/var/lib/mosa-stats-auth/sessions.json`，只保存会话 token 的 SHA-256 摘要。
 
-```bash
-sudo apt-get install -y apache2-utils
-sudo htpasswd -c /etc/nginx/.htpasswd-mosa-stats mosa-admin
-```
-
-然后把 `ops/nginx-private-stats.conf.example` 中的 `location ^~ /admin/` 片段加入现有 `mosa.azhuilab.com` 的 HTTPS `server {}`，最后验证并 reload：
+统计页不使用 MOSA 用户账号。访问保护交给 Nginx `auth_request`，示例配置在 `ops/nginx-private-stats.conf.example`。把其中的 locations 片段加入现有 `mosa.azhuilab.com` 的 HTTPS `server {}`：
 
 ```bash
 sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-此后访问 `https://mosa.azhuilab.com/admin/` 会先弹出浏览器用户名/密码认证。`/admin/stats.json` 也处于同一受保护路径，不能绕过页面直接公开访问。页面自身还带 `noindex` 与 `X-Robots-Tag`，但真正的访问边界仍以 Nginx Basic Auth 为准。
+此后访问 `https://mosa.azhuilab.com/admin/` 会进入网页登录页；登录成功后 Cookie 有效 30 天，浏览器不会再反复弹出原生认证框。页面右上角提供“退出”，会立即撤销当前会话。`/admin/stats.json` 仍由同一会话保护，不能绕过页面直接公开访问。页面自身还带 `noindex` 与 `X-Robots-Tag`，但真正的访问边界仍以 Nginx `auth_request` 和服务端会话校验为准。

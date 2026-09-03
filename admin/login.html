@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <title>登录 · MOSA Stats</title>
+  <style>
+    :root { color-scheme: light dark; --bg: #f5f5f7; --panel: rgba(255,255,255,.86); --text: #151517; --muted: #72727a; --border: rgba(15,15,20,.12); --accent: #2424ff; --accent-soft: rgba(36,36,255,.1); }
+    @media (prefers-color-scheme: dark) { :root { --bg: #111113; --panel: rgba(30,30,33,.9); --text: #f4f4f5; --muted: #9c9ca5; --border: rgba(255,255,255,.12); --accent: #7777ff; --accent-soft: rgba(92,92,255,.16); } }
+    * { box-sizing: border-box; }
+    body { display: grid; min-width: 320px; min-height: 100vh; margin: 0; padding: 24px; place-items: center; color: var(--text); background: radial-gradient(circle at 70% -10%, var(--accent-soft), transparent 34rem), var(--bg); font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .login-card { width: min(100%, 390px); padding: 32px; border: 1px solid var(--border); border-radius: 20px; background: var(--panel); box-shadow: 0 24px 70px rgba(20,20,30,.14); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    .eyebrow { margin: 0 0 8px; color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .13em; }
+    h1 { margin: 0; font-size: 28px; letter-spacing: -.04em; }
+    .subtitle { margin: 10px 0 26px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    form { display: grid; gap: 15px; }
+    label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 600; }
+    input { width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; outline: 0; color: var(--text); background: var(--bg); font: inherit; font-size: 14px; }
+    input:focus { border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); box-shadow: 0 0 0 3px var(--accent-soft); }
+    button { height: 42px; margin-top: 4px; border: 0; border-radius: 10px; color: #fff; background: var(--accent); cursor: pointer; font: inherit; font-size: 14px; font-weight: 650; }
+    button:hover { opacity: .9; }
+    .notice { margin: 0 0 15px; padding: 10px 12px; border: 1px solid rgba(215,65,65,.25); border-radius: 9px; color: #c33939; background: rgba(215,65,65,.08); font-size: 12px; line-height: 1.45; }
+    .note { margin: 18px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <main class="login-card">
+    <p class="eyebrow">MOSA PRIVATE</p>
+    <h1>Usage Stats</h1>
+    <p class="subtitle">登录后 30 天内保持会话，不再反复弹出浏览器认证框。</p>
+    <p class="notice" id="notice" hidden></p>
+    <form method="post" action="/admin/login">
+      <label>用户名<input name="username" value="mosa-admin" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+      <label>密码<input name="password" type="password" autocomplete="current-password" autofocus required></label>
+      <button type="submit">登录</button>
+    </form>
+    <p class="note">会话仅限 HTTPS 下的当前 MOSA 统计页使用。</p>
+  </main>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const notice = document.getElementById("notice");
+    if (params.has("error")) { notice.textContent = "用户名或密码不正确，请重新输入。"; notice.hidden = false; }
+    if (params.has("expired")) { notice.textContent = "登录会话已过期，请重新登录。"; notice.hidden = false; }
+  </script>
+</body>
+</html>

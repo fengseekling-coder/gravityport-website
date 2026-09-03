@@ -57,7 +57,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 ## 发布
 
-整个 `mosa-website/` 都是纯静态文件，可以直接部署到 Nginx、Cloudflare Pages、GitHub Pages、Vercel 静态托管或任意对象存储。
+官网主体是纯静态文件，可以直接部署到 Nginx、Cloudflare Pages、GitHub Pages、Vercel 静态托管或任意对象存储。私有统计页额外需要一个只监听服务器回环地址的轻量登录服务。
 
 ## 自动部署
 
@@ -81,7 +81,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 完整的发布、更新、扩展包和 macOS 安装包操作说明见 [`DEPLOYMENT.md`](./DEPLOYMENT.md)。
 
-私有使用统计面板位于 `admin/`。生产环境由 Nginx Basic Auth 保护 `/admin/`，`scripts/install-private-stats.sh` 每 5 分钟增量读取当前及轮转后的 Nginx access log，并把私有累计状态保存在 Web 根目录之外的 `/var/lib/mosa-stats/usage-state.json`，再生成未提交到 Git 的 `admin/stats.json`。因此日志轮转不会让历史安装/下载总数回退，重复执行统计也不会重复累计同一批日志。安装和 Nginx 配置步骤见 `DEPLOYMENT.md` 的“私有统计面板”。
+私有使用统计面板位于 `admin/`。生产环境由 Nginx `auth_request` 加只监听回环地址的 Node.js 登录服务保护 `/admin/`，首次登录后用安全 Cookie 保持 30 天会话；`scripts/install-private-stats.sh` 每 5 分钟增量读取当前及轮转后的 Nginx access log，并把私有累计状态保存在 Web 根目录之外的 `/var/lib/mosa-stats/usage-state.json`，再生成未提交到 Git 的 `admin/stats.json`。因此日志轮转不会让历史安装/下载总数回退，重复执行统计也不会重复累计同一批日志。安装和 Nginx 配置步骤见 `DEPLOYMENT.md` 的“私有统计面板”。
 
 渠道链接可以使用 `?ref=`，例如 `https://mosa.azhuilab.com/?ref=reddit_codex`。下载按钮会保留这个短标签到下载请求，便于从 Nginx 日志区分渠道。桌面端的匿名安装/活跃统计同样复用现有更新检查请求，不需要 MOSA 账号；统计字段和关闭方式见主项目 `PRIVACY.md`。
 
