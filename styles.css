@@ -19,3 +19,13 @@
 
 /* Keep the primary Web Capture download in the shared download-button row. */
 .extension-card .text-link{order:0;margin:0 0 17px}.extension-card [data-download="extension"]{order:1}
+
+/* Language control: a small, tactile switch that stays visible on every viewport. */
+.language-toggle{min-height:36px;display:inline-flex;align-items:center;padding:0 4px;border:0;border-radius:0;background:transparent;color:var(--ink-2);font-size:13px;font-weight:620;line-height:1;cursor:pointer;transition:color 150ms ease}.language-toggle:hover{color:var(--ink)}.eyebrow>span:last-child{width:auto;height:auto;border-radius:0;background:transparent;box-shadow:none}.privacy-points>span>span,.hero-facts>span>span{width:auto;height:auto;border-radius:0;background:transparent;box-shadow:none}
+@media(max-width:620px){.header-actions{gap:6px}.language-toggle{min-height:34px;padding:0 2px;font-size:12px}}
+
+/* Use the official MOSA mark in the visible brand lockups. */
+.brand-mark{width:36px;height:36px;display:block;flex:0 0 auto;object-fit:contain;background:transparent;padding:0;border-radius:0}
+.mini-mark{width:18px;height:18px;display:block;flex:0 0 auto;object-fit:contain;background:transparent;border-radius:0;box-shadow:none}
+.footer-brand .brand-mark{background:transparent}
+@media(max-width:620px){.brand-mark{width:32px;height:32px}.mini-mark{width:12px;height:12px}}

@@ -1,7 +1,49 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="18" fill="#111114"/>
-  <rect x="13" y="13" width="17" height="17" rx="5" fill="#fff"/>
-  <rect x="34" y="13" width="17" height="17" rx="4" fill="#fff" fill-opacity=".76"/>
-  <rect x="13" y="34" width="17" height="17" rx="4" fill="#fff" fill-opacity=".56"/>
-  <rect x="34" y="34" width="17" height="17" rx="5" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="mosaGrad" x1="180" y1="250" x2="840" y2="770" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#18C2FF"/>
+      <stop offset="0.38" stop-color="#3C67FF"/>
+      <stop offset="0.68" stop-color="#7A49F8"/>
+      <stop offset="1" stop-color="#B526F4"/>
+    </linearGradient>
+    <linearGradient id="foldGrad" x1="120" y1="520" x2="360" y2="770" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2C35E9"/>
+      <stop offset="1" stop-color="#1E88FF"/>
+    </linearGradient>
+  </defs>
+
+  <path fill="url(#mosaGrad)" d="
+    M 174 756
+    L 174 345
+    C 174 285, 223 236, 283 236
+    C 313 236, 341 248, 363 269
+    L 489 394
+    C 502 407, 522 407, 535 394
+    L 661 269
+    C 683 248, 711 236, 741 236
+    C 801 236, 850 285, 850 345
+    L 850 756
+    C 850 816, 801 865, 741 865
+    C 681 865, 632 816, 632 756
+    L 632 534
+    L 570 596
+    L 539 627
+    C 523 643, 501 652, 479 652
+    C 457 652, 435 643, 419 627
+    L 388 596
+    L 326 534
+    L 326 756
+    C 326 816, 277 865, 217 865
+    C 193 865, 174 846, 174 822
+    Z"/>
+
+  <path fill="url(#foldGrad)" d="
+    M 174 560
+    C 174 515, 211 478, 256 478
+    C 277 478, 298 486, 314 500
+    L 326 512
+    L 326 756
+    C 326 816, 277 865, 217 865
+    C 193 865, 174 846, 174 822
+    Z" opacity=".92"/>
 </svg>

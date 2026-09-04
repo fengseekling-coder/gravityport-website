@@ -31,6 +31,31 @@ body {
   font-size: 14px;
 }
 
+.privacy-header-tools {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+}
+
+.privacy-header-tools .language-toggle {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--policy-muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.privacy-header-tools .language-toggle:hover {
+  color: var(--policy-text);
+}
+
 .privacy-nav a {
   color: var(--policy-muted);
   text-decoration: none;

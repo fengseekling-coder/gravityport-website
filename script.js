@@ -2,10 +2,12 @@
   document.documentElement.classList.add("motion-ready");
   const config = window.MOSA_SITE_CONFIG || {};
   const downloadsEnabled = config.downloadsEnabled !== false;
-  const pendingLabel = downloadsEnabled ? "正在获取最新版本" : "即将上线";
+  const i18n = window.MOSA_I18N;
+  const t = (key, fallback) => i18n?.t(key) || fallback || key;
   const header = document.querySelector("[data-header]");
   const toast = document.querySelector("[data-toast]");
   let toastTimer = null;
+  let desktopRelease = null;
 
   const setText = (selector, value) => {
     if (!value) return;
@@ -14,13 +16,30 @@
     });
   };
 
-  setText("[data-mac-version]", downloadsEnabled && config.mac?.version ? `版本 ${config.mac.version}` : pendingLabel);
-  setText("[data-windows-version]", downloadsEnabled && config.windows?.version ? `版本 ${config.windows.version}` : pendingLabel);
-  setText("[data-extension-version]", downloadsEnabled ? config.extension?.version || "v0.11" : pendingLabel);
-  setText("[data-mac-label]", downloadsEnabled ? config.mac?.label || pendingLabel : pendingLabel);
-  setText("[data-windows-label]", downloadsEnabled ? config.windows?.label || pendingLabel : pendingLabel);
-  setText("[data-extension-label]", downloadsEnabled ? config.extension?.label || "浏览器包下载" : pendingLabel);
-  setText("[data-extension-guide-label]", downloadsEnabled ? "下载 MOSA Web Capture ZIP" : pendingLabel);
+  const pendingLabel = () => t(downloadsEnabled ? "home.download.fetching" : "home.download.pending");
+
+  const downloadLabel = (kind) => {
+    const keys = {
+      mac: "home.download.macLabel",
+      windows: "home.download.windowsLabel",
+      extension: "home.download.extensionLabel",
+    };
+    return t(keys[kind], t("home.download.missingUrl"));
+  };
+
+  const refreshDownloadCopy = () => {
+    const macVersion = desktopRelease?.mac?.version || config.mac?.version;
+    const windowsVersion = desktopRelease?.windows?.version || config.windows?.version;
+    setText("[data-mac-version]", downloadsEnabled && macVersion ? `${t("home.download.version")} ${macVersion}` : pendingLabel());
+    setText("[data-windows-version]", downloadsEnabled && windowsVersion ? `${t("home.download.version")} ${windowsVersion}` : pendingLabel());
+    setText("[data-extension-version]", downloadsEnabled ? config.extension?.version || "v0.11" : pendingLabel());
+    setText("[data-mac-label]", downloadsEnabled ? downloadLabel("mac") : pendingLabel());
+    setText("[data-windows-label]", downloadsEnabled ? downloadLabel("windows") : pendingLabel());
+    setText("[data-extension-label]", downloadsEnabled ? downloadLabel("extension") : pendingLabel());
+    setText("[data-extension-guide-label]", downloadsEnabled ? t("home.download.guideLabel") : pendingLabel());
+  };
+
+  refreshDownloadCopy();
   setText("[data-year]", String(new Date().getFullYear()));
 
   const showToast = (message) => {
@@ -31,10 +50,14 @@
     toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 3200);
   };
 
-  const pendingMessages = {
-    mac: downloadsEnabled ? "暂时无法获取最新 macOS 安装包，请稍后重试。" : "MOSA macOS 下载即将上线，暂时不提供下载。",
-    windows: downloadsEnabled ? "暂时无法获取最新 Windows 安装包，请稍后重试。" : "MOSA Windows 下载即将上线，暂时不提供下载。",
-    extension: "浏览器扩展下载即将上线，暂时不提供下载。",
+  const pendingMessage = (kind) => {
+    const suffix = downloadsEnabled ? "Error" : "PendingMessage";
+    const fallback = {
+      mac: "The macOS download is not available right now.",
+      windows: "The Windows download is not available right now.",
+      extension: "The browser extension download is not available right now.",
+    };
+    return t(`home.download.${kind}${suffix}`, fallback[kind]);
   };
 
   const campaignRef = (() => {
@@ -70,7 +93,7 @@
       button.dataset.pendingHandler = "true";
       button.addEventListener("click", (event) => {
         event.preventDefault();
-        showToast(pendingMessages[kind] || "下载地址尚未配置。");
+        showToast(pendingMessage(kind) || t("home.download.missingUrl"));
       });
     });
   };
@@ -82,7 +105,7 @@
     const version = typeof release.version === "string" ? release.version.trim().replace(/^v/i, "") : "";
     if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) return null;
 
-    const makeArtifact = (platform, label) => {
+    const makeArtifact = (platform) => {
       const artifact = release.artifacts?.[platform];
       const expectedPrefix = platform === "mac" ? "MOSA-darwin-arm64-" : "MOSA-win32-x64-";
       if (!artifact || typeof artifact !== "object" || Array.isArray(artifact)) return null;
@@ -91,12 +114,12 @@
       return {
         version: `v${version}`,
         url: `./downloads/${encodeURIComponent(file)}`,
-        label,
+        label: downloadLabel(platform),
       };
     };
 
-    const mac = makeArtifact("mac", "下载 macOS 包");
-    const windows = makeArtifact("windows", "下载 Windows 包");
+    const mac = makeArtifact("mac");
+    const windows = makeArtifact("windows");
     return mac && windows ? { mac, windows } : null;
   };
 
@@ -112,10 +135,8 @@
       if (!response.ok) return;
       const release = normalizeDesktopRelease(await response.json());
       if (!release) return;
-      setText("[data-mac-version]", `版本 ${release.mac.version}`);
-      setText("[data-windows-version]", `版本 ${release.windows.version}`);
-      setText("[data-mac-label]", release.mac.label);
-      setText("[data-windows-label]", release.windows.label);
+      desktopRelease = release;
+      refreshDownloadCopy();
       configureDownload("mac", release.mac);
       configureDownload("windows", release.windows);
     } catch {
@@ -123,6 +144,7 @@
     }
   };
   void loadDesktopRelease();
+  document.addEventListener("mosa:locale-change", refreshDownloadCopy);
 
   const updateHeader = () => {
     if (!header) return;
@@ -227,21 +249,21 @@
 
   communityCopyButton?.addEventListener("click", async () => {
     if (!window.ClipboardItem || !navigator.clipboard?.write) {
-      showToast("当前浏览器不支持直接复制图片，请使用最新版浏览器。");
+      showToast(t("home.community.copyUnsupported"));
       return;
     }
 
     communityCopyButton.disabled = true;
-    if (communityCopyLabel) communityCopyLabel.textContent = "正在复制…";
+    if (communityCopyLabel) communityCopyLabel.textContent = t("home.community.copying");
     try {
       const imageBlob = createCommunityQrBlob();
       await navigator.clipboard.write([new window.ClipboardItem({ "image/png": imageBlob })]);
-      showToast("二维码图片已复制，可直接粘贴到微信。");
+      showToast(t("home.community.copySuccess"));
     } catch {
-      showToast("复制失败，请允许浏览器访问剪贴板后重试。");
+      showToast(t("home.community.copyFailure"));
     } finally {
       communityCopyButton.disabled = false;
-      if (communityCopyLabel) communityCopyLabel.textContent = "复制二维码图片";
+      if (communityCopyLabel) communityCopyLabel.textContent = t("home.community.copy");
     }
   });
 
