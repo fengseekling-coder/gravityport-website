@@ -19,6 +19,7 @@ function logLine(time, method, path, status = 200) {
 function usage(time, event, installId, version = "0.2.1") {
   const query = new URLSearchParams({
     event,
+    telemetry_version: "2",
     install_id: installId,
     platform: "macos",
     arch: "arm64",
@@ -57,9 +58,10 @@ test("persistent usage stats survive repeated runs, rotation, and gzip without d
   ].join(""));
 
   const first = runReport(root);
-  assert.equal(first.anonymousInstalls, 1);
+  assert.equal(first.knownInstallationInstances, 1);
   assert.equal(first.reportedFirstLaunches, 1);
-  assert.equal(first.dau24h, 1);
+  assert.equal(first.dailyActiveInstalls, 1);
+  assert.equal(first.analyticsTimeZone, "America/Los_Angeles");
   assert.equal(first.totalDownloadRequests, 3);
   assert.equal(first.totalDesktopDownloadRequests, 2);
   assert.equal(first.totalExtensionDownloadRequests, 1);
@@ -67,7 +69,7 @@ test("persistent usage stats survive repeated runs, rotation, and gzip without d
   assert.equal(first.downloadsByRef.xiaohongshu, 1);
 
   const repeated = runReport(root);
-  assert.equal(repeated.anonymousInstalls, 1);
+  assert.equal(repeated.knownInstallationInstances, 1);
   assert.equal(repeated.totalDownloadRequests, 3, "rerunning the same log must not double count");
 
   renameSync(accessLog, join(root, "access.log.1"));
@@ -77,7 +79,7 @@ test("persistent usage stats survive repeated runs, rotation, and gzip without d
   ].join(""));
 
   const rotated = runReport(root);
-  assert.equal(rotated.anonymousInstalls, 2);
+  assert.equal(rotated.knownInstallationInstances, 2);
   assert.equal(rotated.reportedFirstLaunches, 2);
   assert.equal(rotated.totalDownloadRequests, 4);
   assert.equal(rotated.totalDesktopDownloadRequests, 3);
@@ -88,7 +90,7 @@ test("persistent usage stats survive repeated runs, rotation, and gzip without d
   rmSync(join(root, "access.log.1"));
 
   const compressed = runReport(root);
-  assert.equal(compressed.anonymousInstalls, 2);
+  assert.equal(compressed.knownInstallationInstances, 2);
   assert.equal(compressed.reportedFirstLaunches, 2);
   assert.equal(compressed.totalDownloadRequests, 4, "compressing an already processed rotation must not count it twice");
   assert.equal(compressed.totalDesktopDownloadRequests, 3);
@@ -104,7 +106,7 @@ test("copytruncate with the same inode starts a fresh cursor instead of reviving
     logLine("02/Sep/2026:08:01:00 +0000", "GET", "/downloads/MOSA-darwin-arm64-0.2.1.zip", 200),
   ].join(""));
   const first = runReport(root);
-  assert.equal(first.anonymousInstalls, 1);
+  assert.equal(first.knownInstallationInstances, 1);
   assert.equal(first.totalDesktopDownloadRequests, 1);
 
   // writeFileSync truncates in place, preserving the inode on normal filesystems.
@@ -113,11 +115,11 @@ test("copytruncate with the same inode starts a fresh cursor instead of reviving
     logLine("02/Sep/2026:11:01:00 +0000", "GET", "/downloads/MOSA-win32-x64-0.2.2.zip", 200),
   ].join(""));
   const afterTruncate = runReport(root);
-  assert.equal(afterTruncate.anonymousInstalls, 2);
+  assert.equal(afterTruncate.knownInstallationInstances, 2);
   assert.equal(afterTruncate.reportedFirstLaunches, 2);
   assert.equal(afterTruncate.totalDesktopDownloadRequests, 2);
 
   const repeated = runReport(root);
-  assert.equal(repeated.anonymousInstalls, 2);
+  assert.equal(repeated.knownInstallationInstances, 2);
   assert.equal(repeated.totalDesktopDownloadRequests, 2, "the replacement log must also be idempotent");
 });

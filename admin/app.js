@@ -132,20 +132,24 @@
   }
 
   function render(data) {
-    setMetric("anonymousInstalls", data.anonymousInstalls);
+    setMetric("anonymousInstalls", data.knownInstallationInstances);
     setMetric("firstLaunches", data.reportedFirstLaunches);
-    setMetric("dau", data.dau24h);
-    setMetric("wau", data.wau7d);
-    setMetric("mau", data.mau30d);
+    setMetric("dau", data.dailyActiveInstalls);
+    setMetric("wau", data.activeInstalls7d);
+    setMetric("mau", data.activeInstalls30d);
     setMetric("desktopDownloads", data.totalDesktopDownloadRequests);
     setMetric("extensionDownloads", data.totalExtensionDownloadRequests);
-    renderRankList("platformList", data.platformInstalls, { darwin: "macOS", win32: "Windows" });
+    renderRankList("platformList", data.platformInstalls, { macos: "macOS", windows: "Windows", darwin: "macOS", win32: "Windows", other: "Other" });
     renderRankList("versionList", data.versionInstalls);
     renderRankList("refList", data.downloadsByRef, { direct: "Direct / 无 ref" });
     renderRankList("downloadList", data.downloadsByFile);
     renderTrend(data.daily);
     const generated = new Date(data.generatedAt);
     $("updatedAt").textContent = Number.isNaN(generated.getTime()) ? "更新时间未知" : `更新于 ${dateTime.format(generated)}`;
+    const footer = $("statsFooter");
+    const coverage = new Date(data.coverageStart);
+    const coverageText = Number.isNaN(coverage.getTime()) ? "覆盖起点未知" : `趋势口径起点 ${dateTime.format(coverage)}`;
+    footer.textContent = `统计日时区：${data.analyticsTimeZone || "unknown"} · ${coverageText} · 下载数字为 HTTP 请求数，不等同于独立下载人数。`;
   }
 
   async function loadStats() {

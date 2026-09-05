@@ -24,11 +24,16 @@ if (!logPath || (args.includes("--output") && !outputPath) || (args.includes("--
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TREND_DAYS = 30;
-const STATE_SCHEMA_VERSION = 1;
+const STATE_SCHEMA_VERSION = 2;
+const TELEMETRY_VERSION = 2;
+const ANALYTICS_TIME_ZONE = "America/Los_Angeles";
 const SOURCE_FINGERPRINT_BYTES = 64 * 1024;
 const MAX_SOURCE_RECORDS = 256;
 const INSTALLATION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const USAGE_EVENTS = new Set(["first_launch", "daily_active"]);
+const USAGE_PLATFORMS = new Set(["macos", "windows", "other"]);
+const ARCH_PATTERN = /^[0-9A-Za-z._-]{1,24}$/;
+const VERSION_PATTERN = /^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 const DESKTOP_DOWNLOAD_PATTERN = /^MOSA-(?:darwin|win32)-[A-Za-z0-9._-]+\.zip$/;
 const EXTENSION_DOWNLOAD_PATTERN = /^MOSA-Web-Capture-[A-Za-z0-9._-]+\.zip$/;
 
@@ -62,16 +67,24 @@ function mapToObject(map) {
   return Object.fromEntries([...map.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0]))));
 }
 
-function utcDayKey(timestamp) {
-  return new Date(timestamp).toISOString().slice(0, 10);
+function analyticsDayKey(timestamp) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: ANALYTICS_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(timestamp));
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 function dailyWindow(days) {
   const result = [];
-  const today = new Date(now);
-  today.setUTCHours(0, 0, 0, 0);
-  for (let offset = days - 1; offset >= 0; offset -= 1) {
-    result.push(new Date(today.getTime() - offset * DAY_MS).toISOString().slice(0, 10));
+  let cursor = now;
+  while (result.length < days) {
+    const key = analyticsDayKey(cursor);
+    if (result[0] !== key) result.unshift(key);
+    cursor -= DAY_MS;
   }
   return result;
 }
@@ -139,16 +152,35 @@ function serializeAggregate(aggregate) {
 }
 
 async function loadState(path) {
-  if (!path) return { sources: [], aggregate: newAggregate() };
+  if (!path) return { sources: [], aggregate: newAggregate(), migratedFromLegacy: false, coverageStart: now };
   try {
     const parsed = JSON.parse(await readFile(path, "utf8"));
-    if (parsed?.schemaVersion !== STATE_SCHEMA_VERSION) return { sources: [], aggregate: newAggregate() };
+    if (parsed?.schemaVersion === 1) {
+      const aggregate = hydrateAggregate(parsed.aggregate);
+      // Preserve cumulative counters and known installation identities, but
+      // discard legacy UTC day buckets. Mixing them with the v2 analytics
+      // timezone would create a permanently misleading trend line.
+      aggregate.dailyDownloads = new Map();
+      aggregate.dailyActiveSets = new Map();
+      aggregate.dailyFirstLaunchSets = new Map();
+      return {
+        sources: Array.isArray(parsed.sources) ? parsed.sources : [],
+        aggregate,
+        migratedFromLegacy: true,
+        coverageStart: now,
+      };
+    }
+    if (parsed?.schemaVersion !== STATE_SCHEMA_VERSION) {
+      return { sources: [], aggregate: newAggregate(), migratedFromLegacy: false, coverageStart: now };
+    }
     return {
       sources: Array.isArray(parsed.sources) ? parsed.sources : [],
       aggregate: hydrateAggregate(parsed.aggregate),
+      migratedFromLegacy: false,
+      coverageStart: Number(parsed.coverageStart) || now,
     };
   } catch (error) {
-    if (error?.code === "ENOENT") return { sources: [], aggregate: newAggregate() };
+    if (error?.code === "ENOENT") return { sources: [], aggregate: newAggregate(), migratedFromLegacy: false, coverageStart: now };
     throw error;
   }
 }
@@ -262,11 +294,16 @@ function processLine(line, aggregate) {
 
   if (url.pathname === "/releases/latest.json" && status >= 200 && status < 300) {
     const event = url.searchParams.get("event") || "";
+    const telemetryVersion = Number(url.searchParams.get("telemetry_version")) || 1;
     const installId = url.searchParams.get("install_id") || "";
     const platform = url.searchParams.get("platform") || "";
     const arch = url.searchParams.get("arch") || "";
     const version = url.searchParams.get("version") || "";
-    if (!INSTALLATION_ID_PATTERN.test(installId) || !USAGE_EVENTS.has(event)) return;
+    if (!INSTALLATION_ID_PATTERN.test(installId)
+      || !USAGE_EVENTS.has(event)
+      || !USAGE_PLATFORMS.has(platform)
+      || !ARCH_PATTERN.test(arch)
+      || !VERSION_PATTERN.test(version)) return;
     const current = aggregate.installs.get(installId) || {
       first: Infinity,
       last: -Infinity,
@@ -284,7 +321,11 @@ function processLine(line, aggregate) {
     }
     current.firstLaunch ||= event === "first_launch";
     aggregate.installs.set(installId, current);
-    const day = utcDayKey(time);
+    // Legacy desktop builds are retained in cumulative installation/first-
+    // launch totals for continuity, but their rolling 24-hour startup throttle
+    // is not precise enough for the v2 calendar-day activity series.
+    if (telemetryVersion !== TELEMETRY_VERSION) return;
+    const day = analyticsDayKey(time);
     if (!aggregate.dailyActiveSets.has(day)) aggregate.dailyActiveSets.set(day, new Set());
     aggregate.dailyActiveSets.get(day).add(installId);
     if (event === "first_launch") {
@@ -300,7 +341,7 @@ function processLine(line, aggregate) {
     const kind = classifyDownload(file);
     increment(aggregate.downloadCounts, file);
     increment(aggregate.refCounts, ref);
-    increment(aggregate.dailyDownloads, utcDayKey(time));
+    increment(aggregate.dailyDownloads, analyticsDayKey(time));
     if (kind === "desktop") increment(aggregate.desktopDownloadCounts, file);
     else if (kind === "extension") increment(aggregate.extensionDownloadCounts, file);
     else increment(aggregate.otherDownloadCounts, file);
@@ -308,7 +349,7 @@ function processLine(line, aggregate) {
 }
 
 function pruneDailyMaps(aggregate) {
-  const cutoff = new Date(now - (TREND_DAYS + 2) * DAY_MS).toISOString().slice(0, 10);
+  const cutoff = dailyWindow(TREND_DAYS + 2)[0];
   for (const map of [aggregate.dailyDownloads, aggregate.dailyActiveSets, aggregate.dailyFirstLaunchSets]) {
     for (const key of map.keys()) {
       if (key < cutoff) map.delete(key);
@@ -364,7 +405,14 @@ for (const file of files) {
 pruneDailyMaps(state.aggregate);
 pruneSources(state.sources, seenFileKeys);
 
-const activeWithin = (days) => [...state.aggregate.installs.values()].filter((item) => item.last >= now - days * DAY_MS).length;
+function activeAcrossDays(days) {
+  const active = new Set();
+  for (const date of dailyWindow(days)) {
+    for (const installId of state.aggregate.dailyActiveSets.get(date) || []) active.add(installId);
+  }
+  return active.size;
+}
+
 const firstLaunches = [...state.aggregate.installs.values()].filter((item) => item.firstLaunch).length;
 const platformInstalls = new Map();
 const archInstalls = new Map();
@@ -383,13 +431,17 @@ const daily = dailyWindow(TREND_DAYS).map((date) => ({
 
 const sumMap = (map) => [...map.values()].reduce((sum, value) => sum + Number(value || 0), 0);
 const report = {
+  schemaVersion: STATE_SCHEMA_VERSION,
   generatedAt: new Date(now).toISOString(),
+  analyticsTimeZone: ANALYTICS_TIME_ZONE,
+  coverageStart: new Date(state.coverageStart).toISOString(),
+  migratedFromLegacy: state.migratedFromLegacy,
   windowDays: TREND_DAYS,
-  anonymousInstalls: state.aggregate.installs.size,
+  knownInstallationInstances: state.aggregate.installs.size,
   reportedFirstLaunches: firstLaunches,
-  dau24h: activeWithin(1),
-  wau7d: activeWithin(7),
-  mau30d: activeWithin(30),
+  dailyActiveInstalls: activeAcrossDays(1),
+  activeInstalls7d: activeAcrossDays(7),
+  activeInstalls30d: activeAcrossDays(30),
   platformInstalls: mapToObject(platformInstalls),
   archInstalls: mapToObject(archInstalls),
   versionInstalls: mapToObject(versionInstalls),
@@ -408,6 +460,7 @@ if (statePath) {
   const serializedState = `${JSON.stringify({
     schemaVersion: STATE_SCHEMA_VERSION,
     updatedAt: new Date(now).toISOString(),
+    coverageStart: state.coverageStart,
     sources: state.sources,
     aggregate: serializeAggregate(state.aggregate),
   })}\n`;

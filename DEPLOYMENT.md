@@ -264,7 +264,7 @@ scripts/admin-auth.mjs
 https://mosa.azhuilab.com/admin/
 ```
 
-页面读取同目录下由服务器生成的 `stats.json`，并显示匿名安装、首次启动、24h DAU、7d WAU、30d MAU、桌面包下载、扩展包下载、近 30 天全部下载请求趋势、平台、版本、渠道与下载文件分布。`admin/stats.json` 已加入 `.gitignore`，官网 Actions 也会在 `rsync --delete` 时显式排除它，因此部署静态网站不会删除服务器上的实时统计文件。
+页面读取同目录下由服务器生成的 `stats.json`，并显示匿名安装实例、首次启动、自然日 DAU、最近 7 个统计日活跃、最近 30 个统计日活跃、桌面下载请求、扩展下载请求、近 30 个统计日趋势、平台、版本、渠道与下载文件分布。统计日统一使用 `America/Los_Angeles`，避免服务器 UTC 日期与后台查看日期错位。下载数字明确表示成功 HTTP GET / Range 请求数，不等同于独立下载人数或安装人数。`admin/stats.json` 已加入 `.gitignore`，官网 Actions 也会在 `rsync --delete` 时显式排除它，因此部署静态网站不会删除服务器上的实时统计文件。
 
 服务器部署完成后，先确保 Node.js、`apache2-utils` 和现有密码文件已经准备好，再以 root 执行一次：
 

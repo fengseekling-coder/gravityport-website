@@ -13,7 +13,7 @@
       <div>
         <p class="eyebrow">MOSA PRIVATE</p>
         <h1>Usage Stats</h1>
-        <p class="subtitle">匿名安装、活跃、下载与渠道数据</p>
+        <p class="subtitle">安装实例、自然日活跃、下载请求与渠道数据</p>
       </div>
       <div class="header-actions">
         <div class="updated" id="updatedAt">正在读取数据…</div>
@@ -23,18 +23,18 @@
     </header>
 
     <section class="metric-grid" aria-label="核心指标">
-      <article class="metric-card primary"><span>匿名安装</span><strong id="anonymousInstalls">—</strong><small>已上报的安装实例</small></article>
+      <article class="metric-card primary"><span>安装实例</span><strong id="anonymousInstalls">—</strong><small>匿名 UUID 去重后的已知实例</small></article>
       <article class="metric-card"><span>首次启动</span><strong id="firstLaunches">—</strong><small>成功报告 first_launch</small></article>
-      <article class="metric-card"><span>24h DAU</span><strong id="dau">—</strong><small>过去 24 小时活跃安装</small></article>
-      <article class="metric-card"><span>7d WAU</span><strong id="wau">—</strong><small>过去 7 天活跃安装</small></article>
-      <article class="metric-card"><span>30d MAU</span><strong id="mau">—</strong><small>过去 30 天活跃安装</small></article>
-      <article class="metric-card"><span>桌面包下载</span><strong id="desktopDownloads">—</strong><small>macOS / Windows 成功 GET 请求</small></article>
-      <article class="metric-card"><span>扩展包下载</span><strong id="extensionDownloads">—</strong><small>Web Capture 成功 GET 请求</small></article>
+      <article class="metric-card"><span>DAU</span><strong id="dau">—</strong><small>当前统计日活跃实例</small></article>
+      <article class="metric-card"><span>7 日活跃</span><strong id="wau">—</strong><small>最近 7 个统计日去重实例</small></article>
+      <article class="metric-card"><span>30 日活跃</span><strong id="mau">—</strong><small>最近 30 个统计日去重实例</small></article>
+      <article class="metric-card"><span>桌面下载请求</span><strong id="desktopDownloads">—</strong><small>成功 GET / Range 请求数</small></article>
+      <article class="metric-card"><span>扩展下载请求</span><strong id="extensionDownloads">—</strong><small>成功 GET / Range 请求数</small></article>
     </section>
 
     <section class="panel trend-panel">
       <div class="panel-heading">
-        <div><p class="panel-kicker">LAST 30 DAYS</p><h2>增长趋势</h2></div>
+        <div><p class="panel-kicker">LAST 30 ANALYTICS DAYS</p><h2>增长趋势</h2></div>
         <div class="legend" aria-label="图例">
           <span><i class="legend-dot installs"></i>首次启动</span>
           <span><i class="legend-dot active"></i>活跃</span>
@@ -98,7 +98,7 @@
     </section>
 
     <section class="notice" id="errorNotice" hidden></section>
-    <footer>数据来自 MOSA 匿名使用统计与 Nginx 访问日志。页面仅供私有运维使用。</footer>
+    <footer id="statsFooter">数据来自 MOSA 匿名使用统计与 Nginx 访问日志。页面仅供私有运维使用。</footer>
   </main>
   <script src="./app.js" defer></script>
 </body>
