@@ -1,17 +1,17 @@
 # MOSA Web Capture 发布目录
 
-这里保存浏览器扩展的版本化源码快照和发布说明。当前版本是 `MOSA Web Capture 0.14.0`，源码位于 `MOSA-Web-Capture-0.14.0/`。
+这里保存浏览器扩展的版本化源码快照和发布说明。当前版本是 `MOSA Web Capture 0.15.3`，源码位于 `MOSA-Web-Capture-0.15.3/`。
 
 可下载的公开文件不放在本目录，而放在仓库根目录的 `downloads/`：
 
 ```text
-downloads/MOSA-Web-Capture-0.14.0.zip
+downloads/MOSA-Web-Capture-0.15.3.zip
 ```
 
 官网按钮使用 `site-config.js` 中的 `extension.url`，当前地址为：
 
 ```text
-/downloads/MOSA-Web-Capture-0.14.0.zip
+/downloads/MOSA-Web-Capture-0.15.3.zip
 ```
 
 ## 安装
