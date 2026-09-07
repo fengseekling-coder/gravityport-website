@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1780 1000">
+  <defs>
+    <radialGradient id="core"><stop stop-color="#fff"/><stop offset=".08" stop-color="#ddceff"/><stop offset=".22" stop-color="#8a60ff"/><stop offset=".48" stop-color="#4421a4"/><stop offset="1" stop-color="#08070d"/></radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="24"/></filter>
+  </defs>
+  <rect width="1780" height="1000" fill="#08070d"/>
+  <ellipse cx="890" cy="500" rx="520" ry="260" fill="#5a32de" opacity=".16" filter="url(#blur)"/>
+  <circle cx="890" cy="500" r="210" fill="url(#core)"/>
+  <g fill="none" stroke-linecap="round"><path d="M160 580c248-226 455-300 694-268 222 30 376 210 760 104" stroke="#8b66ff" stroke-width="18" opacity=".45"/><path d="M160 626c284-180 500-190 700-126 205 66 384 166 754 92" stroke="#c3adff" stroke-width="5" opacity=".75"/></g>
+  <g fill="#eee9ff" font-family="Arial,Helvetica,sans-serif"><text x="72" y="86" font-size="18" font-weight="700" letter-spacing="5">MOTION LOOP / SIGNAL 010</text><text x="72" y="914" font-size="50" font-weight="800" letter-spacing="-2">NEON SIGNAL</text><text x="74" y="952" font-size="12" letter-spacing="4">06 SEC / SEAMLESS / SLOW ENERGY FLOW</text></g>
+</svg>

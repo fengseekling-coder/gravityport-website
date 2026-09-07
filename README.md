@@ -47,6 +47,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 - `styles.css`：独立视觉样式和响应式布局
 - `script.js`：下载配置、滚动动效和轻交互
 - `site-config.js`：版本号与下载地址
+- `demo/`：独立的 MOSA 交互产品演示；使用静态示例数据复刻当前桌面端三栏信息架构，不读取真实用户素材
 - `guide/`：MOSA Web Capture 独立安装教程，避免技术步骤挤占官网首页主叙事
 - `robots.txt` / `sitemap.xml`：搜索引擎抓取与站点地图
 - `releases/latest.json`：桌面版本、校验值和平台包清单

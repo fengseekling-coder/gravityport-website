@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 1000">
+  <defs>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#15171a"/><stop offset=".26" stop-color="#cfd6dc"/><stop offset=".48" stop-color="#4f555c"/><stop offset=".72" stop-color="#eef2f5"/><stop offset="1" stop-color="#17191d"/></linearGradient>
+    <radialGradient id="core"><stop stop-color="#f9fdff"/><stop offset=".2" stop-color="#9ddcff"/><stop offset=".48" stop-color="#3b68ff"/><stop offset="1" stop-color="#0a0e25"/></radialGradient>
+  </defs>
+  <rect width="720" height="1000" fill="#0c0d10"/>
+  <g opacity=".38" stroke="#d8dde2" stroke-width="2"><path d="M76 86h568M76 914h568"/><path d="M102 64v872M618 64v872"/></g>
+  <g transform="translate(360 470)">
+    <circle r="252" fill="none" stroke="url(#metal)" stroke-width="82"/>
+    <circle r="192" fill="none" stroke="#25282e" stroke-width="34"/>
+    <circle r="156" fill="url(#core)"/>
+    <circle r="112" fill="#0a0d17" opacity=".5"/>
+    <g stroke="#e7ebee" stroke-width="9" opacity=".7"><path d="M0-302v70M0 232v70M-302 0h70M232 0h70"/></g>
+  </g>
+  <g fill="#f7f8fa" font-family="Arial,Helvetica,sans-serif">
+    <text x="42" y="64" font-size="13" letter-spacing="4">CLUB SYSTEM / ENGINE CORE</text>
+    <text x="38" y="858" font-size="90" font-weight="800" letter-spacing="-5">WOO</text>
+    <text x="43" y="894" font-size="15" letter-spacing="5">ENTERTAINMENT SUPER ENGINE</text>
+  </g>
+  <rect x="42" y="926" width="636" height="1" fill="#5f6268"/>
+  <text x="42" y="952" fill="#8f949c" font-family="Arial" font-size="11" letter-spacing="3">INDUSTRIAL / SILVER / LIVE SYSTEM</text>
+</svg>

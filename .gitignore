@@ -1,5 +1,7 @@
 .preview.log
 .audit-*.png
+.demo-*.png
+.v4-*.png
 .DS_Store
 .env
 .env.*

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1480 1000">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7f8fa"/><stop offset=".42" stop-color="#cdd1d6"/><stop offset=".7" stop-color="#fff"/><stop offset="1" stop-color="#8c9299"/></linearGradient>
+    <radialGradient id="halo"><stop stop-color="#fff"/><stop offset=".3" stop-color="#d7f3ff"/><stop offset=".62" stop-color="#7fbfff"/><stop offset="1" stop-color="#202b42"/></radialGradient>
+  </defs>
+  <rect width="1480" height="1000" fill="#dfe2e6"/>
+  <path d="M80 144h1320v648H80Z" fill="url(#wall)"/>
+  <rect x="188" y="224" width="1104" height="482" rx="10" fill="#e9ebee" stroke="#b5bac1" stroke-width="4"/>
+  <g transform="translate(740 464)"><circle r="220" fill="#2b2f36"/><circle r="184" fill="url(#halo)"/><circle r="128" fill="#f4f8fb" opacity=".82"/><circle r="78" fill="#8795aa" opacity=".38"/></g>
+  <g fill="#afb4bb"><rect x="116" y="188" width="54" height="546"/><rect x="1310" y="188" width="54" height="546"/><rect x="294" y="184" width="24" height="548"/><rect x="1162" y="184" width="24" height="548"/></g>
+  <path d="M0 1000 350 718h780l350 282Z" fill="#eef0f2"/><path d="M160 1000 438 750h604l278 250Z" fill="#b8bec5" opacity=".65"/>
+  <g fill="#25292e" font-family="Arial,Helvetica,sans-serif"><text x="74" y="78" font-size="18" font-weight="700" letter-spacing="5">VENUE SYSTEM / MAIN STAGE</text><text x="75" y="110" font-size="11" letter-spacing="4">12M × 5M / SILVER WHITE / ICE BLUE CORE</text></g>
+</svg>

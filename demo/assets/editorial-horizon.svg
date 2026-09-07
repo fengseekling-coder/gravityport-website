@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 1000">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d18d66"/><stop offset="1" stop-color="#f1c18f"/></linearGradient>
+    <radialGradient id="glass" cx="34%" cy="28%"><stop stop-color="#fff" stop-opacity=".94"/><stop offset=".34" stop-color="#f5d49f" stop-opacity=".68"/><stop offset="1" stop-color="#9b664d" stop-opacity=".32"/></radialGradient>
+  </defs>
+  <rect width="1320" height="1000" fill="#f0dfc5"/>
+  <rect width="1320" height="520" fill="url(#sky)"/>
+  <circle cx="1000" cy="216" r="92" fill="#ffe1a3"/>
+  <path d="M0 550 1320 326v122L0 668Z" fill="#332825"/>
+  <path d="M0 676 1320 456v544H0Z" fill="#ddb879"/>
+  <rect x="250" y="524" width="310" height="256" rx="12" fill="#c17052"/>
+  <rect x="566" y="610" width="300" height="186" rx="12" fill="#e8d6bc"/>
+  <circle cx="760" cy="478" r="122" fill="url(#glass)" stroke="#f6e5cc" stroke-width="4"/>
+  <g fill="#2b2320" font-family="Arial,Helvetica,sans-serif">
+    <text x="52" y="70" font-size="17" font-weight="700" letter-spacing="4">EDITORIAL HORIZON</text>
+    <text x="52" y="98" font-size="11" letter-spacing="3">STILL LIFE / WARM GEOMETRY / REF 03</text>
+  </g>
+</svg>

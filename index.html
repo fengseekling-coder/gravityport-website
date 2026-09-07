@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" data-i18n-attr="content:home.meta.description" content="MOSA 是面向 AI 创作的本地素材库，把图片、Prompt、来源、参考图与版本关系留在你自己的设备上。" />
-    <meta name="theme-color" content="#f4f4f7" />
+    <meta name="theme-color" content="#09090c" />
     <meta name="color-scheme" content="light" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" data-i18n-attr="content:home.meta.ogLocale" content="zh_CN" />
@@ -18,50 +18,46 @@
     <link rel="canonical" href="https://mosa.azhuilab.com/" />
     <link rel="icon" href="./assets/mosa-mark.svg?v=20260904-logo-1" type="image/svg+xml" />
     <title data-i18n="home.meta.title">MOSA · AI 创作的本地素材库</title>
-    <link rel="stylesheet" href="./styles.css?v=20260904-i18n-1" />
+    <link rel="stylesheet" href="./styles.css?v=20260907-v4-22" />
   </head>
   <body>
     <header class="site-header" data-header>
       <div class="shell header-inner">
         <a class="brand" href="#top" data-i18n-attr="aria-label:common.home" aria-label="MOSA 首页"><img class="brand-mark" src="./assets/mosa-mark.svg?v=20260904-logo-1" alt="" width="36" height="36" aria-hidden="true" decoding="async" /><span class="brand-name">MOSA</span></a>
-        <nav class="nav-links" data-i18n-attr="aria-label:home.nav.label" aria-label="主导航"><a href="#product" data-i18n="home.nav.product">产品</a><a href="#workflow" data-i18n="home.nav.workflow">工作流</a><a href="#privacy" data-i18n="home.nav.privacy">本地优先</a><a href="#download" data-i18n="home.nav.download">下载</a></nav>
+        <nav class="nav-links" data-i18n-attr="aria-label:home.nav.label" aria-label="主导航"><a href="#demo" data-i18n="home.nav.demo">演示</a><a href="#product" data-i18n="home.nav.product">产品</a><a href="#workflow" data-i18n="home.nav.workflow">工作流</a><a href="#privacy" data-i18n="home.nav.privacy">本地优先</a><a href="#download" data-i18n="home.nav.download">下载</a></nav>
         <div class="header-actions"><button class="header-community" type="button" data-community-open aria-haspopup="dialog" data-i18n="common.community">加入交流群</button><button class="language-toggle" type="button" data-locale-toggle data-i18n="common.nextLanguage" data-i18n-attr="aria-label:common.switchToEnglish" aria-label="切换到 English">EN</button></div>
       </div>
     </header>
 
     <main id="top">
-      <section class="hero">
-        <div class="hero-ambient hero-ambient-one" aria-hidden="true"></div><div class="hero-ambient hero-ambient-two" aria-hidden="true"></div>
+      <section class="hero" data-kinetic-hero>
+        <div class="hero-grid-field" aria-hidden="true"></div><div class="hero-ambient hero-ambient-one" aria-hidden="true"></div><div class="hero-ambient hero-ambient-two" aria-hidden="true"></div>
         <div class="shell hero-layout">
           <div class="hero-copy reveal">
             <div class="eyebrow"><span></span> <span data-i18n="home.hero.eyebrow">Local visual memory for AI creation</span></div>
-            <h1><span data-i18n="home.hero.titleLead">AI 生成的每一张图，</span><br /><strong data-i18n="home.hero.titleAccent">都值得被记住。</strong></h1>
-            <p class="hero-lede" data-i18n="home.hero.lede">MOSA 把散落在 ChatGPT、Gemini、Codex 等工具里的创作素材，连同 Prompt、来源、参考图和版本关系，沉淀成你自己的本地素材库。</p>
-            <div class="hero-actions"><a class="button button-primary" href="#product"><span data-i18n="home.hero.ctaProduct">看看 MOSA 怎么工作</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></a><button class="button button-secondary" type="button" data-community-open aria-haspopup="dialog" data-i18n="common.community">加入交流群</button></div>
-            <div class="hero-facts" data-i18n-attr="aria-label:home.hero.factsAria" aria-label="MOSA 产品特点"><span><i></i><span data-i18n="home.hero.factLocal">素材本地存储</span></span><span><i></i><span data-i18n="home.hero.factAccount">不需要 MOSA 云账号</span></span><span><i></i><span data-i18n="home.hero.factPlatform">macOS / Windows</span></span></div>
+            <div class="hero-title-wrap"><h1><span data-i18n="home.hero.titleLead">AI 生成的每一张图，</span><br /><strong data-i18n="home.hero.titleAccent">都值得被记住。</strong></h1><span class="hero-title-index" aria-hidden="true">M / 01</span></div>
+            <div class="hero-bottom-copy"><p class="hero-lede" data-i18n="home.hero.lede">MOSA 把散落在 ChatGPT、Gemini、Codex 等工具里的创作素材，连同 Prompt、来源、参考图和版本关系，沉淀成你自己的本地素材库。</p>
+            <div class="hero-actions"><a class="button button-primary" href="#demo"><span data-i18n="home.hero.ctaProduct">直接试试 MOSA</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></a><button class="button button-secondary" type="button" data-community-open aria-haspopup="dialog" data-i18n="common.community">加入交流群</button></div>
+            </div><div class="hero-facts" data-i18n-attr="aria-label:home.hero.factsAria" aria-label="MOSA 产品特点"><span><i></i><span data-i18n="home.hero.factLocal">素材本地存储</span></span><span><i></i><span data-i18n="home.hero.factAccount">不需要 MOSA 云账号</span></span><span><i></i><span data-i18n="home.hero.factPlatform">macOS / Windows</span></span></div>
           </div>
 
-          <div class="hero-product reveal reveal-delay" data-i18n-attr="aria-label:home.hero.productAria" aria-label="MOSA 产品界面示意">
-            <div class="product-halo" aria-hidden="true"></div>
-            <div class="product-window">
-              <div class="window-bar"><div class="traffic-lights" aria-hidden="true"><span></span><span></span><span></span></div><div class="window-title">MOSA</div><div class="window-actions" aria-hidden="true"><span></span><span></span></div></div>
-              <div class="product-ui">
-                <aside class="demo-sidebar">
-                  <div class="demo-brand"><img class="mini-mark" src="./assets/mosa-mark.svg?v=20260904-logo-1" alt="" aria-hidden="true" decoding="async" /><b>MOSA</b></div><p data-i18n="home.demo.library">素材库</p>
-                  <div class="demo-nav active"><i class="nav-grid"></i><span data-i18n="home.demo.allAssets">全部素材</span><b>248</b></div><div class="demo-nav"><i class="nav-star"></i><span data-i18n="home.demo.favorites">收藏</span><b>36</b></div><div class="demo-nav"><i class="nav-clock"></i><span data-i18n="home.demo.recent">最近使用</span><b>28</b></div><div class="demo-nav"><i class="nav-trash"></i><span data-i18n="home.demo.trash">回收站</span></div>
-                  <p class="demo-nav-label" data-i18n="home.demo.sources">来源</p><div class="demo-source"><i class="source-dot source-gpt"></i><span>ChatGPT</span><b>92</b></div><div class="demo-source"><i class="source-dot source-gemini"></i><span>Gemini</span><b>61</b></div><div class="demo-source"><i class="source-dot source-codex"></i><span>Codex</span><b>54</b></div>
-                </aside>
-                <section class="demo-library">
-                  <div class="demo-toolbar"><div><h3 data-i18n="home.demo.allAssets">全部素材</h3><div class="demo-tabs"><span class="active" data-i18n="home.demo.all">全部</span><span data-i18n="home.demo.images">图片</span><span data-i18n="home.demo.videos">视频</span></div></div><div class="demo-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6" /><path d="m16 16 4 4" /></svg> <span data-i18n="home.demo.search">搜索所有素材…</span></div></div>
-                  <div class="demo-grid" aria-hidden="true"><article class="demo-card tall art-a"><span class="art-disc"></span></article><article class="demo-card wide art-b"><span class="art-sun"></span></article><article class="demo-card art-c"><span class="art-planet"></span></article><article class="demo-card tall art-d"><span class="art-glow"></span></article><article class="demo-card art-e"><span class="art-ring"></span></article><article class="demo-card wide art-f"><span class="art-horizon"></span></article><article class="demo-card art-g"><span class="art-cube"></span></article><article class="demo-card tall art-h"><span class="art-orb"></span></article></div>
-                </section>
-                <aside class="demo-inspector"><div class="inspector-preview art-c"><span class="art-planet"></span></div><div class="inspector-head"><span data-i18n="home.demo.creationRecord">创作记录</span><b>•••</b></div><div class="inspector-block"><label>PROMPT</label><p>Minimal editorial object, quiet light, subtle grain, refined neutral composition…</p></div><div class="inspector-line"><span data-i18n="home.demo.source">来源</span><b>ChatGPT</b></div><div class="inspector-line"><span data-i18n="home.demo.version">版本</span><b data-i18n="home.demo.versionValue">v3 · 4 个节点</b></div><div class="inspector-line"><span data-i18n="home.demo.references">参考图</span><b data-i18n="home.demo.referencesValue">2 张</b></div></aside>
-              </div>
-            </div>
-            <div class="prompt-float" aria-hidden="true"><span>PROMPT + CONTEXT</span><b data-i18n="home.hero.promptFloat">图像之外的创作信息，也一起留下。</b></div>
+          <div class="hero-product hero-live-preview reveal reveal-delay" data-hero-product data-i18n-attr="aria-label:home.hero.productAria" aria-label="MOSA 产品界面实时预览">
+            <div class="hero-live-meta"><span><i></i> LIVE PRODUCT UI</span><b>DEMO DATA</b></div>
+            <div class="hero-live-viewport" aria-hidden="true"><iframe data-hero-demo-frame src="./demo/index.html?embed=1&amp;preview=1&amp;scenario=context&amp;lang=zh&amp;build=v4-22" title="MOSA 产品界面实时预览" tabindex="-1" scrolling="no"></iframe></div>
+            <a class="hero-live-link" href="#demo"><span data-i18n="home.interactive.heroLink">打开交互演示</span><span aria-hidden="true">↘</span></a>
           </div>
         </div>
-        <div class="shell source-rail reveal"><span class="source-rail-label" data-i18n="home.hero.sourceRail">继续用你熟悉的 AI 工具</span><div class="source-list" data-i18n-attr="aria-label:home.hero.sourceListAria" aria-label="支持来源"><span><i>◎</i>ChatGPT</span><span><i>✦</i>Gemini</span><span><i>⌘</i>Codex</span><span><i>◫</i>Flow</span><span><i>AI</i>AI Studio</span></div></div>
+        <div class="hero-scroll-cue" aria-hidden="true"><span>SCROLL TO EXPLORE</span><i></i></div>
+        <div class="source-rail reveal"><div class="shell source-rail-inner"><span class="source-rail-label" data-i18n="home.hero.sourceRail">继续用你熟悉的 AI 工具</span><div class="source-marquee"><div class="source-list" data-source-marquee data-i18n-attr="aria-label:home.hero.sourceListAria" aria-label="支持来源"><span><i>◎</i>ChatGPT</span><span><i>✦</i>Gemini</span><span><i>⌘</i>Codex</span><span><i>◫</i>Flow</span><span><i>AI</i>AI Studio</span></div></div></div></div>
+      </section>
+
+      <section class="interactive-demo section-pad" id="demo">
+        <div class="shell">
+          <div class="interactive-demo-heading reveal"><div><span class="section-kicker" data-i18n="home.interactive.kicker">INTERACTIVE PRODUCT DEMO</span><h2><span data-i18n="home.interactive.titleLead">不是截图。</span><br /><span data-i18n="home.interactive.titleAccent">直接试。</span></h2><p data-i18n="home.interactive.lede">在网页里直接操作 MOSA。浏览素材、搜索筛选、批量整理、查看 Prompt 与参考图、切换版本、进入大图模式，甚至打开设置。</p></div><a class="interactive-demo-open" href="./demo/index.html" data-i18n="home.interactive.full">打开完整演示 ↗</a></div>
+          <div class="site-demo-controls reveal" role="tablist" data-i18n-attr="aria-label:home.interactive.controlsAria" aria-label="选择 MOSA 演示场景"><button type="button" data-site-demo="capture" role="tab" data-i18n="home.interactive.scenario.capture">收录</button><button class="is-active" type="button" data-site-demo="library" role="tab" aria-selected="true" data-i18n="home.interactive.scenario.library">素材库</button><button type="button" data-site-demo="organize" role="tab" data-i18n="home.interactive.scenario.organize">整理</button><button type="button" data-site-demo="stacks" role="tab" data-i18n="home.interactive.scenario.stacks">堆叠</button><button type="button" data-site-demo="context" role="tab" data-i18n="home.interactive.scenario.context">创作信息</button><button type="button" data-site-demo="versions" role="tab" data-i18n="home.interactive.scenario.versions">版本</button><button type="button" data-site-demo="viewer" role="tab" data-i18n="home.interactive.scenario.viewer">大图查看</button><button type="button" data-site-demo="settings" role="tab" data-i18n="home.interactive.scenario.settings">设置</button></div>
+          <div class="site-demo-frame reveal"><iframe data-site-demo-frame src="./demo/index.html?embed=1&amp;scenario=library&amp;build=v4-22" data-i18n-attr="title:home.interactive.frameTitle" title="MOSA 交互式产品演示" loading="lazy" scrolling="no"></iframe></div>
+          <div class="site-demo-foot reveal"><span><i></i><span data-i18n="home.interactive.sample">演示使用示例数据，不读取你的本地素材库。</span></span><a href="./demo/index.html?tour=1" data-i18n="home.interactive.tour">开始产品导览 →</a></div>
+        </div>
       </section>
 
       <section class="product-memory section-pad" id="product">
@@ -89,10 +85,10 @@
       <section class="closing"><div class="shell closing-inner reveal"><div><span class="section-kicker">MOSA</span><h2 data-i18n="home.closing.title">让好素材，不再消失在下一次生成里。</h2></div><button class="button button-primary" type="button" data-community-open aria-haspopup="dialog" data-i18n="common.community">加入交流群</button></div></section>
     </main>
 
-    <footer class="site-footer"><div class="shell footer-inner"><div class="footer-brand-wrap"><a class="brand footer-brand" href="#top" data-i18n-attr="aria-label:common.home" aria-label="MOSA 首页"><img class="brand-mark" src="./assets/mosa-mark.svg?v=20260904-logo-1" alt="" width="36" height="36" aria-hidden="true" decoding="async" /><span class="brand-name">MOSA</span></a><p>Local visual memory for AI creation.</p></div><div class="footer-links"><a href="#product" data-i18n="home.footer.product">产品</a><a href="#workflow" data-i18n="home.footer.workflow">工作流</a><a href="#privacy" data-i18n="home.footer.privacy">本地优先</a><a href="#download" data-i18n="home.footer.download">下载</a><a href="./guide/" data-i18n="home.footer.guide">安装教程</a><a href="./privacy/" data-i18n="home.footer.privacyPolicy">隐私政策</a><a href="https://github.com/fengseekling-coder/mosa" target="_blank" rel="noreferrer">GitHub</a><button type="button" data-community-open aria-haspopup="dialog" data-i18n="common.community">加入交流群</button></div><span class="footer-copy">© <span data-year></span> MOSA</span></div></footer>
+    <footer class="site-footer"><div class="shell footer-inner"><div class="footer-brand-wrap"><a class="brand footer-brand" href="#top" data-i18n-attr="aria-label:common.home" aria-label="MOSA 首页"><img class="brand-mark" src="./assets/mosa-mark.svg?v=20260904-logo-1" alt="" width="36" height="36" aria-hidden="true" decoding="async" /><span class="brand-name">MOSA</span></a><p>Local visual memory for AI creation.</p></div><div class="footer-links"><a href="#demo" data-i18n="home.footer.demo">交互演示</a><a href="#product" data-i18n="home.footer.product">产品</a><a href="#workflow" data-i18n="home.footer.workflow">工作流</a><a href="#privacy" data-i18n="home.footer.privacy">本地优先</a><a href="#download" data-i18n="home.footer.download">下载</a><a href="./guide/" data-i18n="home.footer.guide">安装教程</a><a href="./privacy/" data-i18n="home.footer.privacyPolicy">隐私政策</a><a href="https://github.com/fengseekling-coder/mosa" target="_blank" rel="noreferrer">GitHub</a><button type="button" data-community-open aria-haspopup="dialog" data-i18n="common.community">加入交流群</button></div><span class="footer-copy">© <span data-year></span> MOSA</span></div></footer>
 
     <dialog class="community-dialog" data-community-dialog aria-labelledby="community-dialog-title" aria-describedby="community-dialog-description"><div class="community-dialog-copy"><span class="community-dialog-label">MOSA COMMUNITY</span><h2 id="community-dialog-title">加入 MOSA AI 创作者跨平台素材管理交流群</h2><p id="community-dialog-description">交流跨平台素材管理、Prompt 整理和 AI 创作工作流，也可以直接反馈 MOSA 的使用问题。</p><button class="community-dialog-note" type="button" data-community-copy disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h10v14H9zM5 19H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1" /></svg><span data-community-copy-label>复制二维码图片</span></button></div><figure class="community-qr"><img data-src="./assets/mosa-community-qr.jpg" alt="MOSA AI 创作者跨平台素材管理交流群二维码" decoding="async" /><figcaption>群二维码会定期更新，请以此页面展示为准。</figcaption></figure><button class="community-dialog-close" type="button" data-community-close aria-label="关闭交流群二维码"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></dialog>
     <div class="toast" role="status" aria-live="polite" data-toast></div>
-    <script src="./site-config.js"></script><script src="./i18n.js?v=20260904-1"></script><script src="./script.js?v=20260904-i18n-1"></script>
+    <script src="./site-config.js?v=20260907-v4-22"></script><script src="./i18n.js?v=20260907-v4-22"></script><script src="./script.js?v=20260907-v4-22"></script>
   </body>
 </html>

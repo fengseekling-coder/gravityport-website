@@ -4,6 +4,7 @@
   const downloadsEnabled = config.downloadsEnabled !== false;
   const i18n = window.MOSA_I18N;
   const t = (key, fallback) => i18n?.t(key) || fallback || key;
+
   const header = document.querySelector("[data-header]");
   const toast = document.querySelector("[data-toast]");
   let toastTimer = null;
@@ -146,12 +147,91 @@
   void loadDesktopRelease();
   document.addEventListener("mosa:locale-change", refreshDownloadCopy);
 
+  const kineticHero = document.querySelector("[data-kinetic-hero]");
+  const heroDemoFrame = document.querySelector("[data-hero-demo-frame]");
+  const DEMO_BUILD = "v4-22";
+  const resetEmbeddedRootScroll = (frame) => {
+    if (!frame) return;
+    try {
+      frame.contentWindow?.scrollTo(0, 0);
+      const doc = frame.contentDocument;
+      if (doc?.documentElement) doc.documentElement.scrollTop = 0;
+      if (doc?.body) doc.body.scrollTop = 0;
+    } catch {
+      // The website demo is same-origin in production/local preview. If that
+      // ever changes, the embedded demo still has its own scroll reset.
+    }
+  };
+  const pinEmbeddedRootOnLoad = (frame) => {
+    if (!frame) return;
+    frame.addEventListener("load", () => {
+      resetEmbeddedRootScroll(frame);
+      window.requestAnimationFrame(() => resetEmbeddedRootScroll(frame));
+      window.setTimeout(() => resetEmbeddedRootScroll(frame), 80);
+      window.setTimeout(() => resetEmbeddedRootScroll(frame), 320);
+      frame.contentWindow?.postMessage({
+        type: "mosa-demo:set-locale",
+        locale: window.MOSA_I18N?.locale === "en" ? "en" : "zh",
+      }, window.location.origin);
+    });
+  };
+  pinEmbeddedRootOnLoad(heroDemoFrame);
   const updateHeader = () => {
     if (!header) return;
     header.classList.toggle("is-scrolled", window.scrollY > 12);
+    const heroBoundary = kineticHero ? kineticHero.offsetTop + kineticHero.offsetHeight - 96 : 720;
+    header.classList.toggle("is-after-hero", window.scrollY >= heroBoundary);
   };
   updateHeader();
   window.addEventListener("scroll", updateHeader, { passive: true });
+
+  const siteDemoFrame = document.querySelector("[data-site-demo-frame]");
+  const siteDemoButtons = [...document.querySelectorAll("[data-site-demo]")];
+  const postDemoLocale = (frame, locale = window.MOSA_I18N?.locale) => {
+    if (!frame?.contentWindow) return;
+    frame.contentWindow.postMessage({
+      type: "mosa-demo:set-locale",
+      locale: locale === "en" ? "en" : "zh",
+    }, window.location.origin);
+  };
+  const syncHeroDemoLocale = () => {
+    if (!heroDemoFrame) return;
+    const url = new URL("./demo/index.html", window.location.href);
+    url.searchParams.set("embed", "1");
+    url.searchParams.set("preview", "1");
+    url.searchParams.set("scenario", "context");
+    url.searchParams.set("lang", window.MOSA_I18N?.locale === "en" ? "en" : "zh");
+    url.searchParams.set("build", DEMO_BUILD);
+    const next = url.href;
+    if (heroDemoFrame.src !== next) heroDemoFrame.src = next;
+  };
+  syncHeroDemoLocale();
+  const setSiteDemoScenario = (scenario) => {
+    if (!siteDemoFrame || !scenario) return;
+    siteDemoButtons.forEach((button) => {
+      const active = button.dataset.siteDemo === scenario;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-selected", String(active));
+      button.tabIndex = active ? 0 : -1;
+    });
+    const url = new URL("./demo/index.html", window.location.href);
+    url.searchParams.set("embed", "1");
+    url.searchParams.set("scenario", scenario);
+    url.searchParams.set("lang", window.MOSA_I18N?.locale === "en" ? "en" : "zh");
+    url.searchParams.set("build", DEMO_BUILD);
+    siteDemoFrame.src = url.href;
+  };
+  pinEmbeddedRootOnLoad(siteDemoFrame);
+  siteDemoButtons.forEach((button) => {
+    button.addEventListener("click", () => setSiteDemoScenario(button.dataset.siteDemo));
+  });
+  document.addEventListener("mosa:locale-change", (event) => {
+    // Locale changes are intentionally in-place. Reloading either iframe here
+    // destroys the demo's internal scroll position, selection and viewer state.
+    const locale = event.detail?.locale === "en" ? "en" : "zh";
+    postDemoLocale(heroDemoFrame, locale);
+    postDemoLocale(siteDemoFrame, locale);
+  });
 
   const communityDialog = document.querySelector("[data-community-dialog]");
   const communityOpeners = document.querySelectorAll("[data-community-open]");
@@ -266,6 +346,87 @@
       if (communityCopyLabel) communityCopyLabel.textContent = t("home.community.copy");
     }
   });
+
+  const sourceMarquee = document.querySelector("[data-source-marquee]");
+  if (sourceMarquee && sourceMarquee.dataset.marqueeReady !== "true") {
+    [...sourceMarquee.children].forEach((item) => {
+      const clone = item.cloneNode(true);
+      clone.setAttribute("aria-hidden", "true");
+      sourceMarquee.appendChild(clone);
+    });
+    sourceMarquee.dataset.marqueeReady = "true";
+  }
+
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  if (!reducedMotion && kineticHero) {
+    const heroPanel = kineticHero.querySelector(".hero-live-viewport");
+    const memoryCanvas = document.querySelector(".memory-canvas");
+    const capabilityVisuals = [...document.querySelectorAll(".capability-visual")];
+    let pointerX = 0;
+    let pointerY = 0;
+    let framePending = false;
+
+    const updateKineticScene = () => {
+      framePending = false;
+      const heroRect = kineticHero.getBoundingClientRect();
+      const heroTravel = Math.max(1, kineticHero.offsetHeight - window.innerHeight);
+      const heroProgress = clamp(-heroRect.top / heroTravel, 0, 1);
+      const titleShift = Math.round(heroProgress * -72);
+      const copyShift = Math.round(heroProgress * -38);
+      // Keep the live product frame vertically stable while the page scrolls.
+      // Moving the scaled iframe on the Y axis causes Chrome to clip the first
+      // app row at intermediate scroll positions, which makes the MOSA topbar
+      // look as if it has been scrolled out of the frame.
+      const panelShift = 0;
+
+      kineticHero.style.setProperty("--hero-title-y", `${titleShift}px`);
+      kineticHero.style.setProperty("--hero-copy-y", `${copyShift}px`);
+      kineticHero.style.setProperty("--hero-panel-y", `${panelShift}px`);
+      kineticHero.style.setProperty("--hero-panel-x", `${pointerX * 8}px`);
+      kineticHero.style.setProperty("--hero-panel-rx", `${1.7 + pointerY * -1.35}deg`);
+      kineticHero.style.setProperty("--hero-panel-ry", `${-1.2 + pointerX * 1.55}deg`);
+      kineticHero.style.setProperty("--hero-orb-x", `${pointerX * 34}px`);
+      kineticHero.style.setProperty("--hero-orb-y", `${pointerY * 26}px`);
+
+      if (memoryCanvas) {
+        const rect = memoryCanvas.closest(".product-memory")?.getBoundingClientRect();
+        if (rect) {
+          const progress = clamp((window.innerHeight - rect.top) / (window.innerHeight + rect.height), 0, 1);
+          memoryCanvas.style.setProperty("--memory-parallax", `${Math.round((progress - .5) * 56)}px`);
+        }
+      }
+
+      capabilityVisuals.forEach((visual) => {
+        const rect = visual.getBoundingClientRect();
+        const centerDelta = (rect.top + rect.height / 2 - window.innerHeight / 2) / window.innerHeight;
+        visual.style.setProperty("--capability-y", `${Math.round(clamp(centerDelta, -1, 1) * -22)}px`);
+      });
+    };
+
+    const queueKineticScene = () => {
+      if (framePending) return;
+      framePending = true;
+      window.requestAnimationFrame(updateKineticScene);
+    };
+
+    kineticHero.addEventListener("pointermove", (event) => {
+      const rect = kineticHero.getBoundingClientRect();
+      pointerX = clamp((event.clientX - rect.left) / Math.max(1, rect.width) * 2 - 1, -1, 1);
+      pointerY = clamp((event.clientY - rect.top) / Math.max(1, rect.height) * 2 - 1, -1, 1);
+      kineticHero.style.setProperty("--hero-mx", `${Math.round((pointerX + 1) * 50)}%`);
+      kineticHero.style.setProperty("--hero-my", `${Math.round((pointerY + 1) * 28)}%`);
+      queueKineticScene();
+    }, { passive: true });
+    kineticHero.addEventListener("pointerleave", () => {
+      pointerX = 0;
+      pointerY = 0;
+      queueKineticScene();
+    }, { passive: true });
+    window.addEventListener("scroll", queueKineticScene, { passive: true });
+    window.addEventListener("resize", queueKineticScene, { passive: true });
+    heroPanel?.addEventListener("load", queueKineticScene, { once: true });
+    queueKineticScene();
+  }
 
   const revealItems = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window) {
