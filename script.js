@@ -93,6 +93,7 @@
       if (button.dataset.pendingHandler === "true") return;
       button.dataset.pendingHandler = "true";
       button.addEventListener("click", (event) => {
+        if (!button.hasAttribute("aria-disabled")) return;
         event.preventDefault();
         showToast(pendingMessage(kind) || t("home.download.missingUrl"));
       });
