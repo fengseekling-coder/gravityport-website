@@ -1,6 +1,6 @@
 {
   "version": "0.2.1-rc.5",
-  "publishedAt": "2026-09-09T16:13:45Z",
+  "publishedAt": "2026-09-09T16:18:21Z",
   "notes": {
     "zh": "MOSA 0.2.1-rc.5 桌面测试发布包。macOS 为 Apple Silicon DMG，Windows 为 x64 预览构建。",
     "en": "MOSA 0.2.1-rc.5 desktop test package. macOS is an Apple Silicon DMG; Windows is an x64 preview build."
