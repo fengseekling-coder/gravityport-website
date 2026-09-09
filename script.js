@@ -112,7 +112,11 @@
       const expectedPrefix = platform === "mac" ? "MOSA-darwin-arm64-" : "MOSA-win32-x64-";
       if (!artifact || typeof artifact !== "object" || Array.isArray(artifact)) return null;
       const file = typeof artifact.file === "string" ? artifact.file.trim() : "";
-      if (file !== `${expectedPrefix}${version}.zip`) return null;
+      const expectedStem = `${expectedPrefix}${version}`;
+      const validFile = platform === "mac"
+        ? file === `${expectedStem}.dmg` || file === `${expectedStem}.zip`
+        : file === `${expectedStem}.zip`;
+      if (!validFile) return null;
       return {
         version: `v${version}`,
         url: `./downloads/${encodeURIComponent(file)}`,

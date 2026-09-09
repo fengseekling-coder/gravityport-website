@@ -7,7 +7,7 @@ if (!Number.isSafeInteger(keep) || keep < 1) {
   throw new Error("usage: select-desktop-release-retention.mjs [positive keep count]");
 }
 
-const packagePattern = /^MOSA-(darwin-arm64|win32-x64)-(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\.zip$/;
+const packagePattern = /^MOSA-(darwin-arm64|win32-x64)-(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\.(dmg|zip)$/;
 const versionPattern = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/;
 const releases = new Map();
 
@@ -69,9 +69,15 @@ process.stdin.on("end", () => {
   for (const name of input.split(/\r?\n/)) {
     const match = packagePattern.exec(name.trim());
     if (!match) continue;
-    const [, platform, version] = match;
+    const [, platform, version, extension] = match;
+    if (platform === "win32-x64" && extension !== "zip") continue;
     const release = releases.get(version) || { version, mac: null, windows: null };
-    release[platform === "darwin-arm64" ? "mac" : "windows"] = name.trim();
+    if (platform === "darwin-arm64") {
+      const current = release.mac || "";
+      if (!current || (extension === "dmg" && current.endsWith(".zip"))) release.mac = name.trim();
+    } else {
+      release.windows = name.trim();
+    }
     releases.set(version, release);
   }
 

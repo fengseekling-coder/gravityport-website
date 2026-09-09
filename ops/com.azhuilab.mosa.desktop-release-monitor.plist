@@ -20,7 +20,7 @@
   </dict>
   <key>WatchPaths</key>
   <array>
-    <string>/Users/azhuilab/codex_aigc/mosa/out/make/zip/darwin/arm64</string>
+    <string>/Users/azhuilab/codex_aigc/mosa/out/make/dmg/darwin/arm64</string>
     <string>/Users/azhuilab/codex_aigc/mosa/out/make/zip/win32/x64</string>
   </array>
   <key>StartInterval</key>

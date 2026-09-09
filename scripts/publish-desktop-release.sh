@@ -10,7 +10,7 @@ log() {
   printf '[mosa-release] %s\n' "$1"
 }
 
-source_root="${MOSA_RELEASE_SOURCE_DIR:-/Users/azhuilab/codex_aigc/mosa/out/make/zip}"
+source_root="${MOSA_RELEASE_SOURCE_DIR:-/Users/azhuilab/codex_aigc/mosa/out/make}"
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 retention_selector="$script_dir/select-desktop-release-retention.mjs"
 desktop_retention_count=4
@@ -29,8 +29,22 @@ if [[ "${1:-}" == "--dry-run" ]]; then
 fi
 [[ "$#" -eq 0 ]] || die "usage: publish-desktop-release.sh [--dry-run]"
 
-[[ -d "$source_root/darwin/arm64" ]] || die "missing macOS release directory: $source_root/darwin/arm64"
-[[ -d "$source_root/win32/x64" ]] || die "missing Windows release directory: $source_root/win32/x64"
+if [[ -d "$source_root/dmg/darwin/arm64" ]]; then
+  mac_source_dir="$source_root/dmg/darwin/arm64"
+elif [[ -d "$source_root/zip/darwin/arm64" ]]; then
+  mac_source_dir="$source_root/zip/darwin/arm64"
+elif [[ -d "$source_root/darwin/arm64" ]]; then
+  mac_source_dir="$source_root/darwin/arm64"
+else
+  die "missing macOS release directory below $source_root"
+fi
+if [[ -d "$source_root/zip/win32/x64" ]]; then
+  windows_source_dir="$source_root/zip/win32/x64"
+elif [[ -d "$source_root/win32/x64" ]]; then
+  windows_source_dir="$source_root/win32/x64"
+else
+  die "missing Windows release directory below $source_root"
+fi
 command -v node >/dev/null 2>&1 || die "node is required"
 command -v unzip >/dev/null 2>&1 || die "unzip is required"
 command -v shasum >/dev/null 2>&1 || die "shasum is required"
@@ -59,7 +73,7 @@ wait_for_stable_file() {
   return 1
 }
 
-candidate_pair="$(node - "$source_root/darwin/arm64" "$source_root/win32/x64" <<'NODE'
+candidate_pair="$(node - "$mac_source_dir" "$windows_source_dir" <<'NODE'
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -101,21 +115,27 @@ function compareVersions(leftValue, rightValue) {
   return 0;
 }
 
-function packages(dir, prefix) {
+function packages(dir, prefix, extensions) {
+  const extensionPattern = extensions.join("|");
   return fs.readdirSync(dir, { withFileTypes: true })
     .filter((entry) => entry.isFile())
     .map((entry) => {
-      const match = new RegExp(`^${prefix}(\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?)\\.zip$`).exec(entry.name);
+      const match = new RegExp(`^${prefix}(\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?)\\.(${extensionPattern})$`).exec(entry.name);
       if (!match || !parseVersion(match[1])) return null;
-      return { version: match[1], file: path.join(dir, entry.name) };
+      return { version: match[1], file: path.join(dir, entry.name), extension: match[2] };
     })
     .filter(Boolean);
 }
 
-const macPackages = packages(macDir, "MOSA-darwin-arm64-");
-const windowsPackages = packages(windowsDir, "MOSA-win32-x64-");
+const macPackages = packages(macDir, "MOSA-darwin-arm64-", ["dmg", "zip"]);
+const windowsPackages = packages(windowsDir, "MOSA-win32-x64-", ["zip"]);
+const macByVersion = new Map();
+for (const item of macPackages) {
+  const current = macByVersion.get(item.version);
+  if (!current || (item.extension === "dmg" && current.extension !== "dmg")) macByVersion.set(item.version, item);
+}
 const windowsByVersion = new Map(windowsPackages.map((item) => [item.version, item]));
-const pairs = macPackages
+const pairs = [...macByVersion.values()]
   .filter((mac) => windowsByVersion.has(mac.version))
   .map((mac) => ({ version: mac.version, mac: mac.file, windows: windowsByVersion.get(mac.version).file }));
 
@@ -125,7 +145,7 @@ const selected = pairs[pairs.length - 1];
 process.stdout.write(`${selected.version}\t${selected.mac}\t${selected.windows}`);
 NODE
 )" || {
-  log "等待 macOS/Windows 同版本 ZIP 同时出现。"
+  log "等待 macOS/Windows 同版本桌面包同时出现。"
   exit 0
 }
 
@@ -137,14 +157,21 @@ if ! wait_for_stable_file "$mac_package" || ! wait_for_stable_file "$windows_pac
   exit 1
 fi
 
-unzip -tqq "$mac_package" || die "macOS ZIP integrity check failed: $mac_package"
-unzip -Z1 "$mac_package" | grep -Fx 'MOSA.app/Contents/MacOS/MOSA' >/dev/null || die "macOS ZIP does not contain MOSA.app"
+if [[ "$mac_package" == *.dmg ]]; then
+  command -v hdiutil >/dev/null 2>&1 || die "hdiutil is required to verify macOS DMG"
+  hdiutil verify -quiet "$mac_package" || die "macOS DMG integrity check failed: $mac_package"
+else
+  unzip -tqq "$mac_package" || die "macOS ZIP integrity check failed: $mac_package"
+  unzip -Z1 "$mac_package" | grep -Eq '^(MOSA\.app/Contents/MacOS/MOSA|MOSA-darwin-arm64/MOSA\.app/Contents/MacOS/MOSA)$' \
+    || die "macOS ZIP does not contain MOSA.app"
+fi
 unzip -tqq "$windows_package" || die "Windows ZIP integrity check failed: $windows_package"
-unzip -Z1 "$windows_package" | grep -Fx "MOSA-win32-x64/MOSA.exe" >/dev/null || die "Windows ZIP does not contain MOSA.exe"
+unzip -Z1 "$windows_package" | grep -Eq '^(MOSA\.exe|MOSA-win32-x64/MOSA\.exe)$' \
+  || die "Windows ZIP does not contain MOSA.exe"
 
 mac_name="$(basename "$mac_package")"
 windows_name="$(basename "$windows_package")"
-mac_size="$(file_size "$mac_package")" || die "could not read macOS ZIP size"
+mac_size="$(file_size "$mac_package")" || die "could not read macOS package size"
 windows_size="$(file_size "$windows_package")" || die "could not read Windows ZIP size"
 mac_sha256="$(shasum -a 256 "$mac_package" | awk '{print $1}')"
 windows_sha256="$(shasum -a 256 "$windows_package" | awk '{print $1}')"
@@ -299,7 +326,7 @@ remote_hashes="$(ssh "${ssh_args[@]}" "$ssh_target" \
   "sha256sum '$remote_tmp/$mac_name' '$remote_tmp/$windows_name' | awk '{print \$1}'")"
 remote_mac_sha256="$(printf '%s\n' "$remote_hashes" | sed -n '1p')"
 remote_windows_sha256="$(printf '%s\n' "$remote_hashes" | sed -n '2p')"
-[[ "$remote_mac_sha256" == "$mac_sha256" ]] || die "remote macOS ZIP hash mismatch"
+[[ "$remote_mac_sha256" == "$mac_sha256" ]] || die "remote macOS package hash mismatch"
 [[ "$remote_windows_sha256" == "$windows_sha256" ]] || die "remote Windows ZIP hash mismatch"
 
 ssh "${ssh_args[@]}" "$ssh_target" \
@@ -314,7 +341,7 @@ stale_desktop_pairs="$(printf '%s\n' "$remote_desktop_files" | node "$retention_
 if [[ -n "$stale_desktop_pairs" ]]; then
   removed_desktop_versions=0
   while IFS=$'\t' read -r stale_mac_name stale_windows_name; do
-    [[ "$stale_mac_name" =~ ^MOSA-darwin-arm64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
+    [[ "$stale_mac_name" =~ ^MOSA-darwin-arm64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.(dmg|zip)$ ]] \
       || die "invalid macOS retention filename: $stale_mac_name"
     [[ "$stale_windows_name" =~ ^MOSA-win32-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
       || die "invalid Windows retention filename: $stale_windows_name"

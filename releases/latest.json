@@ -1,24 +1,24 @@
 {
-  "version": "0.2.0",
-  "publishedAt": "2026-08-28T19:54:33Z",
+  "version": "0.2.1-rc.5",
+  "publishedAt": "2026-09-09T16:13:45Z",
   "notes": {
-    "zh": "MOSA 0.2.0 桌面发布包。Windows 包为预览构建，需在 Windows 实机完成运行验证。",
-    "en": "MOSA 0.2.0 desktop package. The Windows build is a preview and needs runtime verification on Windows."
+    "zh": "MOSA 0.2.1-rc.5 桌面测试发布包。macOS 为 Apple Silicon DMG，Windows 为 x64 预览构建。",
+    "en": "MOSA 0.2.1-rc.5 desktop test package. macOS is an Apple Silicon DMG; Windows is an x64 preview build."
   },
   "artifacts": {
     "mac": {
       "platform": "macOS",
       "arch": "arm64",
-      "file": "MOSA-darwin-arm64-0.2.0.zip",
-      "size": 128079639,
-      "sha256": "3c1c95ce64d153e48b77b9f6bb4ccd2a00a33f4f742fb5aef705771af618650b"
+      "file": "MOSA-darwin-arm64-0.2.1-rc.5.dmg",
+      "size": 142149670,
+      "sha256": "f3554856527dfad1b3e3a73a884daec8ff89417befd6cd7711761c2179ff4a46"
     },
     "windows": {
       "platform": "Windows",
       "arch": "x64",
-      "file": "MOSA-win32-x64-0.2.0.zip",
-      "size": 154121769,
-      "sha256": "b7ffc65991c386847c06dc9378387ee47f56d74c905da386d01408e137636b5a"
+      "file": "MOSA-win32-x64-0.2.1-rc.5.zip",
+      "size": 154040107,
+      "sha256": "e27315acb7e179b8f9854cb51e409a9fa3d833021c9e13b68d109eab11a28f77"
     }
   }
 }

@@ -52,13 +52,13 @@ git push origin main
 
 桌面客户端固定读取 `https://mosa.azhuilab.com/releases/latest.json` 检查新版本。发布器会同步写入 `version`、`publishedAt`、双语 `notes`、两个平台的文件名、大小和 SHA-256。客户端只读取版本和说明，不接受清单里的任意跳转 URL；“前往官网下载”始终打开固定的 MOSA 官网。
 
-## 3. 发布桌面 ZIP
+## 3. 发布桌面安装包（macOS DMG + Windows ZIP）
 
 截图中的两个真实包对应：
 
 ```text
-/Users/azhuilab/codex_aigc/mosa/out/make/zip/darwin/arm64/MOSA-darwin-arm64-0.2.0.zip
-/Users/azhuilab/codex_aigc/mosa/out/make/zip/win32/x64/MOSA-win32-x64-0.2.0.zip
+/Users/azhuilab/codex_aigc/mosa/out/make/dmg/darwin/arm64/MOSA-darwin-arm64-0.2.1-rc.5.dmg
+/Users/azhuilab/codex_aigc/mosa/out/make/zip/win32/x64/MOSA-win32-x64-0.2.1-rc.5.zip
 ```
 
 本机首次启用自动发布：
@@ -70,12 +70,12 @@ cd /Users/azhuilab/codex_aigc/mosa-website
 
 监控任务由 macOS `launchd` 在登录后运行，并同时使用目录变更触发和 5 分钟兜底轮询。每次候选发布必须满足：
 
-1. 两个平台存在相同版本的 ZIP。
-2. 文件大小连续稳定后，`unzip -t` 通过，且包含对应的启动文件。
+1. 两个平台存在相同版本的桌面包。
+2. 文件大小连续稳定后，macOS DMG 通过 `hdiutil verify`，Windows ZIP 通过 `unzip -t` 且包含对应的启动文件。
 3. 上传到服务器临时目录后，服务器端 SHA-256 与本机一致。
 4. 两个包先进入 `downloads/`，最后才原子替换 `releases/latest.json`。
 
-因此只有一个平台、正在生成中的包、损坏包或低于已发布版本的包都不会推进线上版本。每次替换前的旧清单会备份到服务器 `releases/history/`，便于回滚。桌面包会保留最新四个完整版本（当前版本加三个历史版本）：发布器在新包与 `releases/latest.json` 原子切换完成后，才删除更旧的 macOS / Windows 成对 ZIP；浏览器扩展 ZIP 和不成对文件不会被删除。
+因此只有一个平台、正在生成中的包、损坏包或低于已发布版本的包都不会推进线上版本。每次替换前的旧清单会备份到服务器 `releases/history/`，便于回滚。桌面包会保留最新四个完整版本（当前版本加三个历史版本）：发布器在新包与 `releases/latest.json` 原子切换完成后，才删除更旧的 macOS / Windows 成对包；浏览器扩展 ZIP 和不成对文件不会被删除。
 
 手动只校验、不上传：
 
@@ -90,7 +90,7 @@ cd /Users/azhuilab/codex_aigc/mosa-website
 ~/Library/Logs/MOSA/desktop-release-monitor.err.log
 ```
 
-桌面 ZIP 大于 GitHub 单文件限制，所以不要把它们复制到仓库后提交；发布器直接从主项目输出目录上传。若需要人工发布，确保文件名保持 `MOSA-darwin-arm64-版本.zip` 和 `MOSA-win32-x64-版本.zip`。
+桌面包大于 GitHub 单文件限制，所以不要把它们复制到仓库后提交；发布器直接从主项目输出目录上传。若需要人工发布，确保文件名保持 `MOSA-darwin-arm64-版本.dmg` 和 `MOSA-win32-x64-版本.zip`。
 
 ## 4. 发布浏览器扩展包
 
@@ -139,18 +139,18 @@ git push origin main
 
 ## 5. 发布 macOS 安装包
 
-拿到真实的 `.dmg` 或 `.pkg` 后，直接放进 `downloads/`，例如：
+当前标准桌面发布会自动把 macOS DMG 与 Windows ZIP 成对上传，并更新 `releases/latest.json`；不需要再手动修改 `site-config.js`。若只拿到一个独立的 macOS `.dmg` 或 `.pkg`，才使用下面的单包发布方式：
 
 ```text
-downloads/MOSA-0.2.0-arm64.dmg
+downloads/MOSA-darwin-arm64-0.2.1-rc.5.dmg
 ```
 
 然后在 `site-config.js` 填写真实版本和地址：
 
 ```js
 mac: {
-  version: "v0.2.0",
-  url: "./downloads/MOSA-0.2.0-arm64.dmg",
+  version: "v0.2.1-rc.5",
+  url: "./downloads/MOSA-darwin-arm64-0.2.1-rc.5.dmg",
   label: "下载 MOSA",
 },
 ```
@@ -184,11 +184,12 @@ git push origin main
 
 ```text
 downloads/MOSA-Web-Capture-0.14.1.zip
-downloads/MOSA-0.2.0-arm64.dmg
+downloads/MOSA-darwin-arm64-0.2.1-rc.5.dmg
+downloads/MOSA-win32-x64-0.2.1-rc.5.zip
 downloads/MOSA-0.2.0-universal.pkg
 ```
 
-不要覆盖旧版本文件。服务器保留最新四组完整桌面 ZIP，便于回滚；桌面当前版本和官网下载地址都只由 `releases/latest.json` 驱动。清单暂时不可用时，官网不会回退到旧包，而是提示稍后重试。
+不要覆盖旧版本文件。服务器保留最新四组完整桌面包，便于回滚；桌面当前版本和官网下载地址都只由 `releases/latest.json` 驱动。清单暂时不可用时，官网不会回退到旧包，而是提示稍后重试。
 
 ## 7. 发布后检查
 
@@ -196,14 +197,15 @@ downloads/MOSA-0.2.0-universal.pkg
 
 ```bash
 curl -fI https://mosa.azhuilab.com/
-curl -fI https://mosa.azhuilab.com/downloads/MOSA-Web-Capture-0.14.0.zip
+curl -fI https://mosa.azhuilab.com/downloads/MOSA-darwin-arm64-0.2.1-rc.5.dmg
+curl -fI https://mosa.azhuilab.com/downloads/MOSA-win32-x64-0.2.1-rc.5.zip
 ```
 
-ZIP 应返回 `200`、`Content-Type: application/zip` 和 `Content-Disposition: attachment`。若下载地址返回 `404`，先检查文件名大小写、`site-config.js` 路径和 Actions 运行结果。
+DMG/ZIP 应返回 `200`、`Content-Disposition: attachment`，且清单中的大小与 SHA-256 与发布包一致。若下载地址返回 `404`，先检查文件名大小写、`releases/latest.json` 和发布器日志。
 
 ## 8. 回滚
 
-如果新版本有问题，使用最近三份服务器保留包之一重新发布对应的 `releases/latest.json` 即可；也可以使用 Git 的 `git revert` 回滚页面变更。不要直接删除服务器上的桌面 ZIP；发布器会在下一次成功发布后按四版本策略自动清理超出的完整包对。
+如果新版本有问题，使用最近三份服务器保留包之一重新发布对应的 `releases/latest.json` 即可；也可以使用 Git 的 `git revert` 回滚页面变更。不要直接删除服务器上的桌面包；发布器会在下一次成功发布后按四版本策略自动清理超出的完整包对。
 
 ## 9. 安全边界
 
