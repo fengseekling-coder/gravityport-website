@@ -162,11 +162,14 @@ if [[ "$mac_package" == *.dmg ]]; then
   hdiutil verify -quiet "$mac_package" || die "macOS DMG integrity check failed: $mac_package"
 else
   unzip -tqq "$mac_package" || die "macOS ZIP integrity check failed: $mac_package"
-  unzip -Z1 "$mac_package" | grep -Eq '^(MOSA\.app/Contents/MacOS/MOSA|MOSA-darwin-arm64/MOSA\.app/Contents/MacOS/MOSA)$' \
+  # Do not use grep -q in a pipe while pipefail is enabled. A successful early
+  # match makes grep close the pipe, unzip receives SIGPIPE, and the otherwise
+  # valid archive is reported as a failed pipeline.
+  unzip -Z1 "$mac_package" | grep -E '^(MOSA\.app/Contents/MacOS/MOSA|MOSA-darwin-arm64/MOSA\.app/Contents/MacOS/MOSA)$' >/dev/null \
     || die "macOS ZIP does not contain MOSA.app"
 fi
 unzip -tqq "$windows_package" || die "Windows ZIP integrity check failed: $windows_package"
-unzip -Z1 "$windows_package" | grep -Eq '^(MOSA\.exe|MOSA-win32-x64/MOSA\.exe)$' \
+unzip -Z1 "$windows_package" | grep -E '^(MOSA\.exe|MOSA-win32-x64/MOSA\.exe)$' >/dev/null \
   || die "Windows ZIP does not contain MOSA.exe"
 
 mac_name="$(basename "$mac_package")"
