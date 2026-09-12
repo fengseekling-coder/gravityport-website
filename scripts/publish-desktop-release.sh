@@ -13,6 +13,7 @@ log() {
 source_root="${MOSA_RELEASE_SOURCE_DIR:-/Users/azhuilab/codex_aigc/mosa/out/make}"
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 retention_selector="$script_dir/select-desktop-release-retention.mjs"
+version_helper="$script_dir/release-version.mjs"
 desktop_retention_count=4
 ssh_host="${MOSA_RELEASE_SSH_HOST:-179.253.232.244}"
 ssh_user="${MOSA_RELEASE_SSH_USER:-mosa-deploy}"
@@ -50,6 +51,7 @@ command -v unzip >/dev/null 2>&1 || die "unzip is required"
 command -v shasum >/dev/null 2>&1 || die "shasum is required"
 command -v stat >/dev/null 2>&1 || die "stat is required"
 [[ -r "$retention_selector" ]] || die "desktop retention selector is missing: $retention_selector"
+[[ -r "$version_helper" ]] || die "release version helper is missing: $version_helper"
 
 file_size() {
   local candidate="$1"
@@ -73,47 +75,13 @@ wait_for_stable_file() {
   return 1
 }
 
-candidate_pair="$(node - "$mac_source_dir" "$windows_source_dir" <<'NODE'
-const fs = require("node:fs");
-const path = require("node:path");
+candidate_pair="$(node --input-type=module - "$mac_source_dir" "$windows_source_dir" "$version_helper" <<'NODE'
+import fs from "node:fs";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 
-const [macDir, windowsDir] = process.argv.slice(2);
-const versionPattern = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/;
-
-function parseVersion(value) {
-  const match = versionPattern.exec(value);
-  if (!match) return null;
-  return {
-    parts: [Number(match[1]), Number(match[2]), Number(match[3])],
-    prerelease: match[4] ? match[4].split(".") : [],
-  };
-}
-
-function compareVersions(leftValue, rightValue) {
-  const left = parseVersion(leftValue);
-  const right = parseVersion(rightValue);
-  if (!left || !right) return 0;
-  for (let index = 0; index < left.parts.length; index += 1) {
-    if (left.parts[index] !== right.parts[index]) return left.parts[index] > right.parts[index] ? 1 : -1;
-  }
-  if (!left.prerelease.length && !right.prerelease.length) return 0;
-  if (!left.prerelease.length) return 1;
-  if (!right.prerelease.length) return -1;
-  const length = Math.max(left.prerelease.length, right.prerelease.length);
-  for (let index = 0; index < length; index += 1) {
-    const leftPart = left.prerelease[index];
-    const rightPart = right.prerelease[index];
-    if (leftPart === undefined) return -1;
-    if (rightPart === undefined) return 1;
-    if (leftPart === rightPart) continue;
-    const leftNumeric = /^\d+$/.test(leftPart);
-    const rightNumeric = /^\d+$/.test(rightPart);
-    if (leftNumeric && rightNumeric) return Number(leftPart) > Number(rightPart) ? 1 : -1;
-    if (leftNumeric !== rightNumeric) return leftNumeric ? -1 : 1;
-    return leftPart > rightPart ? 1 : -1;
-  }
-  return 0;
-}
+const [macDir, windowsDir, versionHelper] = process.argv.slice(2);
+const { compareReleaseVersions, parseReleaseVersion } = await import(pathToFileURL(versionHelper).href);
 
 function packages(dir, prefix, extensions) {
   const extensionPattern = extensions.join("|");
@@ -121,7 +89,7 @@ function packages(dir, prefix, extensions) {
     .filter((entry) => entry.isFile())
     .map((entry) => {
       const match = new RegExp(`^${prefix}(\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?)\\.(${extensionPattern})$`).exec(entry.name);
-      if (!match || !parseVersion(match[1])) return null;
+      if (!match || !parseReleaseVersion(match[1])) return null;
       return { version: match[1], file: path.join(dir, entry.name), extension: match[2] };
     })
     .filter(Boolean);
@@ -140,7 +108,7 @@ const pairs = [...macByVersion.values()]
   .map((mac) => ({ version: mac.version, mac: mac.file, windows: windowsByVersion.get(mac.version).file }));
 
 if (!pairs.length) process.exit(2);
-pairs.sort((left, right) => compareVersions(left.version, right.version));
+pairs.sort((left, right) => compareReleaseVersions(left.version, right.version));
 const selected = pairs[pairs.length - 1];
 process.stdout.write(`${selected.version}\t${selected.mac}\t${selected.windows}`);
 NODE
@@ -191,30 +159,15 @@ fi
 
 last_version="${last_signature%%|*}"
 if [[ "$last_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
-  if ! node - "$release_version" "$last_version" <<'NODE'
-const [left, right] = process.argv.slice(2);
-const parse = (value) => {
-  const match = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(value);
-  if (!match) return null;
-  return { parts: [Number(match[1]), Number(match[2]), Number(match[3])], pre: match[4] ? match[4].split(".") : [] };
-};
-const compare = (aValue, bValue) => {
-  const a = parse(aValue);
-  const b = parse(bValue);
-  if (!a || !b) return 1;
-  for (let index = 0; index < 3; index += 1) {
-    if (a.parts[index] !== b.parts[index]) return a.parts[index] > b.parts[index] ? 1 : -1;
-  }
-  if (!a.pre.length && !b.pre.length) return 0;
-  if (!a.pre.length) return 1;
-  if (!b.pre.length) return -1;
-  return a.pre.join(".") > b.pre.join(".") ? 1 : -1;
-};
-process.exit(compare(left, right) >= 0 ? 0 : 1);
-NODE
-  then
-    log "候选版本 $release_version 低于已发布版本 $last_version，跳过降级。"
-    exit 0
+  if node "$version_helper" "$release_version" "$last_version"; then
+    :
+  else
+    compare_status="$?"
+    if [[ "$compare_status" -eq 1 ]]; then
+      log "候选版本 ${release_version} 低于已发布版本 ${last_version}，跳过降级。"
+      exit 0
+    fi
+    die "could not compare release versions: $release_version vs $last_version"
   fi
 fi
 
