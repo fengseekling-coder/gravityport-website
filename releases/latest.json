@@ -1,24 +1,24 @@
 {
-  "version": "0.2.1-rc.5",
-  "publishedAt": "2026-09-09T16:18:21Z",
+  "version": "0.2.1-rc.13",
+  "publishedAt": "2026-09-13T17:10:40Z",
   "notes": {
-    "zh": "MOSA 0.2.1-rc.5 桌面测试发布包。macOS 为 Apple Silicon DMG，Windows 为 x64 预览构建。",
-    "en": "MOSA 0.2.1-rc.5 desktop test package. macOS is an Apple Silicon DMG; Windows is an x64 preview build."
+    "zh": "MOSA 0.2.1-rc.13 桌面测试发布包。改进 Codex 自动收录，统一跟随 CODEX_HOME，并同时支持 generated_images 与 sessions 增量恢复链路。",
+    "en": "MOSA 0.2.1-rc.13 desktop test release. Improves Codex automatic archiving, follows CODEX_HOME consistently, and supports both generated_images and incremental session recovery."
   },
   "artifacts": {
     "mac": {
       "platform": "macOS",
       "arch": "arm64",
-      "file": "MOSA-darwin-arm64-0.2.1-rc.5.dmg",
-      "size": 142149670,
-      "sha256": "f3554856527dfad1b3e3a73a884daec8ff89417befd6cd7711761c2179ff4a46"
+      "file": "MOSA-darwin-arm64-0.2.1-rc.13.dmg",
+      "size": 142316945,
+      "sha256": "290666ac64fa2a639812ef106223994054084e93657af06eb112e18ca5544913"
     },
     "windows": {
       "platform": "Windows",
       "arch": "x64",
-      "file": "MOSA-win32-x64-0.2.1-rc.5.zip",
-      "size": 154040107,
-      "sha256": "e27315acb7e179b8f9854cb51e409a9fa3d833021c9e13b68d109eab11a28f77"
+      "file": "MOSA-win32-x64-0.2.1-rc.13.zip",
+      "size": 154135525,
+      "sha256": "a80f11fc1b81a101c5348a1274370ac245181450c74aab9c8367ff51f2d45e3a"
     }
   }
 }
