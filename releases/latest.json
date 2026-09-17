@@ -1,24 +1,24 @@
 {
-  "version": "0.2.1-rc.13",
-  "publishedAt": "2026-09-13T17:10:40Z",
+  "version": "0.2.1-rc.14",
+  "publishedAt": "2026-09-17T13:23:12Z",
   "notes": {
-    "zh": "MOSA 0.2.1-rc.13 桌面测试发布包。改进 Codex 自动收录，统一跟随 CODEX_HOME，并同时支持 generated_images 与 sessions 增量恢复链路。",
-    "en": "MOSA 0.2.1-rc.13 desktop test release. Improves Codex automatic archiving, follows CODEX_HOME consistently, and supports both generated_images and incremental session recovery."
+    "zh": "MOSA 0.2.1-rc.14 桌面测试发布包。支持批量拖放导入与原生拖出，Web Capture 配对需用户确认，并加固本地存储与 Windows 更新回滚。",
+    "en": "MOSA 0.2.1-rc.14 desktop test release. Adds batched drag-drop import and native drag-out, requires explicit Web Capture pairing consent, and hardens local store writes plus Windows update rollback."
   },
   "artifacts": {
     "mac": {
       "platform": "macOS",
       "arch": "arm64",
-      "file": "MOSA-darwin-arm64-0.2.1-rc.13.dmg",
-      "size": 142316945,
-      "sha256": "290666ac64fa2a639812ef106223994054084e93657af06eb112e18ca5544913"
+      "file": "MOSA-darwin-arm64-0.2.1-rc.14.dmg",
+      "size": 140964326,
+      "sha256": "bd97ffa7b6d5052f96bd0f12317f74249ba83763d1447462ba53101b73e0bb9c"
     },
     "windows": {
       "platform": "Windows",
       "arch": "x64",
-      "file": "MOSA-win32-x64-0.2.1-rc.13.zip",
-      "size": 154135525,
-      "sha256": "a80f11fc1b81a101c5348a1274370ac245181450c74aab9c8367ff51f2d45e3a"
+      "file": "MOSA-win32-x64-0.2.1-rc.14.zip",
+      "size": 154149717,
+      "sha256": "455bbd9377af24516a674a24518101b89d611b84b28433ca8cb39146473e295b"
     }
   }
 }
