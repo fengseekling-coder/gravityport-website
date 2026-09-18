@@ -306,9 +306,13 @@
     const verticalBorders = Number.parseFloat(style.borderTopWidth) + Number.parseFloat(style.borderBottomWidth);
     const width = box.width - horizontalBorders;
     const height = box.height - verticalBorders;
-    const scale = Math.max(width / communityQrImage.naturalWidth, height / communityQrImage.naturalHeight);
-    const sourceWidth = width / scale;
-    const sourceHeight = height / scale;
+    const fit = style.objectFit === "contain" ? "contain" : "cover";
+    const scale = (fit === "contain" ? Math.min : Math.max)(
+      width / communityQrImage.naturalWidth,
+      height / communityQrImage.naturalHeight,
+    );
+    const sourceWidth = Math.min(communityQrImage.naturalWidth, width / scale);
+    const sourceHeight = Math.min(communityQrImage.naturalHeight, height / scale);
     const [horizontalPosition, verticalPosition] = style.objectPosition.split(/\s+/);
     const sourceX = clamp(
       (communityQrImage.naturalWidth - sourceWidth) * percentage(horizontalPosition, 0.5),
