@@ -76,7 +76,10 @@ function makeSourceTree({ macVersion = "0.2.1-rc.16", windowsVersion = null } = 
   return { root, macPath: path.join(updateDir, `MOSA-darwin-arm64-${macVersion}.zip`), windowsPath };
 }
 
-function safeEnv({ sourceDir, stateFile, previousManifest = "", dryRunOutput = "" }) {
+const FIXTURE_NOTES_ZH = "rc.16 测试发布说明：用于发布保护测试的显式中文文案。";
+const FIXTURE_NOTES_EN = "rc.16 test release notes: explicit English copy for the release guard tests.";
+
+function safeEnv({ sourceDir, stateFile, previousManifest = "", dryRunOutput = "", notesZh = "", notesEn = "" }) {
   return {
     ...process.env,
     MOSA_RELEASE_SOURCE_DIR: sourceDir,
@@ -85,8 +88,10 @@ function safeEnv({ sourceDir, stateFile, previousManifest = "", dryRunOutput = "
     MOSA_RELEASE_PREVIOUS_MANIFEST: previousManifest,
     MOSA_RELEASE_DRY_RUN_OUTPUT: dryRunOutput,
     MOSA_RELEASE_PUBLISHED_AT: "2026-09-19T01:00:00Z",
-    MOSA_RELEASE_NOTES_ZH: "测试发布说明。",
-    MOSA_RELEASE_NOTES_EN: "Test release notes.",
+    // Empty by default: every test decides explicitly whether release notes
+    // are configured. An empty string behaves like an unset variable.
+    MOSA_RELEASE_NOTES_ZH: notesZh,
+    MOSA_RELEASE_NOTES_EN: notesEn,
     // Never touch production infrastructure from tests: port 1 refuses instantly.
     MOSA_RELEASE_SSH_HOST: "127.0.0.1",
     MOSA_RELEASE_SSH_PORT: "1",
@@ -97,22 +102,22 @@ function safeEnv({ sourceDir, stateFile, previousManifest = "", dryRunOutput = "
   };
 }
 
-function runDryRun({ sourceDir, stateFile, previousManifest = "", dryRunOutput = "" }) {
+function runDryRun({ sourceDir, stateFile, previousManifest = "", dryRunOutput = "", notesZh = FIXTURE_NOTES_ZH, notesEn = FIXTURE_NOTES_EN }) {
   const outputDir = makeTempDir("mosa-release-run.");
   const outputPath = dryRunOutput || path.join(outputDir, "staged-latest.json");
   const result = execFileSync("bash", [scriptPath, "--dry-run"], {
-    env: safeEnv({ sourceDir, stateFile, previousManifest, dryRunOutput: outputPath }),
+    env: safeEnv({ sourceDir, stateFile, previousManifest, dryRunOutput: outputPath, notesZh, notesEn }),
     encoding: "utf8",
   });
   const manifest = JSON.parse(fs.readFileSync(outputPath, "utf8"));
   return { stdout: result, manifest, stagedPath: outputPath };
 }
 
-function runScriptExpectFailure({ sourceDir, stateFile, previousManifest = "" }) {
+function runScriptExpectFailure({ sourceDir, stateFile, previousManifest = "", notesZh = "", notesEn = "" }) {
   let caught = null;
   try {
     execFileSync("bash", [scriptPath], {
-      env: safeEnv({ sourceDir, stateFile, previousManifest }),
+      env: safeEnv({ sourceDir, stateFile, previousManifest, notesZh, notesEn }),
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -138,8 +143,8 @@ test("macOS-only rc.16 generates a platforms.macos-only manifest", () => {
   assert.equal(manifest.platforms.macos.sha256, sha256File(macPath));
   assert.equal("windows" in manifest.platforms, false);
   assert.equal("artifacts" in manifest, false, "legacy artifacts.* must never re-enter the manifest");
-  assert.equal(manifest.notes.zh, "测试发布说明。");
-  assert.equal(manifest.notes.en, "Test release notes.");
+  assert.equal(manifest.notes.zh, FIXTURE_NOTES_ZH, "explicit env notes reach the canonical writer");
+  assert.equal(manifest.notes.en, FIXTURE_NOTES_EN);
 });
 
 test("macOS + Windows same-version release generates both platform entries", () => {
@@ -210,7 +215,8 @@ test("previous manifest visualPacks are preserved verbatim and legacy artifacts.
   const { manifest } = runDryRun({ sourceDir: root, stateFile, previousManifest: previousPath });
   assert.equal("artifacts" in manifest, false, "legacy artifacts.* must be dropped");
   assert.deepEqual(manifest.visualPacks, previous.visualPacks, "visualPacks must be preserved verbatim");
-  assert.equal(manifest.notes.zh, "测试发布说明。", "explicit notes override previous notes");
+  assert.equal(manifest.notes.zh, FIXTURE_NOTES_ZH, "explicit notes override previous notes");
+  assert.equal(manifest.notes.en, FIXTURE_NOTES_EN);
 });
 
 test("canonical writer reproduces the live rc.15 manifest from itself (compatibility)", (t) => {
@@ -270,6 +276,8 @@ test("a candidate older than the published version is skipped as a downgrade", (
   const stateFile = path.join(stateDir, "state");
   fs.writeFileSync(stateFile, "0.2.1-rc.20|bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb|none\n");
 
+  // No notes are configured: downgrades must still be skipped before the
+  // release-notes requirement is evaluated.
   const stdout = execFileSync("bash", [scriptPath, "--dry-run"], {
     env: safeEnv({ sourceDir: root, stateFile }),
     encoding: "utf8",
@@ -283,9 +291,127 @@ test("an identical signature is a no-op even without network access", () => {
   const stateFile = path.join(stateDir, "state");
   fs.writeFileSync(stateFile, `0.2.1-rc.16|${sha256File(macPath)}|none\n`);
 
+  // No notes are configured: the same-version/same-SHA no-op must not require
+  // release notes (this is what keeps the rc.15 monitor quiet every 5 minutes).
   const stdout = execFileSync("bash", [scriptPath], {
     env: safeEnv({ sourceDir: root, stateFile }),
     encoding: "utf8",
   });
   assert.match(stdout, /已发布，SHA-256 未变化/);
+});
+
+test("Case 1: current rc.15 with the same SHA and no notes is a clean no-op", () => {
+  const { root, macPath } = makeSourceTree({ macVersion: "0.2.1-rc.15" });
+  const stateDir = makeTempDir("mosa-state.");
+  const stateFile = path.join(stateDir, "state");
+  const signature = `0.2.1-rc.15|${sha256File(macPath)}|none`;
+  fs.writeFileSync(stateFile, `${signature}\n`);
+
+  const stdout = execFileSync("bash", [scriptPath], {
+    env: safeEnv({ sourceDir: root, stateFile, notesZh: "", notesEn: "" }),
+    encoding: "utf8",
+  });
+  assert.match(stdout, /已发布，SHA-256 未变化/);
+  assert.equal(fs.readFileSync(stateFile, "utf8"), `${signature}\n`, "state file is untouched by a no-op");
+});
+
+test("Case 2: a new rc.16 release without any notes fails before any remote action", () => {
+  const { root } = makeSourceTree({ macVersion: "0.2.1-rc.16" });
+  const stateDir = makeTempDir("mosa-state.");
+  const stateFile = path.join(stateDir, "state");
+  fs.writeFileSync(stateFile, "0.2.1-rc.15|aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|none\n");
+
+  const error = runScriptExpectFailure({ sourceDir: root, stateFile, notesZh: "", notesEn: "" });
+  // The SSH config in the test env is unreachable (127.0.0.1:1). Failing with
+  // the notes error — and not an SSH error — proves the script stops before
+  // any upload, state write, or manifest replacement.
+  assert.match(String(error.stderr), /Release notes are required for a new desktop release/);
+  assert.doesNotMatch(String(error.stderr), /SSH|ssh/);
+  assert.equal(
+    fs.readFileSync(stateFile, "utf8"),
+    "0.2.1-rc.15|aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|none\n",
+    "state file must not change when notes are missing",
+  );
+});
+
+test("Case 3: a new rc.16 release with only zh notes fails", () => {
+  const { root } = makeSourceTree({ macVersion: "0.2.1-rc.16" });
+  const stateDir = makeTempDir("mosa-state.");
+  const stateFile = path.join(stateDir, "state");
+  fs.writeFileSync(stateFile, "0.2.1-rc.15|aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|none\n");
+
+  const error = runScriptExpectFailure({ sourceDir: root, stateFile, notesZh: "只有中文", notesEn: "" });
+  assert.match(String(error.stderr), /Release notes are required for a new desktop release/);
+});
+
+test("Case 4: a new rc.16 release with only en notes (or blank zh) fails", () => {
+  const { root } = makeSourceTree({ macVersion: "0.2.1-rc.16" });
+  const stateDir = makeTempDir("mosa-state.");
+  const stateFile = path.join(stateDir, "state");
+  fs.writeFileSync(stateFile, "0.2.1-rc.15|aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|none\n");
+
+  const onlyEn = runScriptExpectFailure({ sourceDir: root, stateFile, notesZh: "", notesEn: "Only English" });
+  assert.match(String(onlyEn.stderr), /Release notes are required for a new desktop release/);
+
+  const blankZh = runScriptExpectFailure({ sourceDir: root, stateFile, notesZh: "   ", notesEn: "Only English" });
+  assert.match(String(blankZh.stderr), /Release notes are required for a new desktop release/);
+});
+
+test("Case 5: a new rc.16 release with explicit bilingual notes passes dry-run and reaches the writer", () => {
+  const { root } = makeSourceTree({ macVersion: "0.2.1-rc.16" });
+  const stateFile = path.join(makeTempDir("mosa-state."), "state");
+  const { manifest } = runDryRun({
+    sourceDir: root,
+    stateFile,
+    notesZh: FIXTURE_NOTES_ZH,
+    notesEn: FIXTURE_NOTES_EN,
+  });
+
+  assert.equal(manifest.version, "0.2.1-rc.16");
+  assert.equal(manifest.notes.zh, FIXTURE_NOTES_ZH, "fixture zh notes flow from env into the canonical writer");
+  assert.equal(manifest.notes.en, FIXTURE_NOTES_EN);
+  assert.deepEqual(Object.keys(manifest.platforms), ["macos"]);
+  assert.equal("artifacts" in manifest, false);
+});
+
+test("Case 6: previous-release notes are never silently inherited for a new release", () => {
+  const { root } = makeSourceTree({ macVersion: "0.2.1-rc.16" });
+  const stateDir = makeTempDir("mosa-state.");
+  const stateFile = path.join(stateDir, "state");
+  fs.writeFileSync(stateFile, "0.2.1-rc.15|aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|none\n");
+
+  const previous = {
+    version: "0.2.1-rc.15",
+    publishedAt: "2026-09-19T00:09:34Z",
+    notes: {
+      zh: "MOSA 0.2.1-rc.15 桌面测试发布包。新增 macOS 应用内自更新链路。",
+      en: "MOSA 0.2.1-rc.15 desktop test release. Adds the macOS in-app self-update pipeline.",
+    },
+    platforms: {
+      macos: {
+        platform: "macOS",
+        arch: "arm64",
+        file: "MOSA-darwin-arm64-0.2.1-rc.15.zip",
+        size: 128358577,
+        sha256: "6f1de34996d776ff4bcf48655f5bc314504c2ecb2f8e0edec63650b234067098",
+      },
+    },
+  };
+  const previousPath = path.join(root, "previous-latest.json");
+  fs.writeFileSync(previousPath, JSON.stringify(previous, null, 2));
+
+  // The previous manifest carries rich notes, but the new release provides
+  // none: the script must fail instead of letting the writer inherit them.
+  const error = runScriptExpectFailure({ sourceDir: root, stateFile, previousManifest: previousPath });
+  assert.match(String(error.stderr), /Release notes are required for a new desktop release/);
+});
+
+test("Case 7: the legacy default-notes copy no longer exists in the release script", () => {
+  const scriptSource = fs.readFileSync(scriptPath, "utf8");
+  assert.doesNotMatch(scriptSource, /:-\s*MOSA \$\{release_version\}/, "no default-expansion fallback for notes");
+  assert.doesNotMatch(scriptSource, /桌面发布包/, "legacy default zh copy is gone");
+  assert.doesNotMatch(scriptSource, /desktop package\./, "legacy default en copy is gone");
+  assert.match(scriptSource, /Release notes are required for a new desktop release/, "fail-closed error is present");
+  assert.match(scriptSource, /prepare-desktop-release-manifest\.mjs/, "canonical writer remains the only writer");
+  assert.doesNotMatch(scriptSource, /artifacts\s*:\s*\{/, "the legacy artifacts.* schema key must not come back");
 });

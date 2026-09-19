@@ -15,6 +15,10 @@ set -Eeuo pipefail
 #      file exists there
 #   4. back up the live latest.json into releases/history/
 #   5. atomically replace releases/latest.json (same-filesystem mv)
+#
+# Release notes are fail-closed: a genuinely new release publishes only when
+# MOSA_RELEASE_NOTES_ZH and MOSA_RELEASE_NOTES_EN are both set to non-blank
+# text. Same-version no-op and downgrade runs never require notes.
 
 die() {
   printf 'error: %s\n' "$1" >&2
@@ -205,6 +209,18 @@ if [[ "$last_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
   fi
 fi
 
+# A genuinely new release (not a same-version no-op, not a downgrade) must
+# carry explicit bilingual release notes. There is deliberately no default
+# copy: an unattended monitor run without configured notes fails closed right
+# here — before the temp dir, the SSH connection, any upload, any state write,
+# and any manifest replacement — instead of publishing placeholder text.
+# Previous-release notes are never inherited silently.
+notes_zh="${MOSA_RELEASE_NOTES_ZH:-}"
+notes_en="${MOSA_RELEASE_NOTES_EN:-}"
+if [[ -z "${notes_zh//[[:space:]]/}" || -z "${notes_en//[[:space:]]/}" ]]; then
+  die "Release notes are required for a new desktop release: set MOSA_RELEASE_NOTES_ZH and MOSA_RELEASE_NOTES_EN."
+fi
+
 temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/mosa-release.XXXXXX")"
 manifest_file="$temp_dir/latest.json"
 previous_file="$temp_dir/previous-latest.json"
@@ -239,8 +255,6 @@ cleanup() {
 trap cleanup EXIT
 
 published_at="${MOSA_RELEASE_PUBLISHED_AT:-$(date -u '+%Y-%m-%dT%H:%M:%SZ')}"
-notes_zh="${MOSA_RELEASE_NOTES_ZH:-MOSA ${release_version} 桌面发布包。}"
-notes_en="${MOSA_RELEASE_NOTES_EN:-MOSA ${release_version} desktop package.}"
 
 if [[ -n "$previous_override" ]]; then
   [[ -r "$previous_override" ]] || die "previous manifest override is not readable: $previous_override"
