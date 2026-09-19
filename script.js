@@ -118,6 +118,19 @@
     };
   };
 
+  const configuredDownloadForRelease = (kind, releaseItem) => {
+    const configured = config[kind];
+    const configuredVersion = typeof configured?.version === "string"
+      ? configured.version.trim().replace(/^v/i, "")
+      : "";
+    const releaseVersion = typeof releaseItem?.version === "string"
+      ? releaseItem.version.trim().replace(/^v/i, "")
+      : "";
+    return configuredVersion && configuredVersion === releaseVersion && typeof configured?.url === "string"
+      ? configured
+      : releaseItem;
+  };
+
   const loadDesktopRelease = async () => {
     if (!downloadsEnabled) return;
     const feedUrl = typeof config.desktop?.feedUrl === "string" ? config.desktop.feedUrl.trim() : "";
@@ -132,8 +145,8 @@
       if (!release) return;
       desktopRelease = release;
       refreshDownloadCopy();
-      if (release.mac) configureDownload("mac", release.mac);
-      if (release.windows) configureDownload("windows", release.windows);
+      if (release.mac) configureDownload("mac", configuredDownloadForRelease("mac", release.mac));
+      if (release.windows) configureDownload("windows", configuredDownloadForRelease("windows", release.windows));
     } catch {
       // The checked-in config remains a safe fallback if the feed is unavailable.
     }

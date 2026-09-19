@@ -9,13 +9,13 @@ window.MOSA_SITE_CONFIG = Object.freeze({
   // 兜底到 rc.14 时会以 "Windows Preview 0.2.1-rc.14" 呈现，绝不伪装成
   // 最新版。URL 指向真实存在的第一方下载文件。
   mac: {
-    version: "v0.2.1-rc.15",
-    url: "./downloads/MOSA-darwin-arm64-0.2.1-rc.15.zip",
+    version: "v0.2.1-rc.22",
+    url: "./downloads/MOSA-darwin-arm64-0.2.1-rc.22.dmg",
     label: "下载 macOS 包",
   },
   windows: {
-    version: "v0.2.1-rc.14",
-    url: "./downloads/MOSA-win32-x64-0.2.1-rc.14.zip",
+    version: "v0.2.1-rc.22",
+    url: "./downloads/MOSA-win32-x64-0.2.1-rc.22.zip",
     label: "下载 Windows 包",
   },
   extension: {

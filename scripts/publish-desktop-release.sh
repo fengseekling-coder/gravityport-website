@@ -34,6 +34,7 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 retention_selector="$script_dir/select-desktop-release-retention.mjs"
 version_helper="$script_dir/release-version.mjs"
 manifest_writer="${MOSA_RELEASE_MANIFEST_WRITER:-/Users/azhuilab/codex_aigc/mosa/scripts/prepare-desktop-release-manifest.mjs}"
+manifest_extension="$script_dir/extend-desktop-release-manifest.mjs"
 previous_override="${MOSA_RELEASE_PREVIOUS_MANIFEST:-}"
 dry_run_output="${MOSA_RELEASE_DRY_RUN_OUTPUT:-}"
 desktop_retention_count=4
@@ -44,6 +45,8 @@ ssh_key="${MOSA_RELEASE_SSH_KEY:-/Users/azhuilab/.ssh/mosa_website_release_monit
 known_hosts="${MOSA_RELEASE_KNOWN_HOSTS:-/Users/azhuilab/.ssh/known_hosts}"
 remote_dir="${MOSA_RELEASE_REMOTE_DIR:-/var/www/mosa-website}"
 state_file="${MOSA_RELEASE_STATE_FILE:-/Users/azhuilab/.config/mosa/desktop-release-monitor.state}"
+mac_dmg_package="${MOSA_RELEASE_MAC_DMG:-}"
+release_git_sha="${MOSA_RELEASE_GIT_SHA:-}"
 dry_run=0
 
 if [[ "${1:-}" == "--dry-run" ]]; then
@@ -53,6 +56,7 @@ fi
 [[ "$#" -eq 0 ]] || die "usage: publish-desktop-release.sh [--dry-run]"
 
 [[ -r "$manifest_writer" ]] || die "canonical manifest writer is missing: $manifest_writer"
+[[ -r "$manifest_extension" ]] || die "desktop release manifest extension is missing: $manifest_extension"
 [[ -r "$retention_selector" ]] || die "desktop retention selector is missing: $retention_selector"
 [[ -r "$version_helper" ]] || die "release version helper is missing: $version_helper"
 command -v node >/dev/null 2>&1 || die "node is required"
@@ -152,12 +156,24 @@ IFS=$'\t' read -r release_version mac_package windows_package <<< "$candidate_pa
 [[ -n "$release_version" && -f "$mac_package" ]] || die "release candidate is incomplete"
 [[ -z "$windows_package" || -f "$windows_package" ]] || die "Windows release candidate is incomplete"
 
+if [[ -z "$mac_dmg_package" ]]; then
+  mac_dmg_candidate="$source_root/dmg/darwin/arm64/MOSA-darwin-arm64-${release_version}.dmg"
+  [[ -f "$mac_dmg_candidate" ]] && mac_dmg_package="$mac_dmg_candidate"
+fi
+if [[ -n "$mac_dmg_package" && ! -f "$mac_dmg_package" ]]; then
+  die "macOS DMG release candidate is incomplete: $mac_dmg_package"
+fi
+
 if ! wait_for_stable_file "$mac_package"; then
   log "macOS 安装包仍在生成，下一次监控周期会重试。"
   exit 1
 fi
 if [[ -n "$windows_package" ]] && ! wait_for_stable_file "$windows_package"; then
   log "Windows 安装包仍在生成，下一次监控周期会重试。"
+  exit 1
+fi
+if [[ -n "$mac_dmg_package" ]] && ! wait_for_stable_file "$mac_dmg_package"; then
+  log "macOS DMG 仍在生成，下一次监控周期会重试。"
   exit 1
 fi
 
@@ -172,6 +188,24 @@ if [[ -n "$windows_package" ]]; then
   unzip -Z1 "$windows_package" | grep -E '^(MOSA\.exe|MOSA-win32-x64/MOSA\.exe)$' >/dev/null \
     || die "Windows ZIP does not contain MOSA.exe"
 fi
+if [[ -n "$mac_dmg_package" ]]; then
+  command -v hdiutil >/dev/null 2>&1 || die "hdiutil is required for macOS DMG integrity checks"
+  hdiutil verify "$mac_dmg_package" >/dev/null || die "macOS DMG integrity check failed: $mac_dmg_package"
+  source_repo_root="$(cd -- "$source_root/../.." && pwd)"
+  identity_file="$source_repo_root/app/build-identity.json"
+  [[ -r "$identity_file" ]] || die "packaged build identity is missing: $identity_file"
+  identity_pair="$(node -e '
+    const identity = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));
+    process.stdout.write(`${identity.productVersion}\t${identity.gitSha}`);
+  ' "$identity_file")"
+  IFS=$'\t' read -r identity_version identity_sha <<< "$identity_pair"
+  [[ "$identity_version" == "$release_version" ]] || die "build identity version mismatch: $identity_version"
+  [[ "$identity_sha" =~ ^[0-9a-f]{40}$ ]] || die "build identity gitSha is not a full SHA"
+  if [[ -n "$release_git_sha" && "$release_git_sha" != "$identity_sha" ]]; then
+    die "configured gitSha does not match build identity"
+  fi
+  release_git_sha="$identity_sha"
+fi
 
 mac_name="$(basename "$mac_package")"
 mac_size="$(file_size "$mac_package")" || die "could not read macOS package size"
@@ -184,7 +218,19 @@ if [[ -n "$windows_package" ]]; then
   windows_size="$(file_size "$windows_package")" || die "could not read Windows package size"
   windows_sha256="$(shasum -a 256 "$windows_package" | awk '{print $1}')"
 fi
-release_signature="${release_version}|${mac_sha256}|${windows_sha256:-none}"
+mac_dmg_name=""
+mac_dmg_size=""
+mac_dmg_sha256=""
+if [[ -n "$mac_dmg_package" ]]; then
+  mac_dmg_name="$(basename "$mac_dmg_package")"
+  mac_dmg_size="$(file_size "$mac_dmg_package")" || die "could not read macOS DMG size"
+  mac_dmg_sha256="$(shasum -a 256 "$mac_dmg_package" | awk '{print $1}')"
+fi
+if [[ -n "$mac_dmg_package" ]]; then
+  release_signature="${release_version}|${mac_sha256}|${windows_sha256:-none}|${mac_dmg_sha256}|${release_git_sha}"
+else
+  release_signature="${release_version}|${mac_sha256}|${windows_sha256:-none}"
+fi
 
 last_signature=""
 if [[ -f "$state_file" ]]; then
@@ -279,6 +325,12 @@ writer_args=(--version "$release_version" --output "$manifest_file" --mac "$mac_
 [[ -f "$previous_file" ]] && writer_args+=(--previous "$previous_file")
 writer_args+=(--published-at "$published_at" --notes-zh "$notes_zh" --notes-en "$notes_en")
 node "$manifest_writer" "${writer_args[@]}" >/dev/null
+if [[ -n "$mac_dmg_package" ]]; then
+  node "$manifest_extension" \
+    --manifest "$manifest_file" \
+    --mac-dmg "$mac_dmg_package" \
+    --git-sha "$release_git_sha" >/dev/null
+fi
 
 # Defense in depth: every platforms.* entry must describe the local artifact
 # that is about to be uploaded — right name, right size, right SHA-256.
@@ -303,6 +355,31 @@ verify_manifest_artifact() {
 }
 verify_manifest_artifact "macos" "$mac_package"
 verify_manifest_artifact "windows" "$windows_package"
+if [[ -n "$mac_dmg_package" ]]; then
+  : "DMG metadata was validated by the manifest extension and by the local/remote hash checks."
+fi
+
+node -e '
+  const fs = require("node:fs");
+  const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  const expectedSha = process.argv[2];
+  if (expectedSha && manifest.gitSha !== expectedSha) {
+    console.error(`manifest gitSha mismatch: ${manifest.gitSha || "(missing)"}`);
+    process.exit(1);
+  }
+  const expectedKeys = ["arch", "file", "platform", "sha256", "size"];
+  for (const [name, artifact] of Object.entries(manifest.platforms || {})) {
+    if (!artifact || typeof artifact !== "object" || Array.isArray(artifact)) {
+      console.error(`invalid platforms.${name} entry`);
+      process.exit(1);
+    }
+    const actualKeys = Object.keys(artifact).sort();
+    if (JSON.stringify(actualKeys) !== JSON.stringify(expectedKeys)) {
+      console.error(`platforms.${name} schema drift: ${actualKeys.join(",")}`);
+      process.exit(1);
+    }
+  }
+' "$manifest_file" "$release_git_sha" || die "generated manifest schema or gitSha validation failed"
 
 # The generated manifest must never carry legacy artifacts.* data.
 node -e '
@@ -358,6 +435,9 @@ rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=r
 [[ -n "$windows_package" ]] && rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
   -e "$rsync_ssh" \
   "$windows_package" "$ssh_target:$remote_tmp/$windows_name"
+[[ -n "$mac_dmg_package" ]] && rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
+  -e "$rsync_ssh" \
+  "$mac_dmg_package" "$ssh_target:$remote_tmp/$mac_dmg_name"
 rsync --archive --compress --human-readable --chmod=Fu=rw,Fgo=r \
   -e "$rsync_ssh" \
   "$manifest_file" "$ssh_target:$remote_tmp/latest.json"
@@ -365,6 +445,7 @@ rsync --archive --compress --human-readable --chmod=Fu=rw,Fgo=r \
 uploaded_names=("$mac_name")
 uploaded_shas=("$mac_sha256")
 [[ -n "$windows_package" ]] && uploaded_names+=("$windows_name") && uploaded_shas+=("$windows_sha256")
+[[ -n "$mac_dmg_package" ]] && uploaded_names+=("$mac_dmg_name") && uploaded_shas+=("$mac_dmg_sha256")
 for index in "${!uploaded_names[@]}"; do
   remote_hash="$(ssh "${ssh_args[@]}" "$ssh_target" \
     "sha256sum '$remote_tmp/${uploaded_names[$index]}' | awk '{print \$1}'")"
@@ -379,9 +460,10 @@ while IFS= read -r referenced_file; do
   [[ -n "$referenced_file" ]] || continue
   remote_referenced+=" $referenced_file"
 done <<< "$referenced_files"
+[[ -n "$mac_dmg_name" ]] && remote_referenced+=" $mac_dmg_name"
 
 ssh "${ssh_args[@]}" "$ssh_target" \
-  "set -eu; install -d -m 0755 '$remote_dir/releases/history'; mv -f '$remote_tmp/$mac_name' '$remote_dir/downloads/$mac_name'; if [ -n '$windows_name' ]; then mv -f '$remote_tmp/$windows_name' '$remote_dir/downloads/$windows_name'; fi; for referenced in$remote_referenced; do test -f \"$remote_dir/downloads/\$referenced\" || { echo \"missing artifact on server: \$referenced\" >&2; exit 1; }; done; if [ -f '$remote_dir/releases/latest.json' ]; then cp -f '$remote_dir/releases/latest.json' '$remote_dir/releases/history/latest-$upload_tag.json'; chmod 0644 '$remote_dir/releases/history/latest-$upload_tag.json'; fi; mv -f '$remote_tmp/latest.json' '$remote_dir/releases/latest.json'; chmod 0644 '$remote_dir/downloads/$mac_name' '$remote_dir/releases/latest.json'; if [ -n '$windows_name' ]; then chmod 0644 '$remote_dir/downloads/$windows_name'; fi; rmdir '$remote_tmp' || true"
+  "set -eu; install -d -m 0755 '$remote_dir/releases/history'; mv -f '$remote_tmp/$mac_name' '$remote_dir/downloads/$mac_name'; if [ -n '$windows_name' ]; then mv -f '$remote_tmp/$windows_name' '$remote_dir/downloads/$windows_name'; fi; if [ -n '$mac_dmg_name' ]; then mv -f '$remote_tmp/$mac_dmg_name' '$remote_dir/downloads/$mac_dmg_name'; fi; for referenced in$remote_referenced; do test -f \"$remote_dir/downloads/\$referenced\" || { echo \"missing artifact on server: \$referenced\" >&2; exit 1; }; done; if [ -f '$remote_dir/releases/latest.json' ]; then cp -f '$remote_dir/releases/latest.json' '$remote_dir/releases/history/latest-$upload_tag.json'; chmod 0644 '$remote_dir/releases/history/latest-$upload_tag.json'; fi; mv -f '$remote_tmp/latest.json' '$remote_dir/releases/latest.json'; chmod 0644 '$remote_dir/downloads/$mac_name' '$remote_dir/releases/latest.json'; if [ -n '$windows_name' ]; then chmod 0644 '$remote_dir/downloads/$windows_name'; fi; if [ -n '$mac_dmg_name' ]; then chmod 0644 '$remote_dir/downloads/$mac_dmg_name'; fi; rmdir '$remote_tmp' || true"
 published=1
 
 remote_desktop_files="$(ssh "${ssh_args[@]}" "$ssh_target" \
@@ -409,5 +491,5 @@ umask 077
 printf '%s\n' "$release_signature" > "$state_file"
 chmod 0600 "$state_file"
 
-log "已发布 MOSA ${release_version}：macOS ${mac_size} bytes${windows_package:+，Windows ${windows_size} bytes}。"
+log "已发布 MOSA ${release_version}：macOS update ${mac_size} bytes${mac_dmg_package:+，DMG ${mac_dmg_size} bytes}${windows_package:+，Windows ${windows_size} bytes}。"
 log "SHA-256 已在本机与服务器两端核对；清单由 canonical writer 生成。"
