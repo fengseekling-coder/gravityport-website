@@ -1,6 +1,21 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+# MOSA desktop release publisher.
+#
+# The release manifest is generated exclusively by the canonical writer in the
+# MOSA repository (scripts/prepare-desktop-release-manifest.mjs). This script
+# must never hand-build release JSON and must never emit the legacy
+# artifacts.* schema — clients and the website both consume platforms.* only.
+#
+# Publication order is load-bearing:
+#   1. upload artifacts into remote staging
+#   2. verify remote size/SHA-256 against the local files
+#   3. move artifacts into downloads/ and assert every manifest-referenced
+#      file exists there
+#   4. back up the live latest.json into releases/history/
+#   5. atomically replace releases/latest.json (same-filesystem mv)
+
 die() {
   printf 'error: %s\n' "$1" >&2
   exit 1
@@ -14,6 +29,9 @@ source_root="${MOSA_RELEASE_SOURCE_DIR:-/Users/azhuilab/codex_aigc/mosa/out/make
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 retention_selector="$script_dir/select-desktop-release-retention.mjs"
 version_helper="$script_dir/release-version.mjs"
+manifest_writer="${MOSA_RELEASE_MANIFEST_WRITER:-/Users/azhuilab/codex_aigc/mosa/scripts/prepare-desktop-release-manifest.mjs}"
+previous_override="${MOSA_RELEASE_PREVIOUS_MANIFEST:-}"
+dry_run_output="${MOSA_RELEASE_DRY_RUN_OUTPUT:-}"
 desktop_retention_count=4
 ssh_host="${MOSA_RELEASE_SSH_HOST:-179.253.232.244}"
 ssh_user="${MOSA_RELEASE_SSH_USER:-mosa-deploy}"
@@ -30,28 +48,35 @@ if [[ "${1:-}" == "--dry-run" ]]; then
 fi
 [[ "$#" -eq 0 ]] || die "usage: publish-desktop-release.sh [--dry-run]"
 
-if [[ -d "$source_root/dmg/darwin/arm64" ]]; then
-  mac_source_dir="$source_root/dmg/darwin/arm64"
-elif [[ -d "$source_root/zip/darwin/arm64" ]]; then
-  mac_source_dir="$source_root/zip/darwin/arm64"
-elif [[ -d "$source_root/darwin/arm64" ]]; then
-  mac_source_dir="$source_root/darwin/arm64"
-else
-  die "missing macOS release directory below $source_root"
-fi
-if [[ -d "$source_root/zip/win32/x64" ]]; then
-  windows_source_dir="$source_root/zip/win32/x64"
-elif [[ -d "$source_root/win32/x64" ]]; then
-  windows_source_dir="$source_root/win32/x64"
-else
-  die "missing Windows release directory below $source_root"
-fi
+[[ -r "$manifest_writer" ]] || die "canonical manifest writer is missing: $manifest_writer"
+[[ -r "$retention_selector" ]] || die "desktop retention selector is missing: $retention_selector"
+[[ -r "$version_helper" ]] || die "release version helper is missing: $version_helper"
 command -v node >/dev/null 2>&1 || die "node is required"
 command -v unzip >/dev/null 2>&1 || die "unzip is required"
 command -v shasum >/dev/null 2>&1 || die "shasum is required"
 command -v stat >/dev/null 2>&1 || die "stat is required"
-[[ -r "$retention_selector" ]] || die "desktop retention selector is missing: $retention_selector"
-[[ -r "$version_helper" ]] || die "release version helper is missing: $version_helper"
+command -v ssh >/dev/null 2>&1 || die "ssh is required"
+command -v rsync >/dev/null 2>&1 || die "rsync is required"
+
+# macOS update artifacts are the .zip update packages (the DMG is not part of
+# the update protocol). The canonical location is out/make/update/darwin/arm64;
+# the forge zip directory is kept as a fallback for older layouts.
+mac_source_dirs=()
+if [[ -d "$source_root/update/darwin/arm64" ]]; then
+  mac_source_dirs+=("$source_root/update/darwin/arm64")
+fi
+if [[ -d "$source_root/zip/darwin/arm64" ]]; then
+  mac_source_dirs+=("$source_root/zip/darwin/arm64")
+fi
+[[ "${#mac_source_dirs[@]}" -gt 0 ]] || die "missing macOS update ZIP directory below $source_root"
+
+# Windows artifacts are optional. A missing directory simply means the release
+# ships macOS-only; an existing directory only ever contributes a package whose
+# version matches the selected macOS release exactly.
+windows_source_dir=""
+if [[ -d "$source_root/zip/win32/x64" ]]; then
+  windows_source_dir="$source_root/zip/win32/x64"
+fi
 
 file_size() {
   local candidate="$1"
@@ -75,78 +100,87 @@ wait_for_stable_file() {
   return 1
 }
 
-candidate_pair="$(node --input-type=module - "$mac_source_dir" "$windows_source_dir" "$version_helper" <<'NODE'
+candidate_pair="$(node --input-type=module - "$version_helper" "$windows_source_dir" "${mac_source_dirs[@]}" <<'NODE'
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-const [macDir, windowsDir, versionHelper] = process.argv.slice(2);
+const [versionHelper, windowsDir, ...macDirs] = process.argv.slice(2);
 const { compareReleaseVersions, parseReleaseVersion } = await import(pathToFileURL(versionHelper).href);
 
-function packages(dir, prefix, extensions) {
-  const extensionPattern = extensions.join("|");
+function packages(dir, prefix) {
+  if (!dir) return [];
   return fs.readdirSync(dir, { withFileTypes: true })
     .filter((entry) => entry.isFile())
     .map((entry) => {
-      const match = new RegExp(`^${prefix}(\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?)\\.(${extensionPattern})$`).exec(entry.name);
+      const match = new RegExp(`^${prefix}(\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?)\\.zip$`).exec(entry.name);
       if (!match || !parseReleaseVersion(match[1])) return null;
-      return { version: match[1], file: path.join(dir, entry.name), extension: match[2] };
+      return { version: match[1], file: path.join(dir, entry.name) };
     })
     .filter(Boolean);
 }
 
-const macPackages = packages(macDir, "MOSA-darwin-arm64-", ["dmg", "zip"]);
-const windowsPackages = packages(windowsDir, "MOSA-win32-x64-", ["zip"]);
 const macByVersion = new Map();
-for (const item of macPackages) {
-  const current = macByVersion.get(item.version);
-  if (!current || (item.extension === "dmg" && current.extension !== "dmg")) macByVersion.set(item.version, item);
+for (const dir of macDirs.filter(Boolean)) {
+  for (const item of packages(dir, "MOSA-darwin-arm64-")) {
+    if (!macByVersion.has(item.version)) macByVersion.set(item.version, item);
+  }
 }
-const windowsByVersion = new Map(windowsPackages.map((item) => [item.version, item]));
-const pairs = [...macByVersion.values()]
-  .filter((mac) => windowsByVersion.has(mac.version))
-  .map((mac) => ({ version: mac.version, mac: mac.file, windows: windowsByVersion.get(mac.version).file }));
+const macPackages = [...macByVersion.values()];
+if (!macPackages.length) process.exit(2);
+macPackages.sort((left, right) => compareReleaseVersions(left.version, right.version));
+const selected = macPackages[macPackages.length - 1];
 
-if (!pairs.length) process.exit(2);
-pairs.sort((left, right) => compareReleaseVersions(left.version, right.version));
-const selected = pairs[pairs.length - 1];
-process.stdout.write(`${selected.version}\t${selected.mac}\t${selected.windows}`);
+// A Windows package rides along only when it carries the exact same version
+// as the selected macOS release. Older Windows builds must never be reused,
+// and a missing Windows package simply means a macOS-only release.
+const windowsPackage = packages(windowsDir, "MOSA-win32-x64-")
+  .find((item) => item.version === selected.version) || null;
+
+process.stdout.write(`${selected.version}\t${selected.file}\t${windowsPackage ? windowsPackage.file : ""}`);
 NODE
 )" || {
-  log "等待 macOS/Windows 同版本桌面包同时出现。"
+  log "未发现新的 macOS 更新 ZIP，本轮跳过。"
   exit 0
 }
 
 IFS=$'\t' read -r release_version mac_package windows_package <<< "$candidate_pair"
-[[ -n "$release_version" && -f "$mac_package" && -f "$windows_package" ]] || die "release candidate is incomplete"
+[[ -n "$release_version" && -f "$mac_package" ]] || die "release candidate is incomplete"
+[[ -z "$windows_package" || -f "$windows_package" ]] || die "Windows release candidate is incomplete"
 
-if ! wait_for_stable_file "$mac_package" || ! wait_for_stable_file "$windows_package"; then
-  log "安装包仍在生成，下一次监控周期会重试。"
+if ! wait_for_stable_file "$mac_package"; then
+  log "macOS 安装包仍在生成，下一次监控周期会重试。"
+  exit 1
+fi
+if [[ -n "$windows_package" ]] && ! wait_for_stable_file "$windows_package"; then
+  log "Windows 安装包仍在生成，下一次监控周期会重试。"
   exit 1
 fi
 
-if [[ "$mac_package" == *.dmg ]]; then
-  command -v hdiutil >/dev/null 2>&1 || die "hdiutil is required to verify macOS DMG"
-  hdiutil verify -quiet "$mac_package" || die "macOS DMG integrity check failed: $mac_package"
-else
-  unzip -tqq "$mac_package" || die "macOS ZIP integrity check failed: $mac_package"
-  # Do not use grep -q in a pipe while pipefail is enabled. A successful early
-  # match makes grep close the pipe, unzip receives SIGPIPE, and the otherwise
-  # valid archive is reported as a failed pipeline.
-  unzip -Z1 "$mac_package" | grep -E '^(MOSA\.app/Contents/MacOS/MOSA|MOSA-darwin-arm64/MOSA\.app/Contents/MacOS/MOSA)$' >/dev/null \
-    || die "macOS ZIP does not contain MOSA.app"
+unzip -tqq "$mac_package" || die "macOS ZIP integrity check failed: $mac_package"
+# Do not use grep -q in a pipe while pipefail is enabled. A successful early
+# match makes grep close the pipe, unzip receives SIGPIPE, and the otherwise
+# valid archive is reported as a failed pipeline.
+unzip -Z1 "$mac_package" | grep -E '^(MOSA\.app/Contents/MacOS/MOSA|MOSA-darwin-arm64/MOSA\.app/Contents/MacOS/MOSA)$' >/dev/null \
+  || die "macOS ZIP does not contain MOSA.app"
+if [[ -n "$windows_package" ]]; then
+  unzip -tqq "$windows_package" || die "Windows ZIP integrity check failed: $windows_package"
+  unzip -Z1 "$windows_package" | grep -E '^(MOSA\.exe|MOSA-win32-x64/MOSA\.exe)$' >/dev/null \
+    || die "Windows ZIP does not contain MOSA.exe"
 fi
-unzip -tqq "$windows_package" || die "Windows ZIP integrity check failed: $windows_package"
-unzip -Z1 "$windows_package" | grep -E '^(MOSA\.exe|MOSA-win32-x64/MOSA\.exe)$' >/dev/null \
-  || die "Windows ZIP does not contain MOSA.exe"
 
 mac_name="$(basename "$mac_package")"
-windows_name="$(basename "$windows_package")"
 mac_size="$(file_size "$mac_package")" || die "could not read macOS package size"
-windows_size="$(file_size "$windows_package")" || die "could not read Windows ZIP size"
 mac_sha256="$(shasum -a 256 "$mac_package" | awk '{print $1}')"
-windows_sha256="$(shasum -a 256 "$windows_package" | awk '{print $1}')"
-release_signature="${release_version}|${mac_sha256}|${windows_sha256}"
+windows_name=""
+windows_size=""
+windows_sha256=""
+if [[ -n "$windows_package" ]]; then
+  windows_name="$(basename "$windows_package")"
+  windows_size="$(file_size "$windows_package")" || die "could not read Windows package size"
+  windows_sha256="$(shasum -a 256 "$windows_package" | awk '{print $1}')"
+fi
+release_signature="${release_version}|${mac_sha256}|${windows_sha256:-none}"
 
 last_signature=""
 if [[ -f "$state_file" ]]; then
@@ -172,75 +206,17 @@ if [[ "$last_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
 fi
 
 temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/mosa-release.XXXXXX")"
+manifest_file="$temp_dir/latest.json"
+previous_file="$temp_dir/previous-latest.json"
 remote_tmp=""
 published=0
 
-cleanup() {
-  if [[ -n "$remote_tmp" && "$published" -ne 1 ]]; then
-    ssh "${ssh_args[@]}" "$ssh_user@$ssh_host" "rm -rf -- '$remote_tmp'" >/dev/null 2>&1 || true
-  fi
-  rm -rf -- "$temp_dir"
-}
-trap cleanup EXIT
-
-manifest_file="$temp_dir/latest.json"
-published_at="${MOSA_RELEASE_PUBLISHED_AT:-$(date -u '+%Y-%m-%dT%H:%M:%SZ')}"
-notes_zh="${MOSA_RELEASE_NOTES_ZH:-MOSA ${release_version} 桌面发布包。}"
-notes_en="${MOSA_RELEASE_NOTES_EN:-MOSA ${release_version} desktop package.}"
-
-MOSA_MANIFEST_OUTPUT="$manifest_file" \
-MOSA_MANIFEST_VERSION="$release_version" \
-MOSA_MANIFEST_PUBLISHED_AT="$published_at" \
-MOSA_MANIFEST_NOTES_ZH="$notes_zh" \
-MOSA_MANIFEST_NOTES_EN="$notes_en" \
-MOSA_MANIFEST_MAC_FILE="$mac_name" \
-MOSA_MANIFEST_MAC_SIZE="$mac_size" \
-MOSA_MANIFEST_MAC_SHA256="$mac_sha256" \
-MOSA_MANIFEST_WINDOWS_FILE="$windows_name" \
-MOSA_MANIFEST_WINDOWS_SIZE="$windows_size" \
-MOSA_MANIFEST_WINDOWS_SHA256="$windows_sha256" \
-node -e '
-const fs = require("node:fs");
-const integer = (name) => Number(process.env[name]);
-const manifest = {
-  version: process.env.MOSA_MANIFEST_VERSION,
-  publishedAt: process.env.MOSA_MANIFEST_PUBLISHED_AT,
-  notes: {
-    zh: process.env.MOSA_MANIFEST_NOTES_ZH,
-    en: process.env.MOSA_MANIFEST_NOTES_EN,
-  },
-  artifacts: {
-    mac: {
-      platform: "macOS",
-      arch: "arm64",
-      file: process.env.MOSA_MANIFEST_MAC_FILE,
-      size: integer("MOSA_MANIFEST_MAC_SIZE"),
-      sha256: process.env.MOSA_MANIFEST_MAC_SHA256,
-    },
-    windows: {
-      platform: "Windows",
-      arch: "x64",
-      file: process.env.MOSA_MANIFEST_WINDOWS_FILE,
-      size: integer("MOSA_MANIFEST_WINDOWS_SIZE"),
-      sha256: process.env.MOSA_MANIFEST_WINDOWS_SHA256,
-    },
-  },
-};
-fs.writeFileSync(process.env.MOSA_MANIFEST_OUTPUT, `${JSON.stringify(manifest, null, 2)}\n`, { mode: 0o644 });
-'
-
-if [[ "$dry_run" -eq 1 ]]; then
-  log "本地校验通过，待发布清单如下："
-  sed -n '1,220p' "$manifest_file"
-  exit 0
-fi
-
 [[ "$remote_dir" == "/var/www/mosa-website" ]] || die "remote directory is fixed at /var/www/mosa-website"
 [[ "$ssh_port" =~ ^[0-9]+$ ]] || die "SSH port must be numeric"
-[[ -r "$ssh_key" ]] || die "SSH key is not readable: $ssh_key"
-[[ -r "$known_hosts" ]] || die "known_hosts is not readable: $known_hosts"
-command -v ssh >/dev/null 2>&1 || die "ssh is required"
-command -v rsync >/dev/null 2>&1 || die "rsync is required"
+if [[ "$dry_run" -ne 1 ]]; then
+  [[ -r "$ssh_key" ]] || die "SSH key is not readable: $ssh_key"
+  [[ -r "$known_hosts" ]] || die "known_hosts is not readable: $known_hosts"
+fi
 
 ssh_args=(
   -i "$ssh_key"
@@ -253,6 +229,100 @@ ssh_args=(
   -o ConnectionAttempts=1
 )
 ssh_target="$ssh_user@$ssh_host"
+
+cleanup() {
+  if [[ -n "$remote_tmp" && "$published" -ne 1 ]]; then
+    ssh "${ssh_args[@]}" "$ssh_user@$ssh_host" "rm -rf -- '$remote_tmp'" >/dev/null 2>&1 || true
+  fi
+  rm -rf -- "$temp_dir"
+}
+trap cleanup EXIT
+
+published_at="${MOSA_RELEASE_PUBLISHED_AT:-$(date -u '+%Y-%m-%dT%H:%M:%SZ')}"
+notes_zh="${MOSA_RELEASE_NOTES_ZH:-MOSA ${release_version} 桌面发布包。}"
+notes_en="${MOSA_RELEASE_NOTES_EN:-MOSA ${release_version} desktop package.}"
+
+if [[ -n "$previous_override" ]]; then
+  [[ -r "$previous_override" ]] || die "previous manifest override is not readable: $previous_override"
+  cp -f "$previous_override" "$previous_file"
+elif [[ "$dry_run" -ne 1 ]]; then
+  if ssh "${ssh_args[@]}" "$ssh_target" \
+    "if [ -f '$remote_dir/releases/latest.json' ]; then cat '$remote_dir/releases/latest.json'; fi" > "$previous_file"; then
+    if [[ -s "$previous_file" ]]; then
+      node -e 'JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));' "$previous_file" \
+        || die "current release manifest on the server is not valid JSON"
+    else
+      rm -f "$previous_file"
+      log "线上暂无 latest.json，将生成全新清单。"
+    fi
+  else
+    die "could not read the current release manifest from the server"
+  fi
+fi
+
+writer_args=(--version "$release_version" --output "$manifest_file" --mac "$mac_package")
+[[ -n "$windows_package" ]] && writer_args+=(--windows "$windows_package")
+[[ -f "$previous_file" ]] && writer_args+=(--previous "$previous_file")
+writer_args+=(--published-at "$published_at" --notes-zh "$notes_zh" --notes-en "$notes_en")
+node "$manifest_writer" "${writer_args[@]}" >/dev/null
+
+# Defense in depth: every platforms.* entry must describe the local artifact
+# that is about to be uploaded — right name, right size, right SHA-256.
+verify_manifest_artifact() {
+  local key="$1" local_file="$2" entry
+  [[ -n "$local_file" ]] || return 0
+  entry="$(node -e '
+    const fs = require("node:fs");
+    const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    const artifact = (manifest.platforms || {})[process.argv[2]];
+    if (!artifact || typeof artifact !== "object") {
+      console.error(`missing platforms.${process.argv[2]} entry in generated manifest`);
+      process.exit(1);
+    }
+    process.stdout.write(`${artifact.file}\t${artifact.size}\t${artifact.sha256}`);
+  ' "$manifest_file" "$key")" || die "generated manifest is missing the $key platform entry"
+  local entry_file entry_size entry_sha
+  IFS=$'\t' read -r entry_file entry_size entry_sha <<< "$entry"
+  [[ "$entry_file" == "$(basename "$local_file")" ]] || die "$key artifact filename mismatch: $entry_file"
+  [[ "$entry_size" == "$(file_size "$local_file")" ]] || die "$key artifact size mismatch for $entry_file"
+  [[ "$entry_sha" == "$(shasum -a 256 "$local_file" | awk '{print $1}')" ]] || die "$key artifact SHA-256 mismatch for $entry_file"
+}
+verify_manifest_artifact "macos" "$mac_package"
+verify_manifest_artifact "windows" "$windows_package"
+
+# The generated manifest must never carry legacy artifacts.* data.
+node -e '
+  const manifest = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));
+  if ("artifacts" in manifest) {
+    console.error("generated manifest still contains legacy artifacts.* data");
+    process.exit(1);
+  }
+' "$manifest_file" || die "generated manifest contains legacy artifacts.* data"
+
+referenced_files="$(node -e '
+  const fs = require("node:fs");
+  const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  for (const artifact of Object.values(manifest.platforms || {})) {
+    if (artifact && typeof artifact.file === "string") process.stdout.write(`${artifact.file}\n`);
+  }
+' "$manifest_file")"
+while IFS= read -r referenced_file; do
+  [[ -n "$referenced_file" ]] || continue
+  [[ "$referenced_file" =~ ^MOSA-(darwin-arm64|win32-x64)-[0-9A-Za-z.-]+\.zip$ ]] \
+    || die "manifest references an unexpected artifact name: $referenced_file"
+done <<< "$referenced_files"
+
+if [[ "$dry_run" -eq 1 ]]; then
+  log "本地校验通过，待发布清单如下："
+  cat "$manifest_file"
+  if [[ -n "$dry_run_output" ]]; then
+    mkdir -p "$(dirname "$dry_run_output")"
+    cp -f "$manifest_file" "$dry_run_output"
+    log "dry-run 清单已写入 $dry_run_output"
+  fi
+  exit 0
+fi
+
 ssh "${ssh_args[@]}" "$ssh_target" \
   "test -d '$remote_dir' && test -w '$remote_dir' && test -d '$remote_dir/downloads' && test -w '$remote_dir/downloads' && test -d '$remote_dir/releases' && test -w '$remote_dir/releases'" \
   || die "remote MOSA website directories are not writable"
@@ -271,22 +341,33 @@ done
 rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
   -e "$rsync_ssh" \
   "$mac_package" "$ssh_target:$remote_tmp/$mac_name"
-rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
+[[ -n "$windows_package" ]] && rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
   -e "$rsync_ssh" \
   "$windows_package" "$ssh_target:$remote_tmp/$windows_name"
-rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
+rsync --archive --compress --human-readable --chmod=Fu=rw,Fgo=r \
   -e "$rsync_ssh" \
   "$manifest_file" "$ssh_target:$remote_tmp/latest.json"
 
-remote_hashes="$(ssh "${ssh_args[@]}" "$ssh_target" \
-  "sha256sum '$remote_tmp/$mac_name' '$remote_tmp/$windows_name' | awk '{print \$1}'")"
-remote_mac_sha256="$(printf '%s\n' "$remote_hashes" | sed -n '1p')"
-remote_windows_sha256="$(printf '%s\n' "$remote_hashes" | sed -n '2p')"
-[[ "$remote_mac_sha256" == "$mac_sha256" ]] || die "remote macOS package hash mismatch"
-[[ "$remote_windows_sha256" == "$windows_sha256" ]] || die "remote Windows ZIP hash mismatch"
+uploaded_names=("$mac_name")
+uploaded_shas=("$mac_sha256")
+[[ -n "$windows_package" ]] && uploaded_names+=("$windows_name") && uploaded_shas+=("$windows_sha256")
+for index in "${!uploaded_names[@]}"; do
+  remote_hash="$(ssh "${ssh_args[@]}" "$ssh_target" \
+    "sha256sum '$remote_tmp/${uploaded_names[$index]}' | awk '{print \$1}'")"
+  [[ "$remote_hash" == "${uploaded_shas[$index]}" ]] \
+    || die "remote ${uploaded_names[$index]} hash mismatch: $remote_hash"
+done
+
+# referenced_files entries are strictly regex-validated above, so embedding
+# them in the remote command is safe.
+remote_referenced=""
+while IFS= read -r referenced_file; do
+  [[ -n "$referenced_file" ]] || continue
+  remote_referenced+=" $referenced_file"
+done <<< "$referenced_files"
 
 ssh "${ssh_args[@]}" "$ssh_target" \
-  "set -eu; install -d -m 0755 '$remote_dir/releases/history'; if [ -f '$remote_dir/releases/latest.json' ]; then cp -f '$remote_dir/releases/latest.json' '$remote_dir/releases/history/latest-$upload_tag.json'; chmod 0644 '$remote_dir/releases/history/latest-$upload_tag.json'; fi; mv -f '$remote_tmp/$mac_name' '$remote_dir/downloads/$mac_name'; mv -f '$remote_tmp/$windows_name' '$remote_dir/downloads/$windows_name'; mv -f '$remote_tmp/latest.json' '$remote_dir/releases/latest.json'; chmod 0644 '$remote_dir/downloads/$mac_name' '$remote_dir/downloads/$windows_name' '$remote_dir/releases/latest.json'; rmdir '$remote_tmp' || true"
+  "set -eu; install -d -m 0755 '$remote_dir/releases/history'; mv -f '$remote_tmp/$mac_name' '$remote_dir/downloads/$mac_name'; if [ -n '$windows_name' ]; then mv -f '$remote_tmp/$windows_name' '$remote_dir/downloads/$windows_name'; fi; for referenced in$remote_referenced; do test -f \"$remote_dir/downloads/\$referenced\" || { echo \"missing artifact on server: \$referenced\" >&2; exit 1; }; done; if [ -f '$remote_dir/releases/latest.json' ]; then cp -f '$remote_dir/releases/latest.json' '$remote_dir/releases/history/latest-$upload_tag.json'; chmod 0644 '$remote_dir/releases/history/latest-$upload_tag.json'; fi; mv -f '$remote_tmp/latest.json' '$remote_dir/releases/latest.json'; chmod 0644 '$remote_dir/downloads/$mac_name' '$remote_dir/releases/latest.json'; if [ -n '$windows_name' ]; then chmod 0644 '$remote_dir/downloads/$windows_name'; fi; rmdir '$remote_tmp' || true"
 published=1
 
 remote_desktop_files="$(ssh "${ssh_args[@]}" "$ssh_target" \
@@ -314,5 +395,5 @@ umask 077
 printf '%s\n' "$release_signature" > "$state_file"
 chmod 0600 "$state_file"
 
-log "已发布 MOSA ${release_version}：macOS ${mac_size} bytes，Windows ${windows_size} bytes。"
-log "SHA-256 已在本机与服务器两端核对。"
+log "已发布 MOSA ${release_version}：macOS ${mac_size} bytes${windows_package:+，Windows ${windows_size} bytes}。"
+log "SHA-256 已在本机与服务器两端核对；清单由 canonical writer 生成。"

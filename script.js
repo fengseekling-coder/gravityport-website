@@ -29,13 +29,16 @@
   };
 
   const refreshDownloadCopy = () => {
-    const macVersion = desktopRelease?.mac?.version || config.mac?.version;
-    const windowsVersion = desktopRelease?.windows?.version || config.windows?.version;
+    const macVersion = (desktopRelease?.mac && desktopRelease.version) || config.mac?.version;
+    const windowsVersion = (desktopRelease?.windows && desktopRelease.version) || config.windows?.version;
     setText("[data-mac-version]", downloadsEnabled && macVersion ? `${t("home.download.version")} ${macVersion}` : pendingLabel());
     setText("[data-windows-version]", downloadsEnabled && windowsVersion ? `${t("home.download.version")} ${windowsVersion}` : pendingLabel());
     setText("[data-extension-version]", downloadsEnabled ? config.extension?.version || "v0.11" : pendingLabel());
     setText("[data-mac-label]", downloadsEnabled ? downloadLabel("mac") : pendingLabel());
-    setText("[data-windows-label]", downloadsEnabled ? downloadLabel("windows") : pendingLabel());
+    const windowsFromFeed = Boolean(desktopRelease?.windows);
+    setText("[data-windows-label]", downloadsEnabled
+      ? (windowsFromFeed ? downloadLabel("windows") : t("home.download.windowsPreviewLabel", downloadLabel("windows")))
+      : pendingLabel());
     setText("[data-extension-label]", downloadsEnabled ? downloadLabel("extension") : pendingLabel());
     setText("[data-extension-guide-label]", downloadsEnabled ? t("home.download.guideLabel") : pendingLabel());
   };
@@ -103,30 +106,16 @@
   ["mac", "windows", "extension"].forEach((kind) => configureDownload(kind, config[kind]));
 
   const normalizeDesktopRelease = (release) => {
-    if (!release || typeof release !== "object" || Array.isArray(release)) return null;
-    const version = typeof release.version === "string" ? release.version.trim().replace(/^v/i, "") : "";
-    if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) return null;
-
-    const makeArtifact = (platform) => {
-      const artifact = release.artifacts?.[platform];
-      const expectedPrefix = platform === "mac" ? "MOSA-darwin-arm64-" : "MOSA-win32-x64-";
-      if (!artifact || typeof artifact !== "object" || Array.isArray(artifact)) return null;
-      const file = typeof artifact.file === "string" ? artifact.file.trim() : "";
-      const expectedStem = `${expectedPrefix}${version}`;
-      const validFile = platform === "mac"
-        ? file === `${expectedStem}.dmg` || file === `${expectedStem}.zip`
-        : file === `${expectedStem}.zip`;
-      if (!validFile) return null;
-      return {
-        version: `v${version}`,
-        url: `./downloads/${encodeURIComponent(file)}`,
-        label: downloadLabel(platform),
-      };
+    const feed = window.MOSADesktopReleaseFeed;
+    if (!feed || typeof feed.normalizeDesktopRelease !== "function") return null;
+    const normalized = feed.normalizeDesktopRelease(release);
+    if (!normalized.version) return null;
+    const toDisplay = (artifact) => (artifact ? { version: normalized.version, url: artifact.url } : null);
+    return {
+      version: `v${normalized.version}`,
+      mac: toDisplay(normalized.mac),
+      windows: toDisplay(normalized.windows),
     };
-
-    const mac = makeArtifact("mac");
-    const windows = makeArtifact("windows");
-    return mac && windows ? { mac, windows } : null;
   };
 
   const loadDesktopRelease = async () => {
@@ -143,8 +132,8 @@
       if (!release) return;
       desktopRelease = release;
       refreshDownloadCopy();
-      configureDownload("mac", release.mac);
-      configureDownload("windows", release.windows);
+      if (release.mac) configureDownload("mac", release.mac);
+      if (release.windows) configureDownload("windows", release.windows);
     } catch {
       // The checked-in config remains a safe fallback if the feed is unavailable.
     }

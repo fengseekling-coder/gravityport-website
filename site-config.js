@@ -3,8 +3,11 @@ window.MOSA_SITE_CONFIG = Object.freeze({
   desktop: {
     feedUrl: "./releases/latest.json",
   },
-  // 静态兜底：更新清单要求 mac/windows 两个条目同版本才会被首页脚本采用。
-  // rc.15 只有 macOS 包（Windows 暂缓），清单校验必然失败，因此回退到这里的真实文件。
+  // 显式兜底（explicit fallback）。首页脚本优先读取 releases/latest.json 的
+  // platforms.macos / platforms.windows，两个平台独立判断；某平台在当前
+  // release 缺失时才回落到这里，且 UI 必须显示明确的版本号——Windows 包
+  // 兜底到 rc.14 时会以 "Windows Preview 0.2.1-rc.14" 呈现，绝不伪装成
+  // 最新版。URL 指向真实存在的第一方下载文件。
   mac: {
     version: "v0.2.1-rc.15",
     url: "./downloads/MOSA-darwin-arm64-0.2.1-rc.15.zip",
