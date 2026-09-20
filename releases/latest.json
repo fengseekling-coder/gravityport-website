@@ -1,17 +1,36 @@
 {
-  "version": "0.2.1-rc.15",
-  "publishedAt": "2026-09-19T00:09:34Z",
+  "version": "0.2.1-rc.25",
+  "build": {
+    "gitSha": "aa3539d42092d8e021bf5a287e0cbe267a6fdf78",
+    "uiFingerprint": "a2c026c161694b0ac35816bf78134c544896a664b8b18b729dc5804ec67ce3fb",
+    "runtimeFingerprint": "ff6550ce5567bbb0dd96d76b1dd576af3f7ffaa1246dea88cfe78df50b434ba5",
+    "distribution": "preview"
+  },
+  "publishedAt": "2026-09-20T15:34:14.000Z",
   "notes": {
-    "zh": "MOSA 0.2.1-rc.15 桌面测试发布包。新增 macOS 应用内自更新链路：检查更新、下载校验、自动替换与重启。本版本为自更新引导版本，Windows 包暂缓发布。",
-    "en": "MOSA 0.2.1-rc.15 desktop test release. Adds the macOS in-app self-update pipeline: update check, verified download, automatic replacement and restart. This build bootstraps self-update; the Windows package is deferred."
+    "zh": "Preview 候选版本：现可将文件导入当前打开的 Stack；已移除已保存筛选器，并在侧栏切换时清除不适用的隐藏条件。",
+    "en": "Preview candidate: import files directly into the open Stack. Saved filters have been removed, and sidebar changes now clear hidden facet constraints that no longer apply."
   },
   "platforms": {
     "macos": {
       "platform": "macOS",
       "arch": "arm64",
-      "file": "MOSA-darwin-arm64-0.2.1-rc.15.zip",
-      "size": 128358577,
-      "sha256": "6f1de34996d776ff4bcf48655f5bc314504c2ecb2f8e0edec63650b234067098"
+      "file": "MOSA-darwin-arm64-0.2.1-rc.25.zip",
+      "size": 128359599,
+      "sha256": "f37d37f2f1027c7ddb79e17d54818928d412e85ef4c2f4397ab1d4d2bf5f6d06"
+    },
+    "windows": {
+      "platform": "Windows",
+      "arch": "x64",
+      "file": "MOSA-win32-x64-0.2.1-rc.25.zip",
+      "size": 154373635,
+      "sha256": "2aacc040c2bcb5df5175f878934c73931555168d9d8e1d0df2412351e87e30e0"
     }
-  }
+  },
+  "signature": {
+    "algorithm": "ed25519",
+    "keyId": "235d3651f80176bed99098cab6a4c6fe0581d0206e23f691af2c8bf88aa9839f",
+    "value": "pXHI_aF3YOSnCzZHI0_G49UeoogUN-BL9Ea8A5U3ZuNhrJGRCJWo6HASpd7FKL1UEFlZDejC5KgHaa-it3IEAw"
+  },
+  "gitSha": "aa3539d42092d8e021bf5a287e0cbe267a6fdf78"
 }
