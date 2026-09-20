@@ -36,6 +36,20 @@ const ARCH_PATTERN = /^[0-9A-Za-z._-]{1,24}$/;
 const VERSION_PATTERN = /^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 const DESKTOP_DOWNLOAD_PATTERN = /^MOSA-(?:darwin|win32)-[A-Za-z0-9._-]+\.zip$/;
 const EXTENSION_DOWNLOAD_PATTERN = /^MOSA-Web-Capture-[A-Za-z0-9._-]+\.zip$/;
+const HOME_PAGE_MIN_BYTES = 20_000;
+const PUBLIC_PAGE_PATHS = new Map([
+  ["/", "/"],
+  ["/index.html", "/"],
+  ["/guide", "/guide/"],
+  ["/guide/", "/guide/"],
+  ["/guide/index.html", "/guide/"],
+  ["/demo", "/demo/"],
+  ["/demo/", "/demo/"],
+  ["/demo/index.html", "/demo/"],
+  ["/privacy", "/privacy/"],
+  ["/privacy/", "/privacy/"],
+  ["/privacy/index.html", "/privacy/"],
+]);
 
 const now = (() => {
   if (!nowValue) return Date.now();
@@ -91,13 +105,14 @@ function dailyWindow(days) {
 
 function parseRequestLine(line) {
   const timestamp = line.match(/\[([^\]]+)\]/)?.[1] || "";
-  const requestMatch = line.match(/"(GET|HEAD) ([^ ]+) HTTP\/[0-9.]+"\s+(\d{3})\b/);
+  const requestMatch = line.match(/"(GET|HEAD) ([^ ]+) HTTP\/[0-9.]+"\s+(\d{3})(?:\s+(\d+|-))?/);
   if (!requestMatch) return null;
   const time = parseNginxTimestamp(timestamp);
   if (!Number.isFinite(time)) return null;
   let url;
   try { url = new URL(requestMatch[2], "https://mosa.azhuilab.com"); } catch { return null; }
-  return { method: requestMatch[1], status: Number(requestMatch[3]), time, url };
+  const bytes = requestMatch[4] && requestMatch[4] !== "-" ? Number(requestMatch[4]) : 0;
+  return { method: requestMatch[1], status: Number(requestMatch[3]), time, url, bytes: Number.isFinite(bytes) ? bytes : 0 };
 }
 
 function newAggregate() {
@@ -111,6 +126,10 @@ function newAggregate() {
     dailyDownloads: new Map(),
     dailyActiveSets: new Map(),
     dailyFirstLaunchSets: new Map(),
+    pageViewCounts: new Map(),
+    dailyPageViews: new Map(),
+    dailyHomePageViews: new Map(),
+    homePageViews: 0,
   };
 }
 
@@ -134,6 +153,11 @@ function hydrateAggregate(value) {
     dailyDownloads: pairsToMap(value.dailyDownloads),
     dailyActiveSets: setPairsToMap(value.dailyActiveSets),
     dailyFirstLaunchSets: setPairsToMap(value.dailyFirstLaunchSets),
+    pageViewCounts: pairsToMap(value.pageViewCounts),
+    dailyPageViews: pairsToMap(value.dailyPageViews),
+    dailyHomePageViews: pairsToMap(value.dailyHomePageViews),
+    homePageViews: Number(value.homePageViews) || 0,
+    needsPageViewBackfill: !Array.isArray(value.pageViewCounts),
   };
 }
 
@@ -148,6 +172,10 @@ function serializeAggregate(aggregate) {
     dailyDownloads: [...aggregate.dailyDownloads.entries()],
     dailyActiveSets: [...aggregate.dailyActiveSets.entries()].map(([key, entries]) => [key, [...entries]]),
     dailyFirstLaunchSets: [...aggregate.dailyFirstLaunchSets.entries()].map(([key, entries]) => [key, [...entries]]),
+    pageViewCounts: [...aggregate.pageViewCounts.entries()],
+    dailyPageViews: [...aggregate.dailyPageViews.entries()],
+    dailyHomePageViews: [...aggregate.dailyHomePageViews.entries()],
+    homePageViews: Number(aggregate.homePageViews) || 0,
   };
 }
 
@@ -287,9 +315,37 @@ function classifyDownload(file) {
   return "other";
 }
 
-function processLine(line, aggregate) {
+function normalizePublicPagePath(pathname) {
+  return PUBLIC_PAGE_PATHS.get(pathname) || "";
+}
+
+function countPageView(parsed, aggregate) {
+  const { method, status, time, url, bytes } = parsed;
+  if (method !== "GET" || status < 200 || status >= 300) return;
+  const path = normalizePublicPagePath(url.pathname);
+  if (!path) return;
+  if (path === "/" && bytes < HOME_PAGE_MIN_BYTES) return;
+  increment(aggregate.pageViewCounts, path);
+  increment(aggregate.dailyPageViews, analyticsDayKey(time));
+  if (path === "/") {
+    aggregate.homePageViews = (Number(aggregate.homePageViews) || 0) + 1;
+    increment(aggregate.dailyHomePageViews, analyticsDayKey(time));
+  }
+}
+
+function processLogText(text, aggregate, options = {}) {
+  for (const line of text.split(/\r?\n/)) {
+    if (line) processLine(line, aggregate, options);
+  }
+}
+
+function processLine(line, aggregate, options = {}) {
   const parsed = parseRequestLine(line);
   if (!parsed) return;
+  if (options.pageViewsOnly) {
+    countPageView(parsed, aggregate);
+    return;
+  }
   const { method, status, time, url } = parsed;
 
   if (url.pathname === "/releases/latest.json" && status >= 200 && status < 300) {
@@ -346,11 +402,19 @@ function processLine(line, aggregate) {
     else if (kind === "extension") increment(aggregate.extensionDownloadCounts, file);
     else increment(aggregate.otherDownloadCounts, file);
   }
+
+  countPageView(parsed, aggregate);
 }
 
 function pruneDailyMaps(aggregate) {
   const cutoff = dailyWindow(TREND_DAYS + 2)[0];
-  for (const map of [aggregate.dailyDownloads, aggregate.dailyActiveSets, aggregate.dailyFirstLaunchSets]) {
+  for (const map of [
+    aggregate.dailyDownloads,
+    aggregate.dailyActiveSets,
+    aggregate.dailyFirstLaunchSets,
+    aggregate.dailyPageViews,
+    aggregate.dailyHomePageViews,
+  ]) {
     for (const key of map.keys()) {
       if (key < cutoff) map.delete(key);
     }
@@ -385,6 +449,8 @@ const state = await loadState(statePath);
 const files = await discoverLogs(logPath);
 if (!files.length) throw new Error(`No Nginx access logs found for ${logPath}`);
 const seenFileKeys = new Set(files.map((file) => file.fileKey));
+const backfillPageViews = state.aggregate.needsPageViewBackfill === true;
+delete state.aggregate.needsPageViewBackfill;
 
 for (const file of files) {
   const buffer = await readLogBuffer(file);
@@ -393,11 +459,12 @@ for (const file of files) {
   const startOffset = Number(matchedSource?.processedBytes) || 0;
 
   const endOffset = completeByteLength(buffer, startOffset);
+  if (backfillPageViews && startOffset > 0) {
+    processLogText(buffer.subarray(0, startOffset).toString("utf8"), state.aggregate, { pageViewsOnly: true });
+  }
   if (endOffset > startOffset) {
     const text = buffer.subarray(startOffset, endOffset).toString("utf8");
-    for (const line of text.split(/\r?\n/)) {
-      if (line) processLine(line, state.aggregate);
-    }
+    processLogText(text, state.aggregate);
   }
   upsertSource(state.sources, matchedSource, file, buffer, endOffset);
 }
@@ -427,9 +494,13 @@ const daily = dailyWindow(TREND_DAYS).map((date) => ({
   firstLaunches: state.aggregate.dailyFirstLaunchSets.get(date)?.size || 0,
   activeInstalls: state.aggregate.dailyActiveSets.get(date)?.size || 0,
   downloadRequests: state.aggregate.dailyDownloads.get(date) || 0,
+  pageViews: state.aggregate.dailyPageViews.get(date) || 0,
+  homePageViews: state.aggregate.dailyHomePageViews.get(date) || 0,
 }));
 
 const sumMap = (map) => [...map.values()].reduce((sum, value) => sum + Number(value || 0), 0);
+const totalHomePageViews = Number(state.aggregate.homePageViews) || 0;
+const totalDownloadRequests = sumMap(state.aggregate.downloadCounts);
 const report = {
   schemaVersion: STATE_SCHEMA_VERSION,
   generatedAt: new Date(now).toISOString(),
@@ -449,7 +520,11 @@ const report = {
   downloadsByRef: mapToObject(state.aggregate.refCounts),
   desktopDownloadsByFile: mapToObject(state.aggregate.desktopDownloadCounts),
   extensionDownloadsByFile: mapToObject(state.aggregate.extensionDownloadCounts),
-  totalDownloadRequests: sumMap(state.aggregate.downloadCounts),
+  pageViewsByPath: mapToObject(state.aggregate.pageViewCounts),
+  totalPageViews: sumMap(state.aggregate.pageViewCounts),
+  totalHomePageViews,
+  homeToDownloadRate: totalHomePageViews > 0 ? totalDownloadRequests / totalHomePageViews : null,
+  totalDownloadRequests,
   totalDesktopDownloadRequests: sumMap(state.aggregate.desktopDownloadCounts),
   totalExtensionDownloadRequests: sumMap(state.aggregate.extensionDownloadCounts),
   totalOtherDownloadRequests: sumMap(state.aggregate.otherDownloadCounts),

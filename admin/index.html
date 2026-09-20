@@ -13,7 +13,7 @@
       <div>
         <p class="eyebrow">MOSA PRIVATE</p>
         <h1>Usage Stats</h1>
-        <p class="subtitle">安装实例、自然日活跃、下载请求与渠道数据</p>
+        <p class="subtitle">安装实例、自然日活跃、官网页面访问、下载请求与渠道数据</p>
       </div>
       <div class="header-actions">
         <div class="updated" id="updatedAt">正在读取数据…</div>
@@ -30,6 +30,9 @@
       <article class="metric-card"><span>30 日活跃</span><strong id="mau">—</strong><small>最近 30 个统计日去重实例</small></article>
       <article class="metric-card"><span>桌面下载请求</span><strong id="desktopDownloads">—</strong><small>成功 GET / Range 请求数</small></article>
       <article class="metric-card"><span>扩展下载请求</span><strong id="extensionDownloads">—</strong><small>成功 GET / Range 请求数</small></article>
+      <article class="metric-card"><span>官网页面访问</span><strong id="pageViews">—</strong><small>公开页成功 GET，近似 PV</small></article>
+      <article class="metric-card"><span>首页访问</span><strong id="homePageViews">—</strong><small>MOSA 首页成功 GET，按体长过滤</small></article>
+      <article class="metric-card"><span>首页→下载</span><strong id="homeToDownloadRate">—</strong><small>下载请求 / 首页访问，不是按钮点击率</small></article>
     </section>
 
     <section class="panel trend-panel">
@@ -39,6 +42,7 @@
           <span><i class="legend-dot installs"></i>首次启动</span>
           <span><i class="legend-dot active"></i>活跃</span>
           <span><i class="legend-dot downloads"></i>全部下载请求</span>
+          <span><i class="legend-dot pageviews"></i>页面访问</span>
         </div>
       </div>
       <div class="chart-wrap" id="trendChart" role="img" aria-label="近 30 天使用趋势"></div>
