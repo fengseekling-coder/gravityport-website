@@ -132,3 +132,35 @@ test("the live rc.15 manifest resolves its macOS artifact", () => {
   assert.equal(normalized.mac.url, "https://mosa.azhuilab.com/downloads/MOSA-darwin-arm64-0.2.1-rc.15.zip");
   assert.equal(normalized.windows, null);
 });
+
+test("a GravityPort manifest resolves both platforms with first-party URLs", () => {
+  const release = {
+    version: "0.3.0",
+    platforms: {
+      macos: { platform: "macOS", arch: "arm64", file: "GravityPort-darwin-arm64-0.3.0.zip", size: 1, sha256: "a".repeat(64) },
+      windows: { platform: "Windows", arch: "x64", file: "GravityPort-win32-x64-0.3.0.zip", size: 2, sha256: "b".repeat(64) },
+    },
+  };
+  const normalized = feed.normalizeDesktopRelease(release);
+  assert.equal(normalized.version, "0.3.0");
+  assert.equal(normalized.mac.url, "https://mosa.azhuilab.com/downloads/GravityPort-darwin-arm64-0.3.0.zip");
+  assert.equal(normalized.windows.url, "https://mosa.azhuilab.com/downloads/GravityPort-win32-x64-0.3.0.zip");
+});
+
+test("GravityPort artifact filenames must still match the manifest version exactly", () => {
+  const stale = { version: "0.3.0", platforms: { macos: { platform: "macOS", arch: "arm64", file: "GravityPort-darwin-arm64-0.2.9.zip", size: 1, sha256: "a".repeat(64) } } };
+  assert.equal(feed.normalizeDesktopRelease(stale).mac, null);
+  const staleWindows = { version: "0.3.0", platforms: { windows: { platform: "Windows", arch: "x64", file: "GravityPort-win32-x64-0.2.9.zip", size: 2, sha256: "b".repeat(64) } } };
+  assert.equal(feed.normalizeDesktopRelease(staleWindows).windows, null);
+});
+
+test("artifact filenames with an unknown product prefix are rejected", () => {
+  const foreign = { version: "0.3.0", platforms: { macos: { platform: "macOS", arch: "arm64", file: "OtherApp-darwin-arm64-0.3.0.zip", size: 1, sha256: "a".repeat(64) } } };
+  assert.equal(feed.normalizeDesktopRelease(foreign).mac, null);
+  const foreignWindows = { version: "0.3.0", platforms: { windows: { platform: "Windows", arch: "x64", file: "OtherApp-win32-x64-0.3.0.zip", size: 2, sha256: "b".repeat(64) } } };
+  assert.equal(feed.normalizeDesktopRelease(foreignWindows).windows, null);
+  // A MOSA manifest must not resolve through the GravityPort prefix either.
+  const crossProduct = { version: "0.2.1-rc.34", platforms: { windows: { platform: "Windows", arch: "x64", file: "MOSA-win32-x64-0.2.1-rc.34.zip", size: 2, sha256: "b".repeat(64) } } };
+  const normalized = feed.normalizeDesktopRelease(crossProduct);
+  assert.ok(normalized.windows, "the MOSA prefix stays accepted");
+});

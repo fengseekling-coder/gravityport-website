@@ -5,8 +5,12 @@
   // Nothing from the release manifest may introduce another host.
   const FIRST_PARTY_DOWNLOAD_ORIGIN = "https://mosa.azhuilab.com";
   const VERSION_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
-  const MAC_STEM = "MOSA-darwin-arm64-";
-  const WINDOWS_STEM = "MOSA-win32-x64-";
+  // Both products are accepted so the page keeps working before and after the
+  // feed switches: MOSA-… for the frozen old source, GravityPort-… for the
+  // new one. The file name must still be exactly one allowed prefix plus the
+  // manifest version plus .zip.
+  const MAC_STEMS = ["MOSA-darwin-arm64-", "GravityPort-darwin-arm64-"];
+  const WINDOWS_STEMS = ["MOSA-win32-x64-", "GravityPort-win32-x64-"];
 
   const isPlainObject = (value) =>
     Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -14,13 +18,14 @@
   const cleanText = (value) => (typeof value === "string" ? value.trim() : "");
 
   // One platforms.* entry of the update manifest. The file name must be the
-  // canonical artifact of the manifest version; the download URL is always
-  // derived from the fixed first-party origin, never taken from the manifest.
-  const normalizePlatformArtifact = (artifact, expectedFile, platform, arch) => {
+  // canonical artifact of the manifest version for one of the accepted
+  // product prefixes; the download URL is always derived from the fixed
+  // first-party origin, never taken from the manifest.
+  const normalizePlatformArtifact = (artifact, expectedFiles, platform, arch) => {
     if (!isPlainObject(artifact)) return null;
     if (artifact.platform !== platform || artifact.arch !== arch) return null;
     const file = cleanText(artifact.file);
-    if (file !== expectedFile) return null;
+    if (!expectedFiles.includes(file)) return null;
     return {
       file,
       url: `${FIRST_PARTY_DOWNLOAD_ORIGIN}/downloads/${encodeURIComponent(file)}`,
@@ -37,13 +42,13 @@
     if (!VERSION_PATTERN.test(version)) return invalid;
     const mac = normalizePlatformArtifact(
       release.platforms?.macos,
-      `${MAC_STEM}${version}.zip`,
+      MAC_STEMS.map((stem) => `${stem}${version}.zip`),
       "macOS",
       "arm64",
     );
     const windows = normalizePlatformArtifact(
       release.platforms?.windows,
-      `${WINDOWS_STEM}${version}.zip`,
+      WINDOWS_STEMS.map((stem) => `${stem}${version}.zip`),
       "Windows",
       "x64",
     );
