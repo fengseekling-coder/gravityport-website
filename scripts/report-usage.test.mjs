@@ -22,6 +22,10 @@ function logLineWithBytes(time, method, path, status = 200, bytes = 123) {
 }
 
 function usage(time, event, installId, version = "0.2.1") {
+  return usageOnSource(time, event, installId, "/releases/latest.json", version);
+}
+
+function usageOnSource(time, event, installId, sourcePath, version = "0.2.1") {
   const query = new URLSearchParams({
     event,
     telemetry_version: "2",
@@ -30,7 +34,7 @@ function usage(time, event, installId, version = "0.2.1") {
     arch: "arm64",
     version,
   });
-  return logLine(time, "HEAD", `/releases/latest.json?${query}`, 200);
+  return logLine(time, "HEAD", `${sourcePath}?${query}`, 200);
 }
 
 function runReport(root) {
@@ -230,4 +234,79 @@ test("existing v2 state backfills page views from already processed bytes withou
   const repeated = runReport(root);
   assert.equal(repeated.totalDownloadRequests, 1);
   assert.equal(repeated.totalHomePageViews, 1, "page-view backfill must run only once");
+});
+
+test("the same installation reporting on both update sources counts exactly once", () => {
+  const root = mkdtempSync(join(tmpdir(), "mosa-stats-dual-source-"));
+  const accessLog = join(root, "access.log");
+
+  writeFileSync(accessLog, [
+    usage("02/Sep/2026:09:00:00 +0000", "first_launch", ID_A),
+    usageOnSource("02/Sep/2026:10:00:00 +0000", "daily_active", ID_A, "/releases/gravityport/latest.json"),
+  ].join(""));
+
+  const report = runReport(root);
+  assert.equal(report.knownInstallationInstances, 1, "one installation id on two sources is one user");
+  assert.equal(report.reportedFirstLaunches, 1);
+  assert.equal(report.dailyActiveInstalls, 1);
+  assert.equal(report.activeInstalls7d, 1);
+  assert.equal(report.activeInstalls30d, 1);
+
+  const repeated = runReport(root);
+  assert.equal(repeated.knownInstallationInstances, 1, "rerunning must not double count cross-source reports");
+});
+
+test("installations reporting only on the GravityPort source are counted", () => {
+  const root = mkdtempSync(join(tmpdir(), "mosa-stats-gp-source-"));
+  const accessLog = join(root, "access.log");
+
+  writeFileSync(accessLog, [
+    usageOnSource("02/Sep/2026:09:00:00 +0000", "first_launch", ID_B, "/releases/gravityport/latest.json", "0.3.0"),
+    usageOnSource("02/Sep/2026:10:00:00 +0000", "daily_active", ID_B, "/releases/gravityport/latest.json", "0.3.0"),
+  ].join(""));
+
+  const report = runReport(root);
+  assert.equal(report.knownInstallationInstances, 1);
+  assert.equal(report.reportedFirstLaunches, 1);
+  assert.equal(report.dailyActiveInstalls, 1);
+  assert.equal(report.versionInstalls["0.3.0"], 1);
+});
+
+test("GravityPort desktop packages are counted as desktop downloads", () => {
+  const root = mkdtempSync(join(tmpdir(), "mosa-stats-gp-download-"));
+  const accessLog = join(root, "access.log");
+
+  writeFileSync(accessLog, [
+    logLine("02/Sep/2026:09:00:00 +0000", "GET", "/downloads/GravityPort-darwin-arm64-0.3.0.zip", 200),
+    logLine("02/Sep/2026:09:01:00 +0000", "GET", "/downloads/GravityPort-win32-x64-0.3.0.zip", 206),
+    logLine("02/Sep/2026:09:02:00 +0000", "GET", "/downloads/MOSA-Web-Capture-0.15.3.zip", 200),
+  ].join(""));
+
+  const report = runReport(root);
+  assert.equal(report.totalDesktopDownloadRequests, 2);
+  assert.equal(report.desktopDownloadsByFile["GravityPort-darwin-arm64-0.3.0.zip"], 1);
+  assert.equal(report.desktopDownloadsByFile["GravityPort-win32-x64-0.3.0.zip"], 1);
+  assert.equal(report.totalExtensionDownloadRequests, 1, "the extension pattern is unchanged");
+  assert.equal(report.totalOtherDownloadRequests, 0, "GravityPort zips must not fall into other downloads");
+});
+
+test("logs with only the old source and MOSA packages keep their exact numbers", () => {
+  const root = mkdtempSync(join(tmpdir(), "mosa-stats-legacy-only-"));
+  const accessLog = join(root, "access.log");
+
+  writeFileSync(accessLog, [
+    usage("02/Sep/2026:09:00:00 +0000", "first_launch", ID_A),
+    usage("02/Sep/2026:10:00:00 +0000", "daily_active", ID_A),
+    logLine("02/Sep/2026:09:10:00 +0000", "GET", "/downloads/MOSA-darwin-arm64-0.2.1.zip", 200),
+    logLine("02/Sep/2026:09:11:00 +0000", "GET", "/downloads/MOSA-win32-x64-0.2.1.zip", 206),
+  ].join(""));
+
+  const report = runReport(root);
+  assert.equal(report.knownInstallationInstances, 1);
+  assert.equal(report.reportedFirstLaunches, 1);
+  assert.equal(report.dailyActiveInstalls, 1);
+  assert.equal(report.totalDownloadRequests, 2);
+  assert.equal(report.totalDesktopDownloadRequests, 2);
+  assert.equal(report.totalExtensionDownloadRequests, 0);
+  assert.equal(report.totalOtherDownloadRequests, 0);
 });

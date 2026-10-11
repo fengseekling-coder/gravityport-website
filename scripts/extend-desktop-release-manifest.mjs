@@ -31,7 +31,7 @@ function parseArgs(argv) {
 
 const args = parseArgs(process.argv.slice(2));
 if (!args.manifest || !args["mac-dmg"] || !args["git-sha"]) {
-  throw new Error("Usage: extend-desktop-release-manifest.mjs --manifest <latest.json> --mac-dmg <file> --git-sha <sha>");
+  throw new Error("Usage: extend-desktop-release-manifest.mjs --manifest <latest.json> --mac-dmg <file> [--dmg-file <expected file name>] --git-sha <sha>");
 }
 
 const manifestPath = resolve(args.manifest);
@@ -40,9 +40,14 @@ const gitSha = String(args["git-sha"]).trim();
 if (!/^[0-9a-f]{40}$/.test(gitSha)) throw new Error("git-sha must be a full 40-character lowercase Git SHA.");
 if (!manifest.platforms?.macos) throw new Error("Canonical manifest is missing platforms.macos.");
 
+// The DMG name follows the product the release ships: MOSA releases keep the
+// historical name, GravityPort releases use GravityPort-darwin-arm64-…. The
+// default preserves the legacy MOSA name for callers that do not pass it.
+const expectedDmgFile = String(args["dmg-file"] || "").trim() || `MOSA-darwin-arm64-${manifest.version}.dmg`;
+
 await artifactMetadata({
   path: args["mac-dmg"],
-  expectedFile: `MOSA-darwin-arm64-${manifest.version}.dmg`,
+  expectedFile: expectedDmgFile,
   platform: "macOS",
   arch: "arm64",
 });

@@ -6,8 +6,18 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
+import { createWriterHarness } from "./publish-desktop-release.test-helpers.mjs";
+
 const scriptPath = new URL("./publish-desktop-release.sh", import.meta.url).pathname;
-const writerPath = "/Users/azhuilab/codex_aigc/mosa/scripts/prepare-desktop-release-manifest.mjs";
+// The canonical manifest writer snapshot is the only writer the tests
+// exercise. Its CLI is pinned to the frozen build identity inside the
+// snapshot, so the tests invoke a generated wrapper (see
+// publish-desktop-release.test-helpers.mjs) that delegates to the same
+// exported prepareDesktopReleaseManifest() with a fixture build identity and a
+// throwaway Ed25519 key. Override the snapshot location with
+// MOSA_RELEASE_CANONICAL_WRITER if it ever moves.
+const writerHarness = await createWriterHarness();
+const writerPath = writerHarness.writerPath;
 const versionHelperPath = new URL("./release-version.mjs", import.meta.url).pathname;
 const realMacZipPath = "/Users/azhuilab/codex_aigc/mosa/out/make/update/darwin/arm64/MOSA-darwin-arm64-0.2.1-rc.15.zip";
 
@@ -241,7 +251,10 @@ test("canonical writer reproduces the live rc.15 manifest from itself (compatibi
   ], { stdio: ["ignore", "pipe", "pipe"] });
 
   const regenerated = JSON.parse(fs.readFileSync(output, "utf8"));
-  assert.deepEqual(regenerated.platforms.macos, LIVE_RC15_MANIFEST.platforms.macos);
+  // The current canonical writer records --mac-app-name in the platform
+  // entry, so the regenerated rc.15 entry carries appName where the live
+  // manifest predates that field.
+  assert.deepEqual(regenerated.platforms.macos, { ...LIVE_RC15_MANIFEST.platforms.macos, appName: "MOSA.app" });
   assert.deepEqual(regenerated.notes, LIVE_RC15_MANIFEST.notes);
   assert.equal("artifacts" in regenerated, false);
   assert.equal("windows" in regenerated.platforms, false, "no Windows rc.15 artifact exists, so no windows entry");

@@ -34,8 +34,9 @@ const USAGE_EVENTS = new Set(["first_launch", "daily_active"]);
 const USAGE_PLATFORMS = new Set(["macos", "windows", "other"]);
 const ARCH_PATTERN = /^[0-9A-Za-z._-]{1,24}$/;
 const VERSION_PATTERN = /^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
-const DESKTOP_DOWNLOAD_PATTERN = /^MOSA-(?:darwin|win32)-[A-Za-z0-9._-]+\.zip$/;
+const DESKTOP_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z0-9._-]+\.zip$/;
 const EXTENSION_DOWNLOAD_PATTERN = /^MOSA-Web-Capture-[A-Za-z0-9._-]+\.zip$/;
+const USAGE_REPORT_PATHS = new Set(["/releases/latest.json", "/releases/gravityport/latest.json"]);
 const HOME_PAGE_MIN_BYTES = 20_000;
 const PUBLIC_PAGE_PATHS = new Map([
   ["/", "/"],
@@ -348,7 +349,12 @@ function processLine(line, aggregate, options = {}) {
   }
   const { method, status, time, url } = parsed;
 
-  if (url.pathname === "/releases/latest.json" && status >= 200 && status < 300) {
+  // Anonymous usage is reported against whichever update source the running
+  // client checks: /releases/latest.json (frozen MOSA source) or
+  // /releases/gravityport/latest.json (GravityPort source). Aggregation is
+  // keyed by install id only, so the same installation reporting on both
+  // sources still counts as one user in installs and in every daily set.
+  if (USAGE_REPORT_PATHS.has(url.pathname) && status >= 200 && status < 300) {
     const event = url.searchParams.get("event") || "";
     const telemetryVersion = Number(url.searchParams.get("telemetry_version")) || 1;
     const installId = url.searchParams.get("install_id") || "";

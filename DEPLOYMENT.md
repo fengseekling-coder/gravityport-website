@@ -296,3 +296,39 @@ sudo systemctl reload nginx
 ```
 
 此后访问 `https://mosa.azhuilab.com/admin/` 会进入网页登录页；登录成功后 Cookie 有效 30 天，浏览器不会再反复弹出原生认证框。页面右上角提供“退出”，会立即撤销当前会话。`/admin/stats.json` 仍由同一会话保护，不能绕过页面直接公开访问。页面自身还带 `noindex` 与 `X-Robots-Tag`，但真正的访问边界仍以 Nginx `auth_request` 和服务端会话校验为准。
+
+## 11. 两种产品、两条更新源
+
+桌面 App 正在从 MOSA 改名为 GravityPort。过渡期里官网发布链路同时认两种产品，由环境变量 `MOSA_RELEASE_PRODUCT` 一次指定，**每次发布只能是一种产品**（不设该变量等价于 `MOSA`，行为与历史版本完全一致；设成其他值脚本直接报错退出）：
+
+```bash
+# MOSA（默认；旧源，过渡版发布后冻结）
+./scripts/publish-desktop-release.sh --dry-run
+
+# GravityPort（新源）
+MOSA_RELEASE_PRODUCT=GravityPort MOSA_RELEASE_NOTES_ZH=… MOSA_RELEASE_NOTES_EN=… \
+  ./scripts/publish-desktop-release.sh
+```
+
+两种产品各自读写的文件：
+
+| | MOSA | GravityPort |
+|---|---|---|
+| 安装包文件名前缀 | `MOSA-darwin-arm64-<版本>.zip/.dmg`、`MOSA-win32-x64-<版本>.zip` | `GravityPort-darwin-arm64-<版本>.zip/.dmg`、`GravityPort-win32-x64-<版本>.zip` |
+| 更新清单 | `releases/latest.json` | `releases/gravityport/latest.json` |
+| 清单备份 | `releases/history/latest-<时间戳>.json` | `releases/gravityport/history/latest-<时间戳>.json` |
+| 包内容校验 | `MOSA.app/Contents/MacOS/MOSA`、`MOSA.exe` | `GravityPort.app/Contents/MacOS/GravityPort`、`GravityPort.exe` |
+| 旧包清理 | 只清理 `MOSA-…` 成对版本 | 只清理 `GravityPort-…` 成对版本 |
+| 本机「上次发布」记录 | `~/.config/mosa/desktop-release-monitor.state` | `~/.config/mosa/desktop-release-monitor.gravityport.state` |
+
+两条更新源是分开的两份文件，客户端查更新、下载、遥测都禁止跳转，所以新源必须在同一域名的最终路径上直接可访问。可选环境变量 `MOSA_RELEASE_MAC_TEAM_IDENTIFIER` 和 `MOSA_RELEASE_WINDOWS_SIGNER_THUMBPRINT` 会原样传给清单生成器（写入 `platforms.macos.teamIdentifier` / `platforms.windows.signerThumbprint`），不设就不传。
+
+**旧源冻结**：过渡版发布之后，`releases/latest.json` 不再更新，它引用的 `MOSA-…` 安装包永远留在服务器上（发布 GravityPort 时的旧包清理不会碰它们，反之亦然）。
+
+### 上线切换 GravityPort 当天要手动做的事（只列步骤，当天执行）
+
+1. 服务器上创建目录：`install -d -m 0755 /var/www/mosa-website/releases/gravityport /var/www/mosa-website/releases/gravityport/history`（发布器也会自动建，但提前建好便于配 Nginx）。
+2. Nginx 里凡是给 `/releases/latest.json` 单独配置过的规则（不缓存、`X-Robots-Tag`、匿名使用上报的精简 access log 格式等，见第 10 节），给 `/releases/gravityport/latest.json` 配一份同样的；改完执行 `nginx -t` 再 reload。
+3. 把 `site-config.js` 的 `desktop.feedUrl` 切到 `./releases/gravityport/latest.json`，同时把 `mac` / `windows` 兜底直链换成 GravityPort 的真实包（这一步合进 main 即上线，会同时改变首页下载按钮的来源）。
+4. `.github/workflows/deploy.yml` 里校验首页含「MOSA」字样的冒烟检查要跟着改名后的首页调整，否则部署会失败。
+5. 用 `MOSA_RELEASE_PRODUCT=GravityPort … ./scripts/publish-desktop-release.sh --dry-run` 核对一遍生成的清单，再正式发布第一版。
