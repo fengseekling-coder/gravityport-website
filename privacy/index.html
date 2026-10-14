@@ -40,7 +40,7 @@
           <p class="privacy-lede" data-i18n="privacy.lede">MOSA 是一个本地优先的 AI 创作素材库。MOSA Web Capture 的核心用途，是把用户在受支持 AI 网站上明确选择或启用自动收录的生成素材，以及可用的 Prompt / 来源上下文，保存到同一台电脑上的 MOSA Desktop。</p>
           <div class="privacy-meta">
             <span data-i18n="privacy.meta.updated">最后更新 / Last updated</span>
-            <strong>2026-08-28</strong>
+            <strong>2026-10-14</strong>
           </div>
         </div>
       </section>
@@ -54,6 +54,7 @@
           <a href="#storage" data-i18n="privacy.toc.storage">存储与传输</a>
           <a href="#permissions" data-i18n="privacy.toc.permissions">浏览器权限</a>
           <a href="#desktop-metrics" data-i18n="privacy.toc.desktopMetrics">桌面端统计</a>
+          <a href="#pinterest" data-i18n="privacy.toc.pinterest">Pinterest 连接</a>
           <a href="#control" data-i18n="privacy.toc.control">用户控制</a>
           <a href="#third-parties" data-i18n="privacy.toc.thirdParties">第三方服务</a>
           <a href="#contact" data-i18n="privacy.toc.contact">联系与安全</a>
@@ -160,8 +161,23 @@
             <p data-i18n="privacy.metrics.p2">该请求不包含图库内容、素材数量、Prompt、文件名、本地路径、浏览历史、provider conversation ID、姓名或邮箱。随机安装 UUID 不由设备序列号、账号、路径、硬件指纹、Prompt 或素材生成。</p>
           </section>
 
-          <section id="control" class="policy-section">
+          <section id="pinterest" class="policy-section">
             <span class="policy-index">07</span>
+            <h2 data-i18n="privacy.pinterest.title">Pinterest 连接 / Pinterest connection</h2>
+            <p data-i18n="privacy.pinterest.p1">GravityPort 桌面版（原 MOSA Desktop）可以选择连接你的 Pinterest 账号，在应用里浏览你自己的画板和 Pin。这是可选功能；不连接，应用就不会访问 Pinterest。</p>
+            <p data-i18n="privacy.pinterest.lede">连接后，应用通过 Pinterest 官方 API 读取以下内容：</p>
+            <ul>
+              <li data-i18n="privacy.pinterest.account">你的 Pinterest 用户名；</li>
+              <li data-i18n="privacy.pinterest.boards">你的画板（包括私密画板）的名称、描述、Pin 数量和封面；</li>
+              <li data-i18n="privacy.pinterest.pins">画板中 Pin 的标题、描述、链接和图片地址。</li>
+            </ul>
+            <p data-i18n="privacy.pinterest.p2">这些内容只在你的电脑上实时显示，不会保存进 GravityPort 素材库，也不会上传到我们的服务器。为减少重复请求，应用会在内存中暂存最多 5 分钟，断开连接或退出应用后即清除。图片直接从 Pinterest 加载。</p>
+            <p data-i18n="privacy.pinterest.p3">授权令牌只保存在你的电脑上。授权时，我们的服务器只负责把授权码或刷新令牌连同应用密钥转交给 Pinterest 换取令牌，并把结果直接返回给你的电脑；服务器不保存授权码和令牌，也不把它们写入日志。</p>
+            <p data-i18n="privacy.pinterest.p4">你可以随时在 GravityPort 设置中断开 Pinterest，应用会删除本机保存的令牌；也可以在 Pinterest 账号设置的已授权应用中撤销 GravityPort 的访问权限。</p>
+          </section>
+
+          <section id="control" class="policy-section">
+            <span class="policy-index">08</span>
             <h2 data-i18n="privacy.control.title">用户控制 / User control</h2>
             <ul>
               <li data-i18n="privacy.control.one">新安装 Web Capture 时，自动收录默认关闭；用户可以在扩展设置中开启或再次关闭。</li>
@@ -172,14 +188,14 @@
           </section>
 
           <section id="third-parties" class="policy-section">
-            <span class="policy-index">08</span>
+            <span class="policy-index">09</span>
             <h2 data-i18n="privacy.thirdParties.title">第三方服务 / Third-party services</h2>
             <p data-i18n="privacy.thirdParties.p1">ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、Chrome 以及用户使用的其他 AI 服务都是独立产品。MOSA 不控制这些服务自身的网络请求、账号体系或隐私政策。用户访问这些网站时，仍受对应服务的条款与隐私政策约束。</p>
             <p data-i18n="privacy.thirdParties.p2">MOSA 不出售用户数据，不把用户数据用于广告画像、信用评估或贷款，也不会为了与 Web Capture 单一用途无关的目的向第三方转移所捕获的用户数据。</p>
           </section>
 
           <section id="contact" class="policy-section">
-            <span class="policy-index">09</span>
+            <span class="policy-index">10</span>
             <h2 data-i18n="privacy.contact.title">联系与安全 / Contact and security</h2>
             <p data-i18n="privacy.contact.p">如需报告安全漏洞，请通过 MOSA GitHub 仓库的安全说明与项目渠道联系。一般问题可通过 GitHub Issues 反馈，但不要在公开 Issue 中提交 Token、Prompt、私人素材、会话内容或其他敏感数据。</p>
             <div class="policy-actions">
