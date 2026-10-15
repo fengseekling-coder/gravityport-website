@@ -7,14 +7,14 @@
 location = /api/pinterest/token {
     limit_req zone=pinterest_token burst=2 nodelay;
     limit_req_status 429;
-    
+
     if ($request_method != POST) {
         return 405;
     }
-    
+
     client_max_body_size 8k;
     access_log off;
-    
+
     proxy_pass http://127.0.0.1:39128/token;
     proxy_http_version 1.1;
     proxy_set_header Host $host;

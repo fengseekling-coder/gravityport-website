@@ -73,23 +73,23 @@ async function request(port, path, options = {}) {
 async function withServers(fakePinterest, tokenServerOptions, testFn) {
   const fakeServer = makeFakePinterestServer(fakePinterest);
   await new Promise((resolve) => fakeServer.listen(FAKE_PINTEREST_PORT, "127.0.0.1", resolve));
-  
+
   // Save and restore env vars for each test
   const originalEndpoint = process.env.PINTEREST_TOKEN_ENDPOINT;
   const originalRedirects = process.env.PINTEREST_ALLOWED_REDIRECTS;
-  
+
   process.env.PINTEREST_TOKEN_ENDPOINT = `http://127.0.0.1:${FAKE_PINTEREST_PORT}/v5/oauth/token`;
   process.env.PINTEREST_ALLOWED_REDIRECTS = "http://localhost:43517/api/pinterest/callback,http://localhost:9999/callback";
-  
+
   const tokenServer = createPinterestTokenServer(tokenServerOptions);
   await new Promise((resolve) => tokenServer.listen(TOKEN_SERVICE_PORT, "127.0.0.1", resolve));
-  
+
   try {
     await testFn();
   } finally {
     await new Promise((resolve) => tokenServer.close(resolve));
     await new Promise((resolve) => fakeServer.close(resolve));
-    
+
     // Restore env vars
     if (originalEndpoint !== undefined) {
       process.env.PINTEREST_TOKEN_ENDPOINT = originalEndpoint;
@@ -101,7 +101,7 @@ async function withServers(fakePinterest, tokenServerOptions, testFn) {
     } else {
       delete process.env.PINTEREST_ALLOWED_REDIRECTS;
     }
-    
+
     // Give time for sockets to close
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
@@ -136,7 +136,7 @@ test("authorization_code success with only whitelisted fields", async () => {
         redirect_uri: "http://localhost:43517/api/pinterest/callback",
       }),
     });
-    
+
     assert.equal(res.status, 200);
     assert.equal(captured.method, "POST");
     assert.equal(captured.contentType, "application/x-www-form-urlencoded");
@@ -144,7 +144,7 @@ test("authorization_code success with only whitelisted fields", async () => {
     assert.match(captured.body, /grant_type=authorization_code/);
     assert.match(captured.body, /code=test_code_789/);
     assert.match(captured.body, /redirect_uri=http%3A%2F%2Flocalhost%3A43517%2Fapi%2Fpinterest%2Fcallback/);
-    
+
     assert.equal(res.json.access_token, "access_123");
     assert.equal(res.json.refresh_token, "refresh_456");
     assert.equal(res.json.token_type, "bearer");
@@ -175,7 +175,7 @@ test("refresh_token success", async () => {
         refresh_token: "old_refresh_token",
       }),
     });
-    
+
     assert.equal(res.status, 200);
     assert.equal(res.json.access_token, "new_access");
     assert.equal(res.json.refresh_token, "new_refresh");
@@ -198,7 +198,7 @@ test("redirect_uri not in whitelist returns 400 without forwarding", async () =>
         redirect_uri: "http://evil.com/callback",
       }),
     });
-    
+
     assert.equal(res.status, 400);
     assert.equal(res.json.error, "invalid_redirect_uri");
     assert.equal(forwarded, false);
@@ -216,7 +216,7 @@ test("missing fields returns 400", async () => {
       }),
     });
     assert.equal(res1.status, 400);
-    
+
     const res2 = await request(TOKEN_SERVICE_PORT, "/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -334,7 +334,7 @@ test("Pinterest returns 401 gives 502 pinterest_rejected", async () => {
         redirect_uri: "http://localhost:43517/api/pinterest/callback",
       }),
     });
-    
+
     assert.equal(res.status, 502);
     assert.equal(res.json.error, "pinterest_rejected");
     assert.equal(res.json.status, 401);
@@ -356,7 +356,7 @@ test("Pinterest timeout returns 504 pinterest_unreachable", async () => {
         redirect_uri: "http://localhost:43517/api/pinterest/callback",
       }),
     });
-    
+
     assert.equal(res.status, 504);
     assert.equal(res.json.error, "pinterest_unreachable");
   });
@@ -384,7 +384,7 @@ test("empty secret file throws on startup", () => {
   mkdirSync(tmpDir, { recursive: true });
   const emptyFile = join(tmpDir, "empty.txt");
   writeFileSync(emptyFile, "   \n\n  ");
-  
+
   try {
     process.env.PINTEREST_SECRET_FILE = emptyFile;
     assert.throws(() => {
@@ -404,7 +404,7 @@ test("logs do not contain sensitive data", async () => {
   const logs = [];
   const originalLog = console.log;
   console.log = (...args) => logs.push(args.join(" "));
-  
+
   try {
     await withServers({
       "/v5/oauth/token": (req, body, res) => {
@@ -424,7 +424,7 @@ test("logs do not contain sensitive data", async () => {
           redirect_uri: "http://localhost:43517/api/pinterest/callback",
         }),
       });
-      
+
       await request(TOKEN_SERVICE_PORT, "/token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -434,7 +434,7 @@ test("logs do not contain sensitive data", async () => {
         }),
       });
     });
-    
+
     const allLogs = logs.join(" ");
     assert.equal(allLogs.includes("secret_access_token"), false);
     assert.equal(allLogs.includes("secret_refresh_token"), false);
@@ -446,4 +446,52 @@ test("logs do not contain sensitive data", async () => {
   } finally {
     console.log = originalLog;
   }
+});
+
+test("Pinterest 2xx without access_token gives 502, not an empty success", async () => {
+  await withServers({
+    "/v5/oauth/token": (req, body, res) => {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ scope: "boards:read" }));
+    },
+  }, { secret: "test_secret" }, async () => {
+    const res = await request(TOKEN_SERVICE_PORT, "/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ grant: "refresh_token", refresh_token: "r" }),
+    });
+    assert.equal(res.status, 502);
+    assert.equal(res.json.error, "pinterest_bad_response");
+  });
+});
+
+test("JSON body that is not an object returns 400 instead of hanging", async () => {
+  await withServers({}, { secret: "test_secret" }, async () => {
+    for (const body of ["null", "[]", "42"]) {
+      const res = await request(TOKEN_SERVICE_PORT, "/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+      assert.equal(res.status, 400, body);
+    }
+  });
+});
+
+test("a response trickled past the deadline still gives 504", async () => {
+  await withServers({
+    "/v5/oauth/token": (req, body, res) => {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      const timer = setInterval(() => res.write(" "), 40);
+      res.on("close", () => clearInterval(timer));
+    },
+  }, { secret: "test_secret", timeoutMs: 200 }, async () => {
+    const res = await request(TOKEN_SERVICE_PORT, "/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ grant: "refresh_token", refresh_token: "r" }),
+    });
+    assert.equal(res.status, 504);
+    assert.equal(res.json.error, "pinterest_unreachable");
+  });
 });

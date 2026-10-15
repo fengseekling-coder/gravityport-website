@@ -2,6 +2,7 @@
 
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 
 const HOST = "127.0.0.1";
 const PORT = Number(process.env.PINTEREST_TOKEN_PORT || 39128);
@@ -92,7 +93,7 @@ async function callPinterest(secret, formData, timeoutMs = REQUEST_TIMEOUT_MS) {
   const authHeader = Buffer.from(`${CLIENT_ID}:${secret}`).toString("base64");
   const body = new URLSearchParams(formData).toString();
   const url = new URL(getPinterestEndpoint());
-  
+
   const options = {
     hostname: url.hostname,
     port: url.port || (url.protocol === "https:" ? 443 : 80),
@@ -103,32 +104,35 @@ async function callPinterest(secret, formData, timeoutMs = REQUEST_TIMEOUT_MS) {
       "Content-Type": "application/x-www-form-urlencoded",
       "Content-Length": Buffer.byteLength(body),
     },
-    timeout: timeoutMs,
   };
 
   const protocol = url.protocol === "https:" ? await import("node:https") : await import("node:http");
-  
+
   return new Promise((resolve, reject) => {
+    // The socket `timeout` option only bounds idle gaps; a response trickled
+    // byte by byte would never trip it. Bound the whole exchange instead.
+    const deadline = setTimeout(() => {
+      req.destroy();
+      reject(new Error("timeout"));
+    }, timeoutMs);
     const req = protocol.default.request(options, (res) => {
       let data = "";
       res.setEncoding("utf8");
       res.on("data", (chunk) => { data += chunk; });
+      res.on("error", (error) => { clearTimeout(deadline); reject(error); });
       res.on("end", () => {
+        clearTimeout(deadline);
         try {
           const parsed = JSON.parse(data);
-          resolve({ status: res.statusCode, data: parsed });
+          resolve({ status: res.statusCode, data: parsed && typeof parsed === "object" ? parsed : {} });
         } catch {
           resolve({ status: res.statusCode, data: {} });
         }
       });
     });
 
-    req.on("error", reject);
-    req.on("timeout", () => {
-      req.destroy();
-      reject(new Error("timeout"));
-    });
-    
+    req.on("error", (error) => { clearTimeout(deadline); reject(error); });
+
     if (body) {
       req.write(body);
     }
@@ -136,9 +140,16 @@ async function callPinterest(secret, formData, timeoutMs = REQUEST_TIMEOUT_MS) {
   });
 }
 
+// Every request ends in exactly one log line: time, grant type, status.
 async function handleToken(request, response, secret, requestTimeoutMs) {
+  let grant = "-";
+  const reply = (status, body) => {
+    log(grant, status);
+    send(response, status, body);
+  };
+
   if (request.method !== "POST") {
-    send(response, 405, { error: "method_not_allowed" });
+    reply(405, { error: "method_not_allowed" });
     return;
   }
 
@@ -146,7 +157,7 @@ async function handleToken(request, response, secret, requestTimeoutMs) {
   try {
     bodyText = await readBody(request);
   } catch {
-    send(response, 400, { error: "bad_request" });
+    reply(400, { error: "bad_request" });
     return;
   }
 
@@ -154,72 +165,69 @@ async function handleToken(request, response, secret, requestTimeoutMs) {
   try {
     parsed = JSON.parse(bodyText);
   } catch {
-    send(response, 400, { error: "invalid_json" });
+    reply(400, { error: "invalid_json" });
+    return;
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    reply(400, { error: "invalid_json" });
     return;
   }
 
-  const { grant, code, redirect_uri, refresh_token } = parsed;
-
-  if (!isValidField(grant)) {
-    send(response, 400, { error: "invalid_grant" });
+  const { code, redirect_uri, refresh_token } = parsed;
+  if (!isValidField(parsed.grant)) {
+    reply(400, { error: "invalid_grant" });
     return;
   }
+  // Only the two known grant names ever reach the log; anything else the
+  // caller sent is logged as "unknown" so arbitrary input never lands there.
+  grant = parsed.grant === "authorization_code" || parsed.grant === "refresh_token" ? parsed.grant : "unknown";
 
-  const allowedRedirects = getAllowedRedirects();
   let formData;
   if (grant === "authorization_code") {
     if (!isValidField(code) || !isValidField(redirect_uri)) {
-      send(response, 400, { error: "missing_fields" });
+      reply(400, { error: "missing_fields" });
       return;
     }
-    if (!allowedRedirects.includes(redirect_uri)) {
-      log(grant, 400);
-      send(response, 400, { error: "invalid_redirect_uri" });
+    if (!getAllowedRedirects().includes(redirect_uri)) {
+      reply(400, { error: "invalid_redirect_uri" });
       return;
     }
-    formData = {
-      grant_type: "authorization_code",
-      code,
-      redirect_uri,
-    };
+    formData = { grant_type: "authorization_code", code, redirect_uri };
   } else if (grant === "refresh_token") {
     if (!isValidField(refresh_token)) {
-      send(response, 400, { error: "missing_fields" });
+      reply(400, { error: "missing_fields" });
       return;
     }
-    formData = {
-      grant_type: "refresh_token",
-      refresh_token,
-    };
+    formData = { grant_type: "refresh_token", refresh_token };
   } else {
-    send(response, 400, { error: "unknown_grant" });
+    reply(400, { error: "unknown_grant" });
     return;
   }
 
   let pinterestResponse;
   try {
     pinterestResponse = await callPinterest(secret, formData, requestTimeoutMs);
-  } catch (error) {
-    log(grant, 504);
-    send(response, 504, { error: "pinterest_unreachable" });
+  } catch {
+    reply(504, { error: "pinterest_unreachable" });
     return;
   }
 
-  if (pinterestResponse.status >= 200 && pinterestResponse.status < 300) {
-    const { access_token, refresh_token, token_type, expires_in, refresh_token_expires_in, scope } = pinterestResponse.data;
-    const result = {};
-    if (access_token !== undefined) result.access_token = access_token;
-    if (refresh_token !== undefined) result.refresh_token = refresh_token;
-    if (token_type !== undefined) result.token_type = token_type;
-    if (expires_in !== undefined) result.expires_in = expires_in;
-    if (refresh_token_expires_in !== undefined) result.refresh_token_expires_in = refresh_token_expires_in;
-    if (scope !== undefined) result.scope = scope;
-    log(grant, 200);
-    send(response, 200, result);
-  } else {
-    log(grant, 502);
-    send(response, 502, { error: "pinterest_rejected", status: pinterestResponse.status });
+  if (pinterestResponse.status < 200 || pinterestResponse.status >= 300) {
+    reply(502, { error: "pinterest_rejected", status: pinterestResponse.status });
+    return;
   }
+  const data = pinterestResponse.data;
+  // A 2xx without a usable access token must not look like success: the
+  // desktop app would otherwise store an empty credential.
+  if (typeof data.access_token !== "string" || !data.access_token) {
+    reply(502, { error: "pinterest_bad_response" });
+    return;
+  }
+  const result = {};
+  for (const key of ["access_token", "refresh_token", "token_type", "expires_in", "refresh_token_expires_in", "scope"]) {
+    if (data[key] !== undefined) result[key] = data[key];
+  }
+  reply(200, result);
 }
 
 export function createPinterestTokenServer(options = {}) {
@@ -228,11 +236,9 @@ export function createPinterestTokenServer(options = {}) {
 
   const server = createServer(async (request, response) => {
     const pathname = new URL(request.url || "/", `http://${HOST}`).pathname;
-    
+
     if (pathname === "/token") {
       await handleToken(request, response, secret, requestTimeoutMs);
-    } else if (request.method !== "GET" && request.method !== "HEAD") {
-      send(response, 404, { error: "not_found" });
     } else {
       send(response, 404, { error: "not_found" });
     }
@@ -247,9 +253,9 @@ export function createPinterestTokenServer(options = {}) {
   return server;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const server = createPinterestTokenServer();
-  
+
   function shutdown() {
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(1), 5_000).unref();
