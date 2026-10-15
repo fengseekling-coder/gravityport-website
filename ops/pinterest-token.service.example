@@ -1,0 +1,27 @@
+[Unit]
+Description=Pinterest token relay service for GravityPort
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+ExecStart=__MOSA_NODE_BIN__ __MOSA_SITE_ROOT__/scripts/pinterest-token.mjs
+Environment=PINTEREST_CLIENT_ID=__PINTEREST_CLIENT_ID__
+Environment=PINTEREST_SECRET_FILE=/etc/gravityport/pinterest-app-secret
+Environment=PINTEREST_TOKEN_PORT=__PINTEREST_TOKEN_PORT__
+Environment=PINTEREST_ALLOWED_REDIRECTS=__PINTEREST_ALLOWED_REDIRECTS__
+Restart=on-failure
+RestartSec=2s
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+PrivateDevices=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target
