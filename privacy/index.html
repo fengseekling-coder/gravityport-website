@@ -40,7 +40,7 @@
           <p class="privacy-lede" data-i18n="privacy.lede">MOSA 是一个本地优先的 AI 创作素材库。MOSA Web Capture 的核心用途，是把用户在受支持 AI 网站上明确选择或启用自动收录的生成素材，以及可用的 Prompt / 来源上下文，保存到同一台电脑上的 MOSA Desktop。</p>
           <div class="privacy-meta">
             <span data-i18n="privacy.meta.updated">最后更新 / Last updated</span>
-            <strong>2026-10-14</strong>
+            <strong>2026-10-17</strong>
           </div>
         </div>
       </section>
@@ -55,6 +55,7 @@
           <a href="#permissions" data-i18n="privacy.toc.permissions">浏览器权限</a>
           <a href="#desktop-metrics" data-i18n="privacy.toc.desktopMetrics">桌面端统计</a>
           <a href="#pinterest" data-i18n="privacy.toc.pinterest">Pinterest 连接</a>
+          <a href="#feedback" data-i18n="privacy.toc.feedback">反馈</a>
           <a href="#control" data-i18n="privacy.toc.control">用户控制</a>
           <a href="#third-parties" data-i18n="privacy.toc.thirdParties">第三方服务</a>
           <a href="#contact" data-i18n="privacy.toc.contact">联系与安全</a>
@@ -176,8 +177,24 @@
             <p data-i18n="privacy.pinterest.p4">你可以随时在 GravityPort 设置中断开 Pinterest，应用会删除本机保存的令牌；也可以在 Pinterest 账号设置的已授权应用中撤销 GravityPort 的访问权限。</p>
           </section>
 
-          <section id="control" class="policy-section">
+          <section id="feedback" class="policy-section">
             <span class="policy-index">08</span>
+            <h2 data-i18n="privacy.feedback.title">反馈 / Feedback</h2>
+            <p data-i18n="privacy.feedback.p1">应用不会在后台收集反馈：只有你在 GravityPort 设置的反馈页里点「发送」，才会把内容提交到我们的服务器。</p>
+            <p data-i18n="privacy.feedback.lede">点「发送」时，应用会提交以下内容：</p>
+            <ul>
+              <li data-i18n="privacy.feedback.message">你写的反馈正文；</li>
+              <li data-i18n="privacy.feedback.contact">你自愿填写的联系方式（可选，只用于回复你）；</li>
+              <li data-i18n="privacy.feedback.appInfo">App 版本、操作系统和芯片架构类型、界面语言（中文或英文）；</li>
+              <li data-i18n="privacy.feedback.diagnostics" data-i18n-html>勾选「附上诊断日志」（默认不勾）时，附带应用最近的运行日志。发送前你可以在应用里看到将要发送的完整内容；日志中文件路径里的用户名、访问令牌和邮箱地址会被隐藏，可能含提示词的行会整行去掉。</li>
+            </ul>
+            <p data-i18n="privacy.feedback.p2">我们不发送也不存储：安装 ID、你的素材、提示词、素材库位置。服务器不保存 IP 地址——IP 只在内存里临时用于防止提交被滥用，不写入磁盘或日志。</p>
+            <p data-i18n="privacy.feedback.p3">反馈保存在官网服务器的私有目录中，只有开发者登录后台才能查看；只用于回复你和改进产品，不用于广告，也不提供给第三方。</p>
+            <p data-i18n="privacy.feedback.p4" data-i18n-html>想删除自己发过的反馈，写信给 <a href="mailto:fengseekling@gmail.com">fengseekling@gmail.com</a>，说明大致的发送时间即可。</p>
+          </section>
+
+          <section id="control" class="policy-section">
+            <span class="policy-index">09</span>
             <h2 data-i18n="privacy.control.title">用户控制 / User control</h2>
             <ul>
               <li data-i18n="privacy.control.one">新安装 Web Capture 时，自动收录默认关闭；用户可以在扩展设置中开启或再次关闭。</li>
@@ -188,14 +205,14 @@
           </section>
 
           <section id="third-parties" class="policy-section">
-            <span class="policy-index">09</span>
+            <span class="policy-index">10</span>
             <h2 data-i18n="privacy.thirdParties.title">第三方服务 / Third-party services</h2>
             <p data-i18n="privacy.thirdParties.p1">ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、Chrome 以及用户使用的其他 AI 服务都是独立产品。MOSA 不控制这些服务自身的网络请求、账号体系或隐私政策。用户访问这些网站时，仍受对应服务的条款与隐私政策约束。</p>
             <p data-i18n="privacy.thirdParties.p2">MOSA 不出售用户数据，不把用户数据用于广告画像、信用评估或贷款，也不会为了与 Web Capture 单一用途无关的目的向第三方转移所捕获的用户数据。</p>
           </section>
 
           <section id="contact" class="policy-section">
-            <span class="policy-index">10</span>
+            <span class="policy-index">11</span>
             <h2 data-i18n="privacy.contact.title">联系与安全 / Contact and security</h2>
             <p data-i18n="privacy.contact.p">如需报告安全漏洞，请通过 MOSA GitHub 仓库的安全说明与项目渠道联系。一般问题可通过 GitHub Issues 反馈，但不要在公开 Issue 中提交 Token、Prompt、私人素材、会话内容或其他敏感数据。</p>
             <div class="policy-actions">
@@ -224,6 +241,6 @@
         <span class="footer-copy">© 2026 MOSA</span>
       </div>
     </footer>
-    <script src="../i18n.js?v=20260904-1"></script>
+    <script src="../i18n.js?v=20261017-feedback-1"></script>
   </body>
 </html>

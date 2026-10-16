@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>GravityPort Feedback</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="dashboard-shell">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">MOSA PRIVATE</p>
+        <h1>反馈</h1>
+        <p class="subtitle">用户在 GravityPort 设置里主动提交的反馈，按时间倒序</p>
+      </div>
+      <div class="header-actions">
+        <a class="logout-button" href="./">统计</a>
+        <button class="refresh-button" id="refreshButton" type="button">刷新</button>
+        <a class="logout-button" href="./logout">退出</a>
+      </div>
+    </header>
+
+    <section class="panel feedback-panel">
+      <div class="feedback-list" id="feedbackList">
+        <div class="empty">正在加载…</div>
+      </div>
+      <div class="feedback-more">
+        <button class="refresh-button" id="loadMoreButton" type="button" hidden>加载更多</button>
+      </div>
+    </section>
+
+    <section class="notice" id="errorNotice" hidden></section>
+    <footer id="feedbackFooter">内容来自用户主动提交，只在回复与改进产品时使用。删除某条反馈按 ops/FEEDBACK.md 操作。</footer>
+  </main>
+  <script src="./feedback.js" defer></script>
+</body>
+</html>

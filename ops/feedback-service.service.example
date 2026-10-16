@@ -1,0 +1,29 @@
+[Unit]
+Description=Feedback collection service for GravityPort
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+ExecStart=__MOSA_NODE_BIN__ __MOSA_SITE_ROOT__/scripts/feedback-service.mjs
+Environment=GRAVITYPORT_FEEDBACK_PORT=__GRAVITYPORT_FEEDBACK_PORT__
+Environment=GRAVITYPORT_FEEDBACK_DIR=/var/lib/gravityport-feedback
+Environment=GRAVITYPORT_FEEDBACK_MAX_FILES=__GRAVITYPORT_FEEDBACK_MAX_FILES__
+Environment=GRAVITYPORT_FEEDBACK_MAX_TOTAL_BYTES=__GRAVITYPORT_FEEDBACK_MAX_TOTAL_BYTES__
+Environment=GRAVITYPORT_FEEDBACK_PER_IP_DAILY=__GRAVITYPORT_FEEDBACK_PER_IP_DAILY__
+Restart=on-failure
+RestartSec=2s
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+PrivateDevices=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+ReadWritePaths=/var/lib/gravityport-feedback
+
+[Install]
+WantedBy=multi-user.target
