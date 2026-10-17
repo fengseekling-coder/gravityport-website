@@ -116,5 +116,11 @@ jobs:
           grep -q '"version"' /tmp/mosa-latest.json
           printf '%s\n' "$config_headers" | grep -Eiq '^cache-control: .*no-cache'
 
+          # scripts/ and ops/ are synced for server-side services but must not be public (ops/nginx-private-paths.conf.example).
+          for private_path in scripts/feedback-service.mjs ops/FEEDBACK.md DEPLOYMENT.md; do
+            private_status="$(curl --silent --show-error --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/$private_path")"
+            test "$private_status" = "404"
+          done
+
           redirect_location="$(curl --silent --show-error --head --max-time 20 http://mosa.azhuilab.com/ | awk 'BEGIN { IGNORECASE=1 } /^location:/ { sub(/^[^:]*:[[:space:]]*/, ""); print; exit }' | tr -d '\r')"
           test "$redirect_location" = "https://mosa.azhuilab.com/"

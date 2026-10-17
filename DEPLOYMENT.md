@@ -223,6 +223,7 @@ DMG/ZIP 应返回 `200`、`Content-Disposition: attachment`，且清单中的大
 - GitHub Actions 使用受限的部署账号，不是 root；该账号只写 `/var/www/mosa-website/`。
 - 自动发布也使用这个部署账号，不把 root SSH 密钥写进监控模板；本机发布密钥只保存在 `~/.ssh/`，不进入仓库或日志。
 - Nginx 配置和证书不需要随官网仓库提交，服务器配置位置是 `/etc/nginx/sites-available/mosa.azhuilab.com.conf`。
+- `scripts/`、`ops/` 和本文件会随部署同步到网站根目录（systemd 服务和统计 cron 从 `/var/www/mosa-website/scripts/` 启动，不能在 rsync 里排除），外网访问由 Nginx 返回 404，片段见 `ops/nginx-private-paths.conf.example`。部署最后一步会检查这几个路径是否仍是 404。新增不该公开的根目录文件或目录时，要同时加进这个片段和部署检查。
 
 ## 10. 匿名安装 / 活跃与渠道统计
 
