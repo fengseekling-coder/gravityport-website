@@ -198,3 +198,8 @@ body::before{content:"";position:fixed;z-index:9999;inset:0;pointer-events:none;
 @media(max-width:620px){.manual-bridge-heading p{font-size:14px}.manual-bridge-panel{padding:24px 22px}.manual-bridge-route span,.manual-bridge-route strong{white-space:normal}.manual-bridge-actions{display:grid}.manual-bridge-actions .button{width:100%}}
 
 .download-legacy-note{max-width:640px;margin:-8px auto 40px;text-align:center;color:var(--ink-3);font-size:13px;line-height:1.7}
+
+/* GravityPort mark: the cream reversed mark while the header sits on the dark hero, the dark mark once it turns light. */
+.site-header .brand-mark-reversed{display:none}.site-header:not(.is-after-hero) .brand-mark-default{display:none}.site-header:not(.is-after-hero) .brand-mark-reversed{display:block}
+/* The privacy page header stays light, so its brand text must not inherit the hero header's white. */
+.site-header.privacy-header:not(.is-scrolled){color:var(--ink)}
