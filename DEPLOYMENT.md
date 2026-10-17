@@ -43,7 +43,7 @@ git push origin main
 
 推送到 `main` 会触发 `.github/workflows/deploy.yml`。Actions 会：
 
-1. 通过受限的 `mosa-deploy` SSH 账号连接 DMIT。
+1. 通过受限的部署 SSH 账号（非 root）连接 DMIT。
 2. 同步官网文件到 `/var/www/mosa-website/`。
 3. 同步 `downloads/` 中的正式包。
 4. 执行首页、CSS、JS、HTTPS 和 HTTP→HTTPS 冒烟检查。
@@ -61,7 +61,16 @@ git push origin main
 <mosa 仓库>/out/make/zip/win32/x64/MOSA-win32-x64-0.2.1-rc.5.zip
 ```
 
-本机首次启用自动发布：
+服务器地址和部署账号不写进仓库，放在本机的 `~/.config/mosa/release.env`（权限 600，一行一个 `KEY=value`）：
+
+```text
+MOSA_RELEASE_SSH_HOST=<服务器地址>
+MOSA_RELEASE_SSH_USER=<部署账号>
+```
+
+发布脚本启动时读这个文件；环境变量里已经设了的值优先。私钥默认用 `~/.ssh/mosa_website_release_monitor`，要换路径也写在这个文件里（`MOSA_RELEASE_SSH_KEY=…`）。
+
+本机首次启用自动发布（官网仓库和 `mosa` 仓库要放在同一个父目录下；`ops/` 里的 launchd 配置是模板，安装脚本会填入本机路径）：
 
 ```bash
 cd <官网仓库>
@@ -211,8 +220,8 @@ DMG/ZIP 应返回 `200`、`Content-Disposition: attachment`，且清单中的大
 
 - 不要把 Token、密码、SSH 私钥、`.env` 或用户素材提交到仓库。
 - 不要把 MOSA 的 `127.0.0.1:43517` 改成公网监听或加入反向代理。
-- GitHub Actions 使用 `mosa-deploy`，不是 root；该账号只写 `/var/www/mosa-website/`。
-- 自动发布也使用 `mosa-deploy`，不把 root SSH 密钥写进监控模板；本机发布密钥只保存在 `~/.ssh/`，不进入仓库或日志。
+- GitHub Actions 使用受限的部署账号，不是 root；该账号只写 `/var/www/mosa-website/`。
+- 自动发布也使用这个部署账号，不把 root SSH 密钥写进监控模板；本机发布密钥只保存在 `~/.ssh/`，不进入仓库或日志。
 - Nginx 配置和证书不需要随官网仓库提交，服务器配置位置是 `/etc/nginx/sites-available/mosa.azhuilab.com.conf`。
 
 ## 10. 匿名安装 / 活跃与渠道统计
