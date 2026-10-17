@@ -332,3 +332,7 @@ MOSA_RELEASE_PRODUCT=GravityPort MOSA_RELEASE_NOTES_ZH=… MOSA_RELEASE_NOTES_EN
 3. 把 `site-config.js` 的 `desktop.feedUrl` 切到 `./releases/gravityport/latest.json`，同时把 `mac` / `windows` 兜底直链换成 GravityPort 的真实包（这一步合进 main 即上线，会同时改变首页下载按钮的来源）。
 4. `.github/workflows/deploy.yml` 里校验首页含「MOSA」字样的冒烟检查要跟着改名后的首页调整，否则部署会失败。
 5. 用 `MOSA_RELEASE_PRODUCT=GravityPort … ./scripts/publish-desktop-release.sh --dry-run` 核对一遍生成的清单，再正式发布第一版。
+
+## 12. 用户反馈收集服务
+
+GravityPort 桌面版「设置 → 反馈」会把用户主动提交的反馈 POST 到官网 `POST /api/feedback`；服务端是 `scripts/feedback-service.mjs`（只监听 `127.0.0.1:39129`，反馈存为 `/var/lib/gravityport-feedback/` 下的 JSON 文件，不存 IP、不存安装 ID），后台在 `/admin/feedback.html` 查看（沿用统计后台的登录会话）。安装、Nginx 配置、自检和日常维护（看日志、删单条反馈、存储满了的处理）见 `ops/FEEDBACK.md`，Nginx 片段在 `ops/nginx-feedback.conf.example`，systemd 模板在 `ops/feedback-service.service.example`。隐私承诺见隐私政策「反馈」一节；对用户的承诺（不落盘 IP 等）与运维操作必须保持一致。

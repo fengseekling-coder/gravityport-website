@@ -110,3 +110,24 @@ footer { padding: 26px 4px 0; color: var(--muted); font-size: 10px; text-align: 
   .builder-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 430px) { .metric-grid, .detail-grid { grid-template-columns: 1fr; } }
+
+/* Feedback page */
+.feedback-panel { display: grid; gap: 14px; }
+.feedback-list { display: grid; gap: 12px; }
+.feedback-card { padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel-strong); }
+.feedback-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.feedback-time { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.kind-badge { padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 650; }
+.kind-bug { color: #c33939; background: rgba(215, 65, 65, .1); }
+.kind-idea { color: #167230; background: rgba(22, 160, 106, .12); }
+.kind-other { color: var(--muted); background: var(--border); }
+.feedback-message { margin: 0; font-size: 13px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.feedback-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; color: var(--muted); font-size: 11px; }
+.feedback-id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.feedback-contact { display: flex; gap: 8px; margin-top: 8px; font-size: 12px; overflow-wrap: anywhere; }
+.feedback-contact-label { color: var(--muted); font-size: 11px; }
+.diagnostics-hint { display: block; margin-top: 8px; color: var(--muted); font-size: 11px; }
+.diagnostics-toggle { margin-top: 8px; min-height: 28px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; color: var(--text); background: transparent; cursor: pointer; font-size: 11px; }
+.diagnostics-toggle:hover { border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); background: var(--accent-soft); }
+.diagnostics-view { max-height: 420px; margin: 10px 0 0; padding: 12px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.feedback-more { display: flex; justify-content: center; }

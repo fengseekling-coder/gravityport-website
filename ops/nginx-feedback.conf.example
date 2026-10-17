@@ -1,0 +1,53 @@
+# GravityPort feedback collection endpoints
+# 放在 mosa.azhuilab.com 的 HTTPS server 块里
+
+# limit_req_zone 要放在 http {} 块里（不在 server 块里）：
+# limit_req_zone $binary_remote_addr zone=gravityport_feedback:1m rate=5r/m;
+
+location = /api/feedback {
+    limit_req zone=gravityport_feedback burst=3 nodelay;
+    limit_req_status 429;
+
+    if ($request_method != POST) {
+        return 405;
+    }
+
+    client_max_body_size 320k;
+    access_log off;
+    # 限流拦截、连不上服务时 nginx 会往错误日志写访客 IP；隐私政策承诺不落盘，这里一并关掉。
+    error_log /dev/null crit;
+
+    proxy_pass http://127.0.0.1:39129/api/feedback;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 20s;
+    proxy_connect_timeout 5s;
+}
+
+# 后台两个接口不做应用层登录，靠 auth_request（同 /admin/stats.json）挡住；
+# 服务本身只监听 127.0.0.1，外面直接打不到。
+
+location = /admin/feedback.json {
+    auth_request /_mosa_admin_auth;
+    proxy_pass http://127.0.0.1:39129/admin/feedback.json;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 10s;
+    add_header Cache-Control "no-store, private" always;
+    add_header X-Robots-Tag "noindex, nofollow, noarchive" always;
+}
+
+location = /admin/feedback-item.json {
+    auth_request /_mosa_admin_auth;
+    proxy_pass http://127.0.0.1:39129/admin/feedback-item.json;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 10s;
+    add_header Cache-Control "no-store, private" always;
+    add_header X-Robots-Tag "noindex, nofollow, noarchive" always;
+}
