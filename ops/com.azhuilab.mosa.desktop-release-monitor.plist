@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Template: scripts/install-release-monitor.sh fills __HOME__, __WEBSITE_DIR__
+     and __MOSA_DIR__ for the current user. Deploy host and user come from
+     ~/.config/mosa/release.env (see DEPLOYMENT.md), never from this file. -->
 <plist version="1.0">
 <dict>
   <key>Label</key>
@@ -7,21 +10,21 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/azhuilab/codex_aigc/mosa-website/scripts/publish-desktop-release.sh</string>
+    <string>__WEBSITE_DIR__/scripts/publish-desktop-release.sh</string>
   </array>
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key>
-    <string>/opt/homebrew/bin:/usr/local/bin:/Users/azhuilab/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <string>/opt/homebrew/bin:/usr/local/bin:__HOME__/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
     <key>MOSA_RELEASE_SSH_KEY</key>
-    <string>/Users/azhuilab/.ssh/mosa_website_release_monitor</string>
+    <string>__HOME__/.ssh/mosa_website_release_monitor</string>
     <key>MOSA_RELEASE_KNOWN_HOSTS</key>
-    <string>/Users/azhuilab/.ssh/known_hosts</string>
+    <string>__HOME__/.ssh/known_hosts</string>
   </dict>
   <key>WatchPaths</key>
   <array>
-    <string>/Users/azhuilab/codex_aigc/mosa/out/make/dmg/darwin/arm64</string>
-    <string>/Users/azhuilab/codex_aigc/mosa/out/make/zip/win32/x64</string>
+    <string>__MOSA_DIR__/out/make/dmg/darwin/arm64</string>
+    <string>__MOSA_DIR__/out/make/zip/win32/x64</string>
   </array>
   <key>StartInterval</key>
   <integer>300</integer>
@@ -32,8 +35,8 @@
   <key>ProcessType</key>
   <string>Background</string>
   <key>StandardOutPath</key>
-  <string>/Users/azhuilab/Library/Logs/MOSA/desktop-release-monitor.out.log</string>
+  <string>__HOME__/Library/Logs/MOSA/desktop-release-monitor.out.log</string>
   <key>StandardErrorPath</key>
-  <string>/Users/azhuilab/Library/Logs/MOSA/desktop-release-monitor.err.log</string>
+  <string>__HOME__/Library/Logs/MOSA/desktop-release-monitor.err.log</string>
 </dict>
 </plist>

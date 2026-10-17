@@ -29,22 +29,37 @@ log() {
   printf '[mosa-release] %s\n' "$1"
 }
 
-source_root="${MOSA_RELEASE_SOURCE_DIR:-/Users/azhuilab/codex_aigc/mosa/out/make}"
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# The app repository is checked out next to this one (../mosa).
+app_repo_dir="$(cd -- "$script_dir/../.." && pwd)/mosa"
+
+# Machine-specific settings — the deploy host and user above all — live in a
+# local file outside the repository, one KEY=value per line. Variables already
+# set in the environment always win, so tests and one-off runs are unaffected.
+release_config="${MOSA_RELEASE_CONFIG:-$HOME/.config/mosa/release.env}"
+if [[ -r "$release_config" ]]; then
+  while IFS='=' read -r config_key config_value || [[ -n "$config_key" ]]; do
+    [[ "$config_key" =~ ^MOSA_RELEASE_[A-Z0-9_]+$ ]] || continue
+    [[ -n "${!config_key:-}" ]] && continue
+    export "$config_key=$config_value"
+  done < "$release_config"
+fi
+
+source_root="${MOSA_RELEASE_SOURCE_DIR:-$app_repo_dir/out/make}"
 retention_selector="$script_dir/select-desktop-release-retention.mjs"
 version_helper="$script_dir/release-version.mjs"
-manifest_writer="${MOSA_RELEASE_MANIFEST_WRITER:-/Users/azhuilab/codex_aigc/mosa/scripts/prepare-desktop-release-manifest.mjs}"
+manifest_writer="${MOSA_RELEASE_MANIFEST_WRITER:-$app_repo_dir/scripts/prepare-desktop-release-manifest.mjs}"
 manifest_extension="$script_dir/extend-desktop-release-manifest.mjs"
 previous_override="${MOSA_RELEASE_PREVIOUS_MANIFEST:-}"
 dry_run_output="${MOSA_RELEASE_DRY_RUN_OUTPUT:-}"
 desktop_retention_count=4
-ssh_host="${MOSA_RELEASE_SSH_HOST:-179.253.232.244}"
-ssh_user="${MOSA_RELEASE_SSH_USER:-mosa-deploy}"
+ssh_host="${MOSA_RELEASE_SSH_HOST:-}"
+ssh_user="${MOSA_RELEASE_SSH_USER:-}"
 ssh_port="${MOSA_RELEASE_SSH_PORT:-22}"
-ssh_key="${MOSA_RELEASE_SSH_KEY:-/Users/azhuilab/.ssh/mosa_website_release_monitor}"
-known_hosts="${MOSA_RELEASE_KNOWN_HOSTS:-/Users/azhuilab/.ssh/known_hosts}"
+ssh_key="${MOSA_RELEASE_SSH_KEY:-$HOME/.ssh/mosa_website_release_monitor}"
+known_hosts="${MOSA_RELEASE_KNOWN_HOSTS:-$HOME/.ssh/known_hosts}"
 remote_dir="${MOSA_RELEASE_REMOTE_DIR:-/var/www/mosa-website}"
-state_file="${MOSA_RELEASE_STATE_FILE:-/Users/azhuilab/.config/mosa/desktop-release-monitor.state}"
+state_file="${MOSA_RELEASE_STATE_FILE:-$HOME/.config/mosa/desktop-release-monitor.state}"
 mac_dmg_package="${MOSA_RELEASE_MAC_DMG:-}"
 release_git_sha="${MOSA_RELEASE_GIT_SHA:-}"
 dry_run=0
@@ -85,9 +100,10 @@ esac
 # file would make a later MOSA run look like a downgrade next to a newer
 # GravityPort version and skip it silently. MOSA keeps the historical path.
 if [[ "$release_product" == "GravityPort" && -z "${MOSA_RELEASE_STATE_FILE:-}" ]]; then
-  state_file="/Users/azhuilab/.config/mosa/desktop-release-monitor.gravityport.state"
+  state_file="$HOME/.config/mosa/desktop-release-monitor.gravityport.state"
 fi
 
+[[ -n "$ssh_host" && -n "$ssh_user" ]] || die "MOSA_RELEASE_SSH_HOST and MOSA_RELEASE_SSH_USER must be set (put them in $release_config)"
 [[ -r "$manifest_writer" ]] || die "canonical manifest writer is missing: $manifest_writer"
 [[ -r "$manifest_extension" ]] || die "desktop release manifest extension is missing: $manifest_extension"
 [[ -r "$retention_selector" ]] || die "desktop retention selector is missing: $retention_selector"

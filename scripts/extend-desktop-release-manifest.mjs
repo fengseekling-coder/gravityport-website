@@ -3,9 +3,10 @@
 import { createPublicKey } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const SOURCE_ROOT = process.env.MOSA_SOURCE_ROOT || "/Users/azhuilab/codex_aigc/mosa";
+// The app repository is checked out next to this one (../mosa).
+const SOURCE_ROOT = process.env.MOSA_SOURCE_ROOT || fileURLToPath(new URL("../../mosa", import.meta.url));
 const canonicalWriterUrl = pathToFileURL(join(SOURCE_ROOT, "scripts/prepare-desktop-release-manifest.mjs")).href;
 const signatureUrl = pathToFileURL(join(SOURCE_ROOT, "lib/release-manifest-signature.mjs")).href;
 const updateServiceUrl = pathToFileURL(join(SOURCE_ROOT, "desktop/update-service.mjs")).href;
