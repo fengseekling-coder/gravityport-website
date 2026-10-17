@@ -3,7 +3,7 @@
 
   // Download URLs are always built from this fixed first-party origin.
   // Nothing from the release manifest may introduce another host.
-  const FIRST_PARTY_DOWNLOAD_ORIGIN = "https://mosa.azhuilab.com";
+  const FIRST_PARTY_DOWNLOAD_ORIGIN = "https://gravityport.azhuilab.com";
   const VERSION_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
   // Both products are accepted so the page keeps working before and after the
   // feed switches: MOSA-… for the frozen old source, GravityPort-… for the

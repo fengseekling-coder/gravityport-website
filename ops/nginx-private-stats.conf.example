@@ -1,5 +1,5 @@
 # Add these locations inside the existing HTTPS `server { ... }` block for
-# mosa.azhuilab.com. The auth service listens on loopback only; it validates
+# gravityport.azhuilab.com. The auth service listens on loopback only; it validates
 # the existing /etc/nginx/.htpasswd-mosa-stats file and stores only hashed,
 # 30-day session tokens outside /var/www.
 
@@ -38,7 +38,7 @@ location = /_mosa_admin_auth {
 
 location = /admin/ {
     auth_request /_mosa_admin_auth;
-    error_page 401 =302 https://mosa.azhuilab.com/admin/login.html;
+    error_page 401 =302 https://gravityport.azhuilab.com/admin/login.html;
     try_files /admin/index.html =404;
     add_header Cache-Control "no-store, private" always;
     add_header X-Robots-Tag "noindex, nofollow, noarchive" always;

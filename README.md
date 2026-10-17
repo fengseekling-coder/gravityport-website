@@ -83,9 +83,9 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 完整的发布、更新、扩展包和 macOS 安装包操作说明见 [`DEPLOYMENT.md`](./DEPLOYMENT.md)。
 
 私有使用统计面板位于 `admin/`。生产环境由 Nginx `auth_request` 加只监听回环地址的 Node.js 登录服务保护 `/admin/`，首次登录后用安全 Cookie 保持 30 天会话；`scripts/install-private-stats.sh` 每 5 分钟增量读取当前及轮转后的 Nginx access log，并把私有累计状态保存在 Web 根目录之外的 `/var/lib/mosa-stats/usage-state.json`，再生成未提交到 Git 的 `admin/stats.json`。因此日志轮转不会让历史安装/下载总数回退，重复执行统计也不会重复累计同一批日志。安装和 Nginx 配置步骤见 `DEPLOYMENT.md` 的“私有统计面板”。
-页面访问同样来自这份 Nginx 日志：只统计 MOSA 公开页的成功 GET，首页还按响应体长度过滤，避免把同机其他站点的 `GET /` 算进来。这是近似 PV，不是按钮点击事件，也不使用第三方 Analytics。
+页面访问同样来自这份 Nginx 日志：只统计 GravityPort 公开页的成功 GET，首页还按响应体长度过滤，避免把同机其他站点的 `GET /` 算进来。这是近似 PV，不是按钮点击事件，也不使用第三方 Analytics。
 
-渠道链接可以使用 `?ref=`，例如 `https://mosa.azhuilab.com/?ref=reddit_codex`。下载按钮会保留这个短标签到下载请求，便于从 Nginx 日志区分渠道。桌面端的匿名安装/活跃统计同样复用现有更新检查请求，不需要 MOSA 账号；统计字段和关闭方式见主项目 `PRIVACY.md`。
+官网域名为 `https://gravityport.azhuilab.com/`。渠道链接可以使用 `?ref=`，例如 `https://gravityport.azhuilab.com/?ref=reddit_codex`。下载按钮会保留这个短标签到下载请求，便于从 Nginx 日志区分渠道。旧域名 `mosa.azhuilab.com` 的首页显示域名迁移说明；为兼容已发布的桌面客户端，旧域名上的 `/releases/`、`/downloads/` 和 `/api/` 服务路径继续保留。
 
 更新官网的常用流程：
 

@@ -1,5 +1,6 @@
 # GravityPort feedback collection endpoints
-# 放在 mosa.azhuilab.com 的 HTTPS server 块里
+# 保留在 mosa.azhuilab.com 的 HTTPS server 块里，兼容已发布的桌面客户端。
+# 如果两个域名共用 server 块，此配置也会让 GravityPort 官网使用同一个反馈接口。
 
 # limit_req_zone 要放在 http {} 块里（不在 server 块里）：
 # limit_req_zone $binary_remote_addr zone=gravityport_feedback:1m rate=5r/m;

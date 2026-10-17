@@ -21,7 +21,7 @@
   function updateCampaignUrl() {
     const ref = normalizeCampaignRef(campaignRefInput.value);
     if (campaignRefInput.value !== ref) campaignRefInput.value = ref;
-    const url = new URL("https://mosa.azhuilab.com/");
+    const url = new URL("https://gravityport.azhuilab.com/");
     if (ref) url.searchParams.set("ref", ref);
     campaignUrlOutput.value = url.href;
     campaignCopyStatus.textContent = ref ? `将统计为：${ref}` : "未填写渠道时为普通官网链接。";

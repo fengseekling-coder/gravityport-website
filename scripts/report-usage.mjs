@@ -111,7 +111,7 @@ function parseRequestLine(line) {
   const time = parseNginxTimestamp(timestamp);
   if (!Number.isFinite(time)) return null;
   let url;
-  try { url = new URL(requestMatch[2], "https://mosa.azhuilab.com"); } catch { return null; }
+  try { url = new URL(requestMatch[2], "https://gravityport.azhuilab.com"); } catch { return null; }
   const bytes = requestMatch[4] && requestMatch[4] !== "-" ? Number(requestMatch[4]) : 0;
   return { method: requestMatch[1], status: Number(requestMatch[3]), time, url, bytes: Number.isFinite(bytes) ? bytes : 0 };
 }

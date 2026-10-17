@@ -1,4 +1,4 @@
-# MOSA 官网发布与更新说明
+# GravityPort 官网发布与更新说明
 
 本文件是 `mosa-website` 的操作手册。官网是独立的纯静态项目，不依赖或修改主项目 `mosa/`。
 
@@ -22,12 +22,28 @@ mosa-website/
 公开下载地址统一使用：
 
 ```text
-https://mosa.azhuilab.com/downloads/文件名
+https://gravityport.azhuilab.com/downloads/文件名
 ```
 
 `browser-extension/` 只保存在 GitHub 仓库，不会同步到网站；`downloads/` 中的文件会同步到 DMIT，并由 Nginx 作为附件下载。
 
 桌面 ZIP 是大文件发布物，不进入 GitHub 仓库。它们从主项目的 `out/make/zip/` 直接上传到 DMIT；仓库只保存页面、清单和发布脚本。普通官网 Actions 会保留服务器上已经由桌面发布器上传的 `downloads/` 和 `releases/` 内容。
+
+### 官网域名切换
+
+正式官网域名是 `https://gravityport.azhuilab.com/`。`azhuilab.com` 整个 DNS 区域由 Cloudflare 管理，域名注册仍由 Spaceship 管理。当前 Cloudflare 名称服务器是 `holly.ns.cloudflare.com` 和 `tim.ns.cloudflare.com`。Cloudflare 中的 `browser`、`dev`、`mosa`、`gravityport` 四条 A 记录均指向 `179.253.232.244` 并保持 DNS only；`mosa` 另有一条 Google 验证 TXT 记录。新增子域或改 DNS 时只改 Cloudflare 区域，不要在 Spaceship 的非活动记录里改。
+
+服务器继续从 `/var/www/mosa-website/` 提供静态文件。更新 `/etc/nginx/stream-conf.d/tokenkey-sni.conf`，将 `gravityport.azhuilab.com` 路由到现有官网上游 `127.0.0.1:9444`；再更新 `/etc/nginx/sites-available/mosa.azhuilab.com.conf`，让 HTTP 与 HTTPS 两个 server 块都包含新域名。扩展现有 Let's Encrypt 证书，使其同时覆盖两个域名。旧域名的网页请求显示仓库中的 `domain-changed.html`；`/releases/`、`/downloads/` 和 `/api/` 路径继续兼容已发布的桌面客户端。Nginx 变更片段见 [`ops/nginx-domain-migration.conf.example`](./ops/nginx-domain-migration.conf.example)。
+
+DNS 生效后扩展证书：
+
+```bash
+sudo certbot certonly --webroot -w /var/www/letsencrypt \
+  --cert-name mosa.azhuilab.com --expand \
+  -d mosa.azhuilab.com -d gravityport.azhuilab.com
+```
+
+证书成功后执行 `sudo nginx -t`，确认通过后再 `sudo systemctl reload nginx`。静态文件仍由本仓库 `main` 分支的 Actions 发布。
 
 ## 2. 更新官网文字、样式或脚本
 
@@ -46,11 +62,11 @@ git push origin main
 1. 通过受限的部署 SSH 账号（非 root）连接 DMIT。
 2. 同步官网文件到 `/var/www/mosa-website/`。
 3. 同步 `downloads/` 中的正式包。
-4. 执行首页、CSS、JS、HTTPS 和 HTTP→HTTPS 冒烟检查。
+4. 检查 GravityPort 首页、MOSA 旧域名迁移页、更新清单、CSS、JS、HTTPS 和 HTTP→HTTPS 路由。
 
 静态文件更新不需要启动 Node.js，也不需要重启或 reload Nginx。`index.html` 和 `site-config.js` 配置为不缓存；页面启动时还会读取 `releases/latest.json`，因此桌面包更新后不需要再修改页面文案。
 
-桌面客户端固定读取 `https://mosa.azhuilab.com/releases/latest.json` 检查新版本。发布器会同步写入 `version`、`publishedAt`、双语 `notes`、两个平台的文件名、大小和 SHA-256。客户端只读取版本和说明，不接受清单里的任意跳转 URL；“前往官网下载”始终打开固定的 MOSA 官网。
+已发布桌面客户端仍从 `https://mosa.azhuilab.com/releases/latest.json` 或 `https://mosa.azhuilab.com/releases/gravityport/latest.json` 读取更新清单，并从旧域名的 `/downloads/` 下载。官网页面和分享链接统一使用 `gravityport.azhuilab.com`。发布器会同步写入 `version`、`publishedAt`、双语 `notes`、两个平台的文件名、大小和 SHA-256；客户端只读取版本和说明，不接受清单里的任意跳转 URL。
 
 ## 3. 发布桌面安装包（macOS DMG + Windows ZIP）
 
@@ -202,12 +218,13 @@ downloads/MOSA-0.2.0-universal.pkg
 
 ## 7. 发布后检查
 
-推送后在 GitHub Actions 页面确认 `Deploy MOSA website` 为绿色，然后检查：
+推送后在 GitHub Actions 页面确认 `Deploy GravityPort website` 为绿色，然后检查：
 
 ```bash
-curl -fI https://mosa.azhuilab.com/
-curl -fI https://mosa.azhuilab.com/downloads/MOSA-darwin-arm64-0.2.1-rc.5.dmg
-curl -fI https://mosa.azhuilab.com/downloads/MOSA-win32-x64-0.2.1-rc.5.zip
+curl -fI https://gravityport.azhuilab.com/
+curl -fI https://gravityport.azhuilab.com/downloads/MOSA-darwin-arm64-0.2.1-rc.5.dmg
+curl -fI https://gravityport.azhuilab.com/downloads/MOSA-win32-x64-0.2.1-rc.5.zip
+curl -fsS https://mosa.azhuilab.com/ | rg 'gravityport.azhuilab.com'
 ```
 
 DMG/ZIP 应返回 `200`、`Content-Disposition: attachment`，且清单中的大小与 SHA-256 与发布包一致。若下载地址返回 `404`，先检查文件名大小写、`releases/latest.json` 和发布器日志。
@@ -222,7 +239,7 @@ DMG/ZIP 应返回 `200`、`Content-Disposition: attachment`，且清单中的大
 - 不要把 MOSA 的 `127.0.0.1:43517` 改成公网监听或加入反向代理。
 - GitHub Actions 使用受限的部署账号，不是 root；该账号只写 `/var/www/mosa-website/`。
 - 自动发布也使用这个部署账号，不把 root SSH 密钥写进监控模板；本机发布密钥只保存在 `~/.ssh/`，不进入仓库或日志。
-- Nginx 配置和证书不需要随官网仓库提交，服务器配置位置是 `/etc/nginx/sites-available/mosa.azhuilab.com.conf`。
+- Nginx 配置和证书不需要随官网仓库提交，域名切换继续使用 `/etc/nginx/sites-available/mosa.azhuilab.com.conf`；以服务器上的生产配置为准。
 - `scripts/`、`ops/` 和本文件会随部署同步到网站根目录（systemd 服务和统计 cron 从 `/var/www/mosa-website/scripts/` 启动，不能在 rsync 里排除），外网访问由 Nginx 返回 404，片段见 `ops/nginx-private-paths.conf.example`。部署最后一步会检查这几个路径是否仍是 404。新增不该公开的根目录文件或目录时，要同时加进这个片段和部署检查。
 
 ## 10. 匿名安装 / 活跃与渠道统计
@@ -232,8 +249,8 @@ MOSA 桌面端不会要求用户注册账号。正式桌面版每天最多一次
 官网支持 `?ref=` 渠道标签。例如：
 
 ```text
-https://mosa.azhuilab.com/?ref=bilibili_makerjackie
-https://mosa.azhuilab.com/?ref=reddit_codex
+https://gravityport.azhuilab.com/?ref=bilibili_makerjackie
+https://gravityport.azhuilab.com/?ref=reddit_codex
 ```
 
 页面会把经过校验的短标签继续附在下载请求上，因此 Nginx 日志可以统计每个渠道带来的下载点击。渠道标签只允许字母、数字、点、下划线和短横线，最长 64 个字符。下载统计保留“成功 GET 请求数”口径，不把它误称为独立下载用户；同一设备重复下载、重试或断点续传都可能形成多个请求。私有面板会另外拆分桌面安装包与 Web Capture 扩展包，避免把扩展下载混入桌面安装包指标。
@@ -274,7 +291,7 @@ scripts/admin-auth.mjs
 生产地址建议保持为：
 
 ```text
-https://mosa.azhuilab.com/admin/
+https://gravityport.azhuilab.com/admin/
 ```
 
 页面读取同目录下由服务器生成的 `stats.json`，并显示匿名安装实例、首次启动、自然日 DAU、最近 7 个统计日活跃、最近 30 个统计日活跃、桌面下载请求、扩展下载请求、官网页面访问、首页访问、首页→下载转化、近 30 个统计日趋势、平台、版本、渠道与下载文件分布。统计日统一使用 `America/Los_Angeles`，避免服务器 UTC 日期与后台查看日期错位。下载数字明确表示成功 HTTP GET / Range 请求数，不等同于独立下载人数或安装人数。页面访问来自 Nginx 日志近似 PV，不是点击事件；首页→下载是下载请求除以首页访问。`admin/stats.json` 已加入 `.gitignore`，官网 Actions 也会在 `rsync --delete` 时显式排除它，因此部署静态网站不会删除服务器上的实时统计文件。
@@ -298,14 +315,14 @@ MOSA_ACCESS_LOG=/实际/nginx/access.log MOSA_NODE_BIN=/usr/bin/node MOSA_STATS_
 
 同一个密码文件也用于登录会话校验；如果文件已经存在，不要再次使用 `-c`，直接保留它即可。脚本还会安装并启动 `mosa-private-stats-auth.service`，它只监听 `127.0.0.1:39127`，状态文件位于 Web 根目录之外的 `/var/lib/mosa-stats-auth/sessions.json`，只保存会话 token 的 SHA-256 摘要。
 
-统计页不使用 MOSA 用户账号。访问保护交给 Nginx `auth_request`，示例配置在 `ops/nginx-private-stats.conf.example`。把其中的 locations 片段加入现有 `mosa.azhuilab.com` 的 HTTPS `server {}`：
+统计页不使用 MOSA 用户账号。访问保护交给 Nginx `auth_request`，示例配置在 `ops/nginx-private-stats.conf.example`。locations 片段由官网 HTTPS `server {}` 提供，后台地址为 `gravityport.azhuilab.com`：
 
 ```bash
 sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-此后访问 `https://mosa.azhuilab.com/admin/` 会进入网页登录页；登录成功后 Cookie 有效 30 天，浏览器不会再反复弹出原生认证框。页面右上角提供“退出”，会立即撤销当前会话。`/admin/stats.json` 仍由同一会话保护，不能绕过页面直接公开访问。页面自身还带 `noindex` 与 `X-Robots-Tag`，但真正的访问边界仍以 Nginx `auth_request` 和服务端会话校验为准。
+此后访问 `https://gravityport.azhuilab.com/admin/` 会进入网页登录页；登录成功后 Cookie 有效 30 天，浏览器不会再反复弹出原生认证框。页面右上角提供“退出”，会立即撤销当前会话。`/admin/stats.json` 仍由同一会话保护，不能绕过页面直接公开访问。页面自身还带 `noindex` 与 `X-Robots-Tag`，但真正的访问边界仍以 Nginx `auth_request` 和服务端会话校验为准。
 
 ## 11. 两种产品、两条更新源
 

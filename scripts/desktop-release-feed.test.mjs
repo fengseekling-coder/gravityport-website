@@ -39,8 +39,8 @@ test("Case A: macOS + Windows present, both resolve independently", () => {
   };
   const normalized = feed.normalizeDesktopRelease(release);
   assert.equal(normalized.version, "0.2.1-rc.16");
-  assert.equal(normalized.mac.url, "https://mosa.azhuilab.com/downloads/MOSA-darwin-arm64-0.2.1-rc.16.zip");
-  assert.equal(normalized.windows.url, "https://mosa.azhuilab.com/downloads/MOSA-win32-x64-0.2.1-rc.16.zip");
+  assert.equal(normalized.mac.url, "https://gravityport.azhuilab.com/downloads/MOSA-darwin-arm64-0.2.1-rc.16.zip");
+  assert.equal(normalized.windows.url, "https://gravityport.azhuilab.com/downloads/MOSA-win32-x64-0.2.1-rc.16.zip");
 });
 
 test("Case B: macOS only — macOS resolves, Windows is null without breaking the release", () => {
@@ -86,10 +86,10 @@ test("download URLs always come from the fixed first-party origin, never from th
     },
   };
   const normalized = feed.normalizeDesktopRelease(hostile);
-  assert.ok(normalized.mac.url.startsWith("https://mosa.azhuilab.com/downloads/"));
-  assert.ok(normalized.windows.url.startsWith("https://mosa.azhuilab.com/downloads/"));
+  assert.ok(normalized.mac.url.startsWith("https://gravityport.azhuilab.com/downloads/"));
+  assert.ok(normalized.windows.url.startsWith("https://gravityport.azhuilab.com/downloads/"));
   assert.equal(feed.buildFirstPartyDownloadUrl("MOSA-darwin-arm64-0.2.1-rc.16.zip"),
-    "https://mosa.azhuilab.com/downloads/MOSA-darwin-arm64-0.2.1-rc.16.zip");
+    "https://gravityport.azhuilab.com/downloads/MOSA-darwin-arm64-0.2.1-rc.16.zip");
 });
 
 test("artifact filenames must match the manifest version exactly", () => {
@@ -129,7 +129,7 @@ test("the live rc.15 manifest resolves its macOS artifact", () => {
     },
   };
   const normalized = feed.normalizeDesktopRelease(live);
-  assert.equal(normalized.mac.url, "https://mosa.azhuilab.com/downloads/MOSA-darwin-arm64-0.2.1-rc.15.zip");
+  assert.equal(normalized.mac.url, "https://gravityport.azhuilab.com/downloads/MOSA-darwin-arm64-0.2.1-rc.15.zip");
   assert.equal(normalized.windows, null);
 });
 
@@ -143,8 +143,8 @@ test("a GravityPort manifest resolves both platforms with first-party URLs", () 
   };
   const normalized = feed.normalizeDesktopRelease(release);
   assert.equal(normalized.version, "0.3.0");
-  assert.equal(normalized.mac.url, "https://mosa.azhuilab.com/downloads/GravityPort-darwin-arm64-0.3.0.zip");
-  assert.equal(normalized.windows.url, "https://mosa.azhuilab.com/downloads/GravityPort-win32-x64-0.3.0.zip");
+  assert.equal(normalized.mac.url, "https://gravityport.azhuilab.com/downloads/GravityPort-darwin-arm64-0.3.0.zip");
+  assert.equal(normalized.windows.url, "https://gravityport.azhuilab.com/downloads/GravityPort-win32-x64-0.3.0.zip");
 });
 
 test("GravityPort artifact filenames must still match the manifest version exactly", () => {

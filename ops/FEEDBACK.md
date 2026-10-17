@@ -60,7 +60,7 @@ sudo systemctl status feedback-service.service
 limit_req_zone $binary_remote_addr zone=gravityport_feedback:1m rate=5r/m;
 ```
 
-**第二步**：在 `mosa.azhuilab.com` 的 HTTPS `server {}` 块里，添加 `ops/nginx-feedback.conf.example` 的内容（三个 location：`/api/feedback`、`/admin/feedback.json`、`/admin/feedback-item.json`）。
+**第二步**：在官网 HTTPS `server {}` 块里，添加 `ops/nginx-feedback.conf.example` 的内容（三个 location：`/api/feedback`、`/admin/feedback.json`、`/admin/feedback-item.json`）。反馈 API 继续保留在 `mosa.azhuilab.com`，兼容已经发布的桌面版；官方后台从 `https://gravityport.azhuilab.com/admin/` 访问。
 
 测试配置：
 
@@ -93,7 +93,7 @@ curl -i -X POST https://mosa.azhuilab.com/api/feedback \
   -d '{"schema":1,"kind":"other","message":"bad","locale":"zh","app":{"product":"GravityPort","version":"selftest","platform":"other","osVersion":"selftest","arch":"x64"}}'
 ```
 
-**去后台看**：浏览器打开 `https://mosa.azhuilab.com/admin/`，登录后点头部「反馈」链接（或直接访问 `/admin/feedback.html`），应能看到「部署自检测试反馈」这一条。点「查看诊断日志」的入口只在有日志的条目上出现，测试这条没有。
+**去后台看**：浏览器打开 `https://gravityport.azhuilab.com/admin/`，登录后点头部「反馈」链接（或直接访问 `/admin/feedback.html`），应能看到「部署自检测试反馈」这一条。点「查看诊断日志」的入口只在有日志的条目上出现，测试这条没有。
 
 **删掉测试文件**（把 `<YYYY-MM>` 和 `<id>` 换成上一步 201 返回的 id：前 4 位-再 2 位是月份目录）：
 
