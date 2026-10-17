@@ -85,7 +85,7 @@ window.MOSA_DEMO_DATA = [
     sourceDetail: "ChatGPT · Web Capture",
     model: "GPT Image",
     category: "Brand",
-    group: "MOSA Site",
+    group: "GravityPort Site",
     createdAt: "2026-09-06T12:10:00-07:00",
     tags: ["Desk", "Minimal", "Blue", "Technology"],
     prompt: "Minimal blue future workspace poster, clean premium composition, soft silver materials, restrained light, 16:9 product campaign art direction.",

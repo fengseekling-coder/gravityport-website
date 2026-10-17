@@ -33,7 +33,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
   },
   extension: {
     version: "0.15.3",
-    url: "./downloads/MOSA-Web-Capture-0.15.3.zip",
+    url: "./downloads/GravityPort-Web-Capture-0.15.3.zip",
     label: "浏览器包下载",
   },
 });
@@ -97,4 +97,4 @@ git push origin main
 
 仓库 Actions 需要以下 Secrets：`DEPLOY_HOST`、`DEPLOY_PORT`、`DEPLOY_USER`、`DEPLOY_REMOTE_DIR`、`DEPLOY_SSH_KEY` 和 `DEPLOY_KNOWN_HOSTS`。其中私钥只保存在 GitHub Secrets，不放入仓库。
 
-正式包按以下约定保存：`downloads/MOSA-Web-Capture-版本.zip`、`downloads/MOSA-darwin-arm64-版本.dmg` 或 `downloads/MOSA-版本.pkg`。浏览器扩展 ZIP 可以提交并由 Actions 同步；桌面 DMG/ZIP 由本机监控程序直接发布。服务器只保留最新四组完整的桌面包，旧包不出现在官网页面。
+正式包按以下约定保存：`downloads/GravityPort-Web-Capture-版本.zip`、`downloads/MOSA-darwin-arm64-版本.dmg` 或 `downloads/MOSA-版本.pkg`。浏览器扩展 ZIP 可以提交并由 Actions 同步；桌面 DMG/ZIP 由本机监控程序直接发布。服务器只保留最新四组完整的桌面包，旧包不出现在官网页面。
