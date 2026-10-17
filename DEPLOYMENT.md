@@ -10,13 +10,13 @@ mosa-website/
 ├── styles.css                         页面样式
 ├── script.js                          页面交互和下载按钮
 ├── site-config.js                     版本号和正式下载地址
-├── releases/latest.json               桌面客户端更新检查清单和平台包元数据
+├── releases/                          （不进仓库）服务器上的桌面更新清单，由发布脚本生成
 ├── scripts/                            桌面包校验、上传和监控脚本
 ├── ops/                                macOS launchd 监控模板
-├── browser-extension/                 私密仓库中的扩展源码快照和说明
-│   └── MOSA-Web-Capture-0.14.0/
+├── browser-extension/                 当前扩展版本的源码快照和说明（不发布到网站）
+│   └── MOSA-Web-Capture-0.15.3/
 └── downloads/                         会发布到官网的安装包和扩展包
-    └── MOSA-Web-Capture-0.14.0.zip
+    └── MOSA-Web-Capture-0.15.3.zip
 ```
 
 公开下载地址统一使用：
@@ -25,7 +25,7 @@ mosa-website/
 https://mosa.azhuilab.com/downloads/文件名
 ```
 
-`browser-extension/` 只保存在私密 GitHub 仓库，不会同步到网站；`downloads/` 中的文件会同步到 DMIT，并由 Nginx 作为附件下载。
+`browser-extension/` 只保存在 GitHub 仓库，不会同步到网站；`downloads/` 中的文件会同步到 DMIT，并由 Nginx 作为附件下载。
 
 桌面 ZIP 是大文件发布物，不进入 GitHub 仓库。它们从主项目的 `out/make/zip/` 直接上传到 DMIT；仓库只保存页面、清单和发布脚本。普通官网 Actions 会保留服务器上已经由桌面发布器上传的 `downloads/` 和 `releases/` 内容。
 
@@ -34,7 +34,7 @@ https://mosa.azhuilab.com/downloads/文件名
 在本目录修改 `index.html`、`styles.css`、`script.js` 或其他官网文件，然后执行：
 
 ```bash
-cd /Users/azhuilab/codex_aigc/mosa-website
+cd <官网仓库>
 git diff --check
 git add -A
 git commit -m "Update MOSA website"
@@ -57,14 +57,14 @@ git push origin main
 截图中的两个真实包对应：
 
 ```text
-/Users/azhuilab/codex_aigc/mosa/out/make/dmg/darwin/arm64/MOSA-darwin-arm64-0.2.1-rc.5.dmg
-/Users/azhuilab/codex_aigc/mosa/out/make/zip/win32/x64/MOSA-win32-x64-0.2.1-rc.5.zip
+<mosa 仓库>/out/make/dmg/darwin/arm64/MOSA-darwin-arm64-0.2.1-rc.5.dmg
+<mosa 仓库>/out/make/zip/win32/x64/MOSA-win32-x64-0.2.1-rc.5.zip
 ```
 
 本机首次启用自动发布：
 
 ```bash
-cd /Users/azhuilab/codex_aigc/mosa-website
+cd <官网仓库>
 ./scripts/install-release-monitor.sh
 ```
 
@@ -97,7 +97,7 @@ cd /Users/azhuilab/codex_aigc/mosa-website
 当前浏览器扩展源码快照在：
 
 ```text
-browser-extension/MOSA-Web-Capture-0.14.0/
+browser-extension/MOSA-Web-Capture-0.15.3/
 ```
 
 新版本先新建一个版本目录，并确保目录名与 `manifest.json` 的 `version` 一致。例如下一版 `0.14.1`：
@@ -109,10 +109,10 @@ browser-extension/MOSA-Web-Capture-0.14.1/
 把扩展运行文件放入该目录。扩展包至少应包含 `manifest.json`、`background.js`、`content.js`、`content.css`、`page-hook.js`、`provider-sites.js`、`options.html` 和 `options.js`。然后从版本目录内部打包，保证 ZIP 根目录直接包含 `manifest.json`：
 
 ```bash
-cd /Users/azhuilab/codex_aigc/mosa-website/browser-extension/MOSA-Web-Capture-0.14.1
+cd browser-extension/MOSA-Web-Capture-0.14.1
 rm -f ../../downloads/MOSA-Web-Capture-0.14.1.zip
 zip -qr -X ../../downloads/MOSA-Web-Capture-0.14.1.zip .
-cd /Users/azhuilab/codex_aigc/mosa-website
+cd <官网仓库>
 unzip -t downloads/MOSA-Web-Capture-0.14.1.zip
 unzip -l downloads/MOSA-Web-Capture-0.14.1.zip | grep 'manifest.json'
 ```

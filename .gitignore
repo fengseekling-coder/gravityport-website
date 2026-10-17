@@ -1,7 +1,6 @@
 .preview.log
-.audit-*.png
-.demo-*.png
-.v4-*.png
+# Local screenshots and audit captures (never part of the site).
+/.*.png
 .DS_Store
 .env
 .env.*
@@ -15,3 +14,7 @@ downloads/MOSA-win32-x64-*.zip
 # Generated on the production server from Nginx access logs. Never commit
 # private usage aggregates into the website repository.
 admin/stats.json
+
+# Desktop update manifests live only on the server; scripts/publish-desktop-release.sh
+# writes them there. A committed copy goes stale and is never deployed.
+/releases/

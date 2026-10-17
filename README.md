@@ -32,8 +32,8 @@ window.MOSA_SITE_CONFIG = Object.freeze({
     label: "下载 Windows 包",
   },
   extension: {
-    version: "0.14.0",
-    url: "./downloads/MOSA-Web-Capture-0.14.0.zip",
+    version: "0.15.3",
+    url: "./downloads/MOSA-Web-Capture-0.15.3.zip",
     label: "浏览器包下载",
   },
 });
@@ -51,7 +51,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 - `guide/`：MOSA Web Capture 独立安装教程，避免技术步骤挤占官网首页主叙事
 - `robots.txt` / `sitemap.xml`：搜索引擎抓取与站点地图
 - `releases/latest.json`：桌面版本、校验值和平台包清单
-- `browser-extension/`：浏览器扩展的私密源码快照和发布说明
+- `browser-extension/`：浏览器扩展当前版本的源码快照和发布说明
 - `downloads/`：正式安装包/扩展包放置位置，不属于主应用目录
 - `scripts/`：桌面包校验、上传和自动监控脚本
 - `ops/`：macOS `launchd` 监控模板
@@ -62,9 +62,9 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 ## 自动部署
 
-本仓库的 `main` 分支配置了 GitHub Actions。推送到 `main` 后，Actions 会通过专用 SSH 部署账号把网站和 `downloads/` 下载包同步到 DMIT 的 `/var/www/mosa-website/`，并执行 HTTPS 冒烟检查；`browser-extension/` 只保存在私密仓库，不发布源码目录；不会启动 Node.js，也不会反向代理 MOSA 本地服务。
+本仓库的 `main` 分支配置了 GitHub Actions。推送到 `main` 后，Actions 会通过专用 SSH 部署账号把网站和 `downloads/` 下载包同步到 DMIT 的 `/var/www/mosa-website/`，并执行 HTTPS 冒烟检查；`browser-extension/` 只放在仓库里，不发布到网站；不会启动 Node.js，也不会反向代理 MOSA 本地服务。
 
-桌面包约 128–154 MB，超过 GitHub 单文件限制，不提交到 Git。macOS 本机的监控任务会观察 `/Users/azhuilab/codex_aigc/mosa/out/make/dmg/darwin/arm64/` 与 `/Users/azhuilab/codex_aigc/mosa/out/make/zip/win32/x64/`：当 macOS arm64 DMG 和 Windows x64 ZIP 的同版本包都写完后，自动校验包、计算 SHA-256，通过受限 `mosa-deploy` 账号上传到网站，并原子更新 `releases/latest.json`。服务器仅保留最新四个完整桌面版本（当前版本加三个历史版本）；扩展 ZIP 与不成对文件不会被这项清理触及。
+桌面包约 128–154 MB，超过 GitHub 单文件限制，不提交到 Git。macOS 本机的监控任务会观察 `<mosa 仓库>/out/make/dmg/darwin/arm64/` 与 `<mosa 仓库>/out/make/zip/win32/x64/`：当 macOS arm64 DMG 和 Windows x64 ZIP 的同版本包都写完后，自动校验包、计算 SHA-256，通过受限 `mosa-deploy` 账号上传到网站，并原子更新 `releases/latest.json`。服务器仅保留最新四个完整桌面版本（当前版本加三个历史版本）；扩展 ZIP 与不成对文件不会被这项清理触及。
 
 首次启用监控：
 
