@@ -104,7 +104,7 @@ jobs:
 
           index_status="$(curl --fail --silent --show-error --location --max-time 20 -o /tmp/mosa-index.html -w '%{http_code}' "$site_url/")"
           test "$index_status" = "200"
-          grep -q "MOSA" /tmp/mosa-index.html
+          grep -q "GravityPort" /tmp/mosa-index.html
 
           css_status="$(curl --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/styles.css")"
           js_status="$(curl --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/script.js")"

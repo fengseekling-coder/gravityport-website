@@ -290,6 +290,23 @@ test("GravityPort desktop packages are counted as desktop downloads", () => {
   assert.equal(report.totalOtherDownloadRequests, 0, "GravityPort zips must not fall into other downloads");
 });
 
+test("GravityPort and MOSA extension packages are both counted as extension downloads", () => {
+  const root = mkdtempSync(join(tmpdir(), "mosa-stats-gp-extension-"));
+  const accessLog = join(root, "access.log");
+
+  writeFileSync(accessLog, [
+    logLine("02/Sep/2026:09:00:00 +0000", "GET", "/downloads/GravityPort-Web-Capture-0.15.3.zip", 200),
+    logLine("02/Sep/2026:09:01:00 +0000", "GET", "/downloads/MOSA-Web-Capture-0.15.3.zip", 200),
+  ].join(""));
+
+  const report = runReport(root);
+  assert.equal(report.totalExtensionDownloadRequests, 2);
+  assert.equal(report.extensionDownloadsByFile["GravityPort-Web-Capture-0.15.3.zip"], 1);
+  assert.equal(report.extensionDownloadsByFile["MOSA-Web-Capture-0.15.3.zip"], 1);
+  assert.equal(report.totalDesktopDownloadRequests, 0);
+  assert.equal(report.totalOtherDownloadRequests, 0);
+});
+
 test("logs with only the old source and MOSA packages keep their exact numbers", () => {
   const root = mkdtempSync(join(tmpdir(), "mosa-stats-legacy-only-"));
   const accessLog = join(root, "access.log");

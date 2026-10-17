@@ -26,7 +26,7 @@
     const textPairs = [
       ["产品导览", "Product tour"], ["返回官网", "Back to website"],
       ["不是截图。直接试。", "Not a screenshot. Try it."],
-      ["这是一套基于当前 MOSA 桌面端信息架构制作的前端交互演示。所有素材、Prompt 与路径均为示例数据。", "A front-end interactive demo based on the current MOSA desktop information architecture. All assets, prompts and paths are sample data."],
+      ["这是一套基于当前 GravityPort 桌面端信息架构制作的前端交互演示。所有素材、Prompt 与路径均为示例数据。", "A front-end interactive demo based on the current GravityPort desktop information architecture. All assets, prompts and paths are sample data."],
       ["创作资产库", "Creative Library"], ["全部素材", "All assets"], ["收藏", "Favorites"],
       ["待整理", "To organize"], ["回收站", "Trash"], ["智能分组", "Smart groups"],
       ["ChatGPT 网页版", "ChatGPT Web"], ["Gemini 网页版", "Gemini Web"], ["素材分类", "Collections"],
@@ -61,7 +61,7 @@
     });
 
     const attrPairs = [
-      ["返回 MOSA 官网", "Back to MOSA website"], ["演示场景", "Demo scenarios"], ["素材库", "Library"],
+      ["返回 GravityPort 官网", "Back to GravityPort website"], ["演示场景", "Demo scenarios"], ["素材库", "Library"],
       ["添加分组", "Add collection"], ["返回素材库", "Back to library"], ["类型筛选", "Type filters"],
       ["排序", "Sort"], ["搜索素材", "Search assets"], ["素材列表", "Asset list"], ["批量管理", "Bulk actions"],
       ["上一张素材", "Previous asset"], ["下一张素材", "Next asset"], ["图像缩放控制", "Image zoom controls"],
@@ -219,13 +219,13 @@
     {
       kicker: "01 / LIBRARY",
       title: L("从真实图库结构开始。", "Start with a real library structure."),
-      copy: L("左侧导航、顶部筛选与中央瀑布流都按当前 MOSA 的桌面端信息架构重建。", "The sidebar, top filters and masonry library follow the current MOSA desktop information architecture."),
+      copy: L("左侧导航、顶部筛选与中央瀑布流都按当前 GravityPort 的桌面端信息架构重建。", "The sidebar, top filters and masonry library follow the current GravityPort desktop information architecture."),
       target: () => grid,
       prepare: () => runScenario("library", { silent: true }),
     },
     {
       kicker: "02 / CAPTURE",
-      title: L("素材进入 MOSA。", "Bring an asset into MOSA."),
+      title: L("素材进入 GravityPort。", "Bring an asset into GravityPort."),
       copy: L("这里用前端动画模拟一次收录。官网以后可以把真实 Web Capture 流程接到同一套演示里。", "This front-end animation simulates a capture. The same demo can later connect to the real Web Capture flow."),
       target: () => document.querySelector("[data-capture]"),
       prepare: () => runScenario("capture", { silent: true }),
@@ -269,7 +269,7 @@
     {
       kicker: "07 / PROMPT",
       title: L("Prompt 与参考关系一起留下。", "Keep Prompt and reference relationships together."),
-      copy: L("演示数据不会伪造真实来源，但会完整表现 MOSA 目前的上下文信息层级。", "Sample data does not pretend to be real provenance, but it shows MOSA's current context hierarchy in full."),
+      copy: L("演示数据不会伪造真实来源，但会完整表现 GravityPort 目前的上下文信息层级。", "Sample data does not pretend to be real provenance, but it shows GravityPort's current context hierarchy in full."),
       target: () => detailScroll.querySelector('[data-section="prompt"]'),
       prepare: () => {
         runScenario("context", { silent: true });
@@ -298,7 +298,7 @@
     {
       kicker: "10 / SETTINGS",
       title: L("设置也是产品的一部分。", "Settings are part of the product too."),
-      copy: L("主题、卡片密度、语言和本地素材库位置都使用与当前 MOSA 一致的偏好设置结构。", "Theme, card density, language and local library location use the same preference structure as MOSA."),
+      copy: L("主题、卡片密度、语言和本地素材库位置都使用与当前 GravityPort 一致的偏好设置结构。", "Theme, card density, language and local library location use the same preference structure as GravityPort."),
       target: () => document.querySelector(".settings-modal-card"),
       prepare: () => runScenario("settings", { silent: true }),
     },
@@ -537,7 +537,7 @@
         </dl>
       </section>
       <section class="inspector-section" data-section="versions">
-        <div class="section-head"><h3>${L("版本", "Versions")}</h3><button class="text-action" type="button" data-demo-toast="${L("真实 MOSA 中可从当前上下文继续创建新版本。", "In MOSA, you can create a new version from the current context.")}">${L("新版本", "New version")}</button></div>
+        <div class="section-head"><h3>${L("版本", "Versions")}</h3><button class="text-action" type="button" data-demo-toast="${L("真实 GravityPort 中可从当前上下文继续创建新版本。", "In GravityPort, you can create a new version from the current context.")}">${L("新版本", "New version")}</button></div>
         <select class="version-select" data-version-select aria-label="${L("选择版本", "Select version")}">${versionOptions}</select>
         <div class="history-list">${historyMarkup}</div>
       </section>
@@ -1042,7 +1042,7 @@
     if (state.tourIndex < 0) return;
     if (state.tourIndex >= tourSteps.length - 1) {
       stopTour();
-      showToast(L("导览完成。现在可以自由探索 MOSA。 ", "Tour complete. You can now explore MOSA freely."));
+      showToast(L("导览完成。现在可以自由探索 GravityPort。 ", "Tour complete. You can now explore GravityPort freely."));
       return;
     }
     state.tourIndex += 1;
