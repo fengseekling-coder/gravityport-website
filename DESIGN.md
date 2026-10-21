@@ -409,4 +409,5 @@ A 112px fluo ring with a hand "OK", rotated -12deg, beside the download heading:
 - **Don't** show the owner's real group names in any mock; keep "My groups" collapsed.
 - **Don't** leave a lede stranded far from its heading to fill a column; restructure the sheet instead.
 - **Don't** load fonts from a CDN; all faces are self-hosted in `assets/fonts/`.
+- **Don't** write inline `<script>`, `<style>` or `style="…"` attributes: production sends `script-src 'self'; style-src 'self'`. Per-element colours and ratios go through `data-c` / `data-ar` hooks in press.css; early-paint logic lives in `site/boot.js`. The local preview server sends the same policy.
 - **Don't** copy design-direction or contract text into any browser-delivered file (HTML, CSS, JS, strings).

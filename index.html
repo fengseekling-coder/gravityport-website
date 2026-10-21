@@ -15,38 +15,17 @@
     <meta property="og:url" content="https://gravityport.azhuilab.com/" />
     <meta name="twitter:card" content="summary" />
     <link rel="canonical" href="https://gravityport.azhuilab.com/" />
-    <link rel="icon" href="./assets/gravityport-mark.svg?v=20261021-press-49" type="image/svg+xml" />
+    <link rel="icon" href="./assets/gravityport-mark.svg?v=20261021-press-50" type="image/svg+xml" />
     <link rel="preload" href="./assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="./assets/fonts/noto-sans-sc-900.woff2?v=20261021e" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="./assets/fonts/fragment-mono-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="./site/press.css?v=20261021-press-49" />
-    <script>
-      (function () {
-        var root = document.documentElement;
-        root.classList.remove("no-js");
-        root.classList.add("js");
-        try {
-          if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) root.classList.add("motion");
-        } catch (e) {}
-        var lang = "";
-        try {
-          var q = new URLSearchParams(location.search).get("lang");
-          if (q === "en" || q === "zh") lang = q;
-          if (!lang) lang = localStorage.getItem("gp-lang") || "";
-        } catch (e) {}
-        if (!lang) lang = /^zh\b/i.test(navigator.language || "") ? "zh" : "en";
-        root.setAttribute("data-lang", lang);
-        if (lang === "en") root.classList.add("lang-pending");
-        setTimeout(function () { root.classList.remove("lang-pending"); }, 900);
-        // If the page script never arrives, nothing may stay unprinted.
-        setTimeout(function () { if (!window.__gpReady) root.classList.remove("motion"); }, 4000);
-      })();
-    </script>
-    <script src="./site-config.js?v=20261021-press-49" defer></script>
-    <script src="./desktop-release-feed.js?v=20261021-press-49" defer></script>
-    <script src="./assets/work/work.js?v=20261021-press-49" defer></script>
-    <script src="./site/strings.js?v=20261021-press-49" defer></script>
-    <script src="./site/press.js?v=20261021-press-49" defer></script>
+    <link rel="stylesheet" href="./site/press.css?v=20261021-press-50" />
+    <script src="./site/boot.js?v=20261021-press-50"></script>
+    <script src="./site-config.js?v=20261021-press-50" defer></script>
+    <script src="./desktop-release-feed.js?v=20261021-press-50" defer></script>
+    <script src="./assets/work/work.js?v=20261021-press-50" defer></script>
+    <script src="./site/strings.js?v=20261021-press-50" defer></script>
+    <script src="./site/press.js?v=20261021-press-50" defer></script>
   </head>
   <body>
     <svg class="sprite" aria-hidden="true" focusable="false">
@@ -85,7 +64,7 @@
     <header class="masthead" data-masthead>
       <div class="masthead__row">
         <a class="brand" href="#top" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页">
-          <img src="./assets/gravityport-mark.svg?v=20261021-press-49" alt="" width="28" height="28" />
+          <img src="./assets/gravityport-mark.svg?v=20261021-press-50" alt="" width="28" height="28" />
           <span>GravityPort</span>
         </a>
         <nav class="masthead__nav" id="site-nav" data-i18n-attr="aria-label:nav.label" aria-label="主导航">
@@ -112,8 +91,8 @@
       <!-- SHEET: hero -->
       <section class="sheet sheet--ink sheet--hero" id="top" aria-labelledby="hero-title" data-press>
         <div class="colorbar" aria-hidden="true">
-          <i style="--c: var(--cyan)"></i><i style="--c: var(--magenta)"></i><i style="--c: var(--yellow)"></i><i style="--c: var(--ink)"></i><i class="is-fluo" style="--c: var(--fluo)"></i>
-          <i style="--c: var(--src-chatgpt)"></i><i style="--c: var(--src-gemini)"></i><i style="--c: var(--src-flow)"></i><i style="--c: var(--src-studio)"></i><i style="--c: var(--src-codex)"></i><i style="--c: var(--src-grok)"></i><i style="--c: var(--src-cowart)"></i>
+          <i data-c="cyan"></i><i data-c="magenta"></i><i data-c="yellow"></i><i data-c="ink"></i><i class="is-fluo" data-c="fluo"></i>
+          <i data-c="src-chatgpt"></i><i data-c="src-gemini"></i><i data-c="src-flow"></i><i data-c="src-studio"></i><i data-c="src-codex"></i><i data-c="src-grok"></i><i data-c="src-cowart"></i>
         </div>
         <div class="reg reg--top" aria-hidden="true"><span class="reg__c"></span><span class="reg__m"></span><span class="reg__y"></span><span class="reg__k"></span></div>
         <div class="trim">
@@ -170,24 +149,24 @@
                   </div>
                   <div class="app__gallery" data-hero-gallery>
                     <div class="app__col">
-                      <div class="tile" data-plates data-work="wild-sight" style="--ar: 1086/1448"><div class="tile__ink"><img class="tile__img" src="./assets/work/wild-sight-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
-                      <div class="tile" data-plates data-work="bangkok" style="--ar: 1024/1536"><div class="tile__ink"><img class="tile__img" src="./assets/work/bangkok-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
-                      <div class="tile" data-plates data-work="tea-market" style="--ar: 1086/1448"><div class="tile__ink"><img class="tile__img" src="./assets/work/tea-market-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
+                      <div class="tile" data-plates data-work="wild-sight" data-ar="1086x1448"><div class="tile__ink"><img class="tile__img" src="./assets/work/wild-sight-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
+                      <div class="tile" data-plates data-work="bangkok" data-ar="1024x1536"><div class="tile__ink"><img class="tile__img" src="./assets/work/bangkok-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
+                      <div class="tile" data-plates data-work="tea-market" data-ar="1086x1448"><div class="tile__ink"><img class="tile__img" src="./assets/work/tea-market-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
                     </div>
                     <div class="app__col">
-                      <div class="tile" data-plates data-work="passage" style="--ar: 1024/1536"><div class="tile__ink"><img class="tile__img" src="./assets/work/passage-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
-                      <div class="tile" data-plates data-work="desert-wind" style="--ar: 1086/1448"><div class="tile__ink"><img class="tile__img" src="./assets/work/desert-wind-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
-                      <div class="tile" data-plates data-work="before-time" style="--ar: 1024/1536"><div class="tile__ink"><img class="tile__img" src="./assets/work/before-time-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
+                      <div class="tile" data-plates data-work="passage" data-ar="1024x1536"><div class="tile__ink"><img class="tile__img" src="./assets/work/passage-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
+                      <div class="tile" data-plates data-work="desert-wind" data-ar="1086x1448"><div class="tile__ink"><img class="tile__img" src="./assets/work/desert-wind-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
+                      <div class="tile" data-plates data-work="before-time" data-ar="1024x1536"><div class="tile__ink"><img class="tile__img" src="./assets/work/before-time-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
                     </div>
                     <div class="app__col">
-                      <div class="tile" data-plates data-work="somewhere-else" style="--ar: 1024/1536"><div class="tile__ink"><img class="tile__img" src="./assets/work/somewhere-else-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
-                      <div class="tile" data-plates data-work="nexus" style="--ar: 1055/1491"><div class="tile__ink"><img class="tile__img" src="./assets/work/nexus-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
-                      <div class="tile" data-plates data-work="pink-train" style="--ar: 1086/1448"><div class="tile__ink"><img class="tile__img" src="./assets/work/pink-train-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
+                      <div class="tile" data-plates data-work="somewhere-else" data-ar="1024x1536"><div class="tile__ink"><img class="tile__img" src="./assets/work/somewhere-else-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
+                      <div class="tile" data-plates data-work="nexus" data-ar="1055x1491"><div class="tile__ink"><img class="tile__img" src="./assets/work/nexus-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
+                      <div class="tile" data-plates data-work="pink-train" data-ar="1086x1448"><div class="tile__ink"><img class="tile__img" src="./assets/work/pink-train-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
                     </div>
                     <div class="app__col">
-                      <div class="tile is-selected" data-plates data-work="signal-3" style="--ar: 1024/1536" data-hero-focus><div class="tile__ink"><img class="tile__img" src="./assets/work/signal-3-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
-                      <div class="tile" data-plates data-work="misty-lake" style="--ar: 1086/1448"><div class="tile__ink"><img class="tile__img" src="./assets/work/misty-lake-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
-                      <div class="tile" data-plates data-work="museum" style="--ar: 1086/1448"><div class="tile__ink"><img class="tile__img" src="./assets/work/museum-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
+                      <div class="tile is-selected" data-plates data-work="signal-3" data-ar="1024x1536" data-hero-focus><div class="tile__ink"><img class="tile__img" src="./assets/work/signal-3-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
+                      <div class="tile" data-plates data-work="misty-lake" data-ar="1086x1448"><div class="tile__ink"><img class="tile__img" src="./assets/work/misty-lake-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
+                      <div class="tile" data-plates data-work="museum" data-ar="1086x1448"><div class="tile__ink"><img class="tile__img" src="./assets/work/museum-360.webp" alt="" width="360" height="480" decoding="async" /></div></div>
                     </div>
                   </div>
                 </div>
@@ -313,8 +292,8 @@
       <!-- SHEET: sources -->
       <section class="sheet sheet--ink" id="sources" aria-labelledby="sources-title">
         <div class="colorbar" aria-hidden="true">
-          <i style="--c: var(--cyan)"></i><i style="--c: var(--magenta)"></i><i style="--c: var(--yellow)"></i><i style="--c: var(--ink)"></i><i class="is-fluo" style="--c: var(--fluo)"></i>
-          <i style="--c: var(--src-chatgpt)"></i><i style="--c: var(--src-gemini)"></i><i style="--c: var(--src-flow)"></i><i style="--c: var(--src-studio)"></i><i style="--c: var(--src-codex)"></i><i style="--c: var(--src-grok)"></i><i style="--c: var(--src-cowart)"></i>
+          <i data-c="cyan"></i><i data-c="magenta"></i><i data-c="yellow"></i><i data-c="ink"></i><i class="is-fluo" data-c="fluo"></i>
+          <i data-c="src-chatgpt"></i><i data-c="src-gemini"></i><i data-c="src-flow"></i><i data-c="src-studio"></i><i data-c="src-codex"></i><i data-c="src-grok"></i><i data-c="src-cowart"></i>
         </div>
         <div class="trim">
           <span class="crop crop--tl" aria-hidden="true"></span><span class="crop crop--tr" aria-hidden="true"></span><span class="crop crop--bl" aria-hidden="true"></span><span class="crop crop--br" aria-hidden="true"></span>
@@ -342,7 +321,7 @@
               </div>
 
               <div class="units" data-print>
-                <ul class="units__list"><li style="--c: var(--src-chatgpt)"><i aria-hidden="true"></i>ChatGPT</li><li style="--c: var(--src-gemini)"><i aria-hidden="true"></i>Gemini</li><li style="--c: var(--src-flow)"><i aria-hidden="true"></i>Flow</li><li style="--c: var(--src-studio)"><i aria-hidden="true"></i>Google AI Studio</li><li style="--c: var(--src-codex)"><i aria-hidden="true"></i>Codex</li><li style="--c: var(--src-grok)"><i aria-hidden="true"></i>Grok Build CLI</li><li style="--c: var(--src-cowart)"><i aria-hidden="true"></i>Cowart</li></ul>
+                <ul class="units__list"><li data-c="src-chatgpt"><i aria-hidden="true"></i>ChatGPT</li><li data-c="src-gemini"><i aria-hidden="true"></i>Gemini</li><li data-c="src-flow"><i aria-hidden="true"></i>Flow</li><li data-c="src-studio"><i aria-hidden="true"></i>Google AI Studio</li><li data-c="src-codex"><i aria-hidden="true"></i>Codex</li><li data-c="src-grok"><i aria-hidden="true"></i>Grok Build CLI</li><li data-c="src-cowart"><i aria-hidden="true"></i>Cowart</li></ul>
                 <p class="units__note" data-i18n="sources.note">ChatGPT、Gemini、Flow、Google AI Studio 通过浏览器扩展收录；Codex 和 Grok Build CLI 由桌面版直接读取；Cowart 的画布快照在你批准后归档。</p>
               </div>
             </div>
@@ -563,8 +542,8 @@
       <!-- SHEET: download -->
       <section class="sheet sheet--ink" id="download" aria-labelledby="download-title">
         <div class="colorbar" aria-hidden="true">
-          <i style="--c: var(--cyan)"></i><i style="--c: var(--magenta)"></i><i style="--c: var(--yellow)"></i><i style="--c: var(--ink)"></i><i class="is-fluo" style="--c: var(--fluo)"></i>
-          <i style="--c: var(--src-chatgpt)"></i><i style="--c: var(--src-gemini)"></i><i style="--c: var(--src-flow)"></i><i style="--c: var(--src-studio)"></i><i style="--c: var(--src-codex)"></i><i style="--c: var(--src-grok)"></i><i style="--c: var(--src-cowart)"></i>
+          <i data-c="cyan"></i><i data-c="magenta"></i><i data-c="yellow"></i><i data-c="ink"></i><i class="is-fluo" data-c="fluo"></i>
+          <i data-c="src-chatgpt"></i><i data-c="src-gemini"></i><i data-c="src-flow"></i><i data-c="src-studio"></i><i data-c="src-codex"></i><i data-c="src-grok"></i><i data-c="src-cowart"></i>
         </div>
         <div class="reg reg--top is-set" aria-hidden="true"><span class="reg__c"></span><span class="reg__m"></span><span class="reg__y"></span><span class="reg__k"></span></div>
         <div class="trim">
@@ -682,7 +661,7 @@
 
     <footer class="colophon">
       <div class="colophon__row">
-        <a class="brand" href="#top" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页"><img src="./assets/gravityport-mark.svg?v=20261021-press-49" alt="" width="24" height="24" /><span>GravityPort</span></a>
+        <a class="brand" href="#top" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页"><img src="./assets/gravityport-mark.svg?v=20261021-press-50" alt="" width="24" height="24" /><span>GravityPort</span></a>
         <p class="colophon__line" data-i18n="footer.line">每张图，都记得自己从哪来。</p>
       </div>
       <nav class="colophon__links" data-i18n-attr="aria-label:footer.label" aria-label="页脚导航">

@@ -276,6 +276,23 @@ p, li, dd { text-wrap: pretty; }
 .btn-fluo.is-pending, .btn-line.is-pending { opacity: 0.55; cursor: not-allowed; }
 .textlink { text-decoration: underline; text-underline-offset: 0.22em; text-decoration-thickness: 1px; }
 
+/* Colour and ratio hooks set from markup attributes (the CSP allows no inline style attributes). */
+[data-c="cyan"] { --c: var(--cyan); }
+[data-c="fluo"] { --c: var(--fluo); }
+[data-c="ink"] { --c: var(--ink); }
+[data-c="magenta"] { --c: var(--magenta); }
+[data-c="src-chatgpt"] { --c: var(--src-chatgpt); }
+[data-c="src-codex"] { --c: var(--src-codex); }
+[data-c="src-cowart"] { --c: var(--src-cowart); }
+[data-c="src-flow"] { --c: var(--src-flow); }
+[data-c="src-gemini"] { --c: var(--src-gemini); }
+[data-c="src-grok"] { --c: var(--src-grok); }
+[data-c="src-studio"] { --c: var(--src-studio); }
+[data-c="yellow"] { --c: var(--yellow); }
+[data-ar="1024x1536"] { --ar: 1024 / 1536; }
+[data-ar="1055x1491"] { --ar: 1055 / 1491; }
+[data-ar="1086x1448"] { --ar: 1086 / 1448; }
+
 /* ---------- Hero ---------- */
 .sheet--hero { padding-top: calc(var(--margin) * 0.7); }
 .sheet--hero .reg { top: calc(var(--margin) * 0.35 - 13px); }
