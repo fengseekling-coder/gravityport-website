@@ -18,3 +18,9 @@ admin/stats.json
 # Desktop update manifests live only on the server; scripts/publish-desktop-release.sh
 # writes them there. A committed copy goes stale and is never deployed.
 /releases/
+
+# Impeccable working files: review captures and spent decision sketches stay local.
+/.impeccable/review/
+/.impeccable/mocks/
+/.impeccable/questions/
+/.impeccable/critique/

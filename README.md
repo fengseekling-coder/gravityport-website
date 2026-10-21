@@ -43,12 +43,14 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 ## 目录
 
-- `index.html`：官网页面结构与文案
-- `styles.css`：独立视觉样式和响应式布局
-- `script.js`：下载配置、滚动动效和轻交互
+- `index.html`：官网首页（12 张「印张」，演示和扩展安装步骤都在首页）
+- `site/press.css`、`site/press.js`：全站共用的样式和脚本
+- `site/strings.js`、`site/privacy-strings.js`：中英文文案
+- `assets/work/`：页面用到的作者本人作品（`work.js` 是它们的来源信息）
+- `assets/fonts/`：自托管字体；改了大标题或手写批注后运行 `python3 -I scripts/fetch-site-fonts.py`
+- `privacy/`：隐私政策
 - `site-config.js`：版本号与下载地址
-- `demo/`：独立的 MOSA 交互产品演示；使用静态示例数据复刻当前桌面端三栏信息架构，不读取真实用户素材
-- `guide/`：MOSA Web Capture 独立安装教程，避免技术步骤挤占官网首页主叙事
+- `guide/`、`demo/`：旧地址，自动跳到首页对应的那一屏
 - `robots.txt` / `sitemap.xml`：搜索引擎抓取与站点地图
 - `releases/latest.json`：桌面版本、校验值和平台包清单
 - `browser-extension/`：浏览器扩展当前版本的源码快照和发布说明
