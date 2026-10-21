@@ -267,8 +267,11 @@ if [[ -n "$mac_dmg_package" ]]; then
   command -v hdiutil >/dev/null 2>&1 || die "hdiutil is required for macOS DMG integrity checks"
   hdiutil verify "$mac_dmg_package" >/dev/null || die "macOS DMG integrity check failed: $mac_dmg_package"
   source_repo_root="$(cd -- "$source_root/../.." && pwd)"
-  identity_file="$source_repo_root/web/app/build-identity.json"
-  [[ -r "$identity_file" ]] || die "packaged build identity is missing: $identity_file"
+  # The shared UI build writes its identity next to the built bundle
+  # (web/gravityport/dist); web/app is the layout older app trees used.
+  identity_file="$source_repo_root/web/gravityport/dist/build-identity.json"
+  [[ -r "$identity_file" ]] || identity_file="$source_repo_root/web/app/build-identity.json"
+  [[ -r "$identity_file" ]] || die "packaged build identity is missing: $source_repo_root/web/gravityport/dist/build-identity.json"
   identity_pair="$(node -e '
     const identity = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));
     process.stdout.write(`${identity.productVersion}\t${identity.gitSha}`);
