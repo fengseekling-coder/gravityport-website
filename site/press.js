@@ -973,7 +973,11 @@
     const macRaw = release && release.mac && raw.macos && raw.macos.file === release.mac.file ? raw.macos : null;
     const sized = (n) => (n ? ` · ${fmtSize(n)}` : "");
     setAll("[data-windows-size]", sized(knownSize("windows", winRaw && winRaw.size)));
-    setAll("[data-mac-size]", sized(knownSize("mac", macRaw && macRaw.size)));
+    // The Mac button links the DMG while the feed's size describes the update
+    // ZIP, so the feed size only applies when the link itself is a ZIP.
+    const macLink = $('[data-download="mac"]');
+    const macLinksZip = macLink && /\.zip(?:[?#]|$)/i.test(macLink.getAttribute("href") || "");
+    setAll("[data-mac-size]", sized(knownSize("mac", macLinksZip && macRaw ? macRaw.size : 0)));
     setAll("[data-extension-size]", sized(knownSize("extension", 0)));
     const sha = $("[data-windows-sha]");
     if (sha) {
