@@ -8,35 +8,14 @@
     <meta name="theme-color" content="#f2f3f0" />
     <meta name="color-scheme" content="light" />
     <link rel="canonical" href="https://gravityport.azhuilab.com/privacy/" />
-    <link rel="icon" href="../assets/gravityport-mark.svg?v=20261021-press-49" type="image/svg+xml" />
+    <link rel="icon" href="../assets/gravityport-mark.svg?v=20261021-press-50" type="image/svg+xml" />
     <link rel="preload" href="../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="../assets/fonts/noto-sans-sc-900.woff2?v=20261021e" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="../site/press.css?v=20261021-press-49" />
-    <script>
-      (function () {
-        var root = document.documentElement;
-        root.classList.remove("no-js");
-        root.classList.add("js");
-        try {
-          if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) root.classList.add("motion");
-        } catch (e) {}
-        var lang = "";
-        try {
-          var q = new URLSearchParams(location.search).get("lang");
-          if (q === "en" || q === "zh") lang = q;
-          if (!lang) lang = localStorage.getItem("gp-lang") || "";
-        } catch (e) {}
-        if (!lang) lang = /^zh\b/i.test(navigator.language || "") ? "zh" : "en";
-        root.setAttribute("data-lang", lang);
-        if (lang === "en") root.classList.add("lang-pending");
-        setTimeout(function () { root.classList.remove("lang-pending"); }, 900);
-        // If the page script never arrives, nothing may stay unprinted.
-        setTimeout(function () { if (!window.__gpReady) root.classList.remove("motion"); }, 4000);
-      })();
-    </script>
-    <script src="../site/strings.js?v=20261021-press-49" defer></script>
-    <script src="../site/privacy-strings.js?v=20261021-press-49" defer></script>
-    <script src="../site/press.js?v=20261021-press-49" defer></script>
+    <link rel="stylesheet" href="../site/press.css?v=20261021-press-50" />
+    <script src="../site/boot.js?v=20261021-press-50"></script>
+    <script src="../site/strings.js?v=20261021-press-50" defer></script>
+    <script src="../site/privacy-strings.js?v=20261021-press-50" defer></script>
+    <script src="../site/press.js?v=20261021-press-50" defer></script>
   </head>
   <body class="page-privacy">
     <svg class="sprite" aria-hidden="true" focusable="false">
@@ -75,7 +54,7 @@
     <header class="masthead" data-masthead>
       <div class="masthead__row">
         <a class="brand" href="../" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页">
-          <img src="../assets/gravityport-mark.svg?v=20261021-press-49" alt="" width="28" height="28" />
+          <img src="../assets/gravityport-mark.svg?v=20261021-press-50" alt="" width="28" height="28" />
           <span>GravityPort</span>
         </a>
         <nav class="masthead__nav" id="site-nav" data-i18n-attr="aria-label:nav.label" aria-label="主导航">
@@ -186,7 +165,7 @@ setx MOSA_DISABLE_TELEMETRY 1</code></pre><p>还叫 MOSA 的旧版，把路径�
 
     <footer class="colophon">
       <div class="colophon__row">
-        <a class="brand" href="../" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页"><img src="../assets/gravityport-mark.svg?v=20261021-press-49" alt="" width="24" height="24" /><span>GravityPort</span></a>
+        <a class="brand" href="../" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页"><img src="../assets/gravityport-mark.svg?v=20261021-press-50" alt="" width="24" height="24" /><span>GravityPort</span></a>
         <p class="colophon__line" data-i18n="footer.line">每张图，都记得自己从哪来。</p>
       </div>
       <nav class="colophon__links" data-i18n-attr="aria-label:footer.label" aria-label="页脚导航">
