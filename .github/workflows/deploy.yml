@@ -75,6 +75,8 @@ jobs:
             --human-readable \
             --exclude='.*' \
             --exclude='/README.md' \
+            --exclude='/PRODUCT.md' \
+            --exclude='/DESIGN.md' \
             --exclude='/browser-extension/' \
             --exclude='/downloads/' \
             --exclude='/releases/' \
@@ -118,8 +120,8 @@ jobs:
           test "$legacy_feed_status" = "200"
           grep -q '"version"' /tmp/mosa-legacy-latest.json
 
-          css_status="$(curl --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/styles.css")"
-          js_status="$(curl --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/script.js")"
+          css_status="$(curl --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/site/press.css")"
+          js_status="$(curl --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/site/press.js")"
           release_status="$(curl --fail --silent --show-error --location --max-time 20 -o /tmp/mosa-latest.json -w '%{http_code}' "$site_url/releases/latest.json")"
           config_headers="$(curl --fail --silent --show-error --head --max-time 20 "$site_url/site-config.js")"
           test "$css_status" = "200"

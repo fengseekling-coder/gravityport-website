@@ -1,247 +1,209 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="no-js">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      data-i18n-attr="content:privacy.meta.description"
-      content="GravityPort 隐私政策：说明 GravityPort Web Capture 浏览器扩展和 GravityPort Desktop 如何处理 AI 生成素材、Prompt、来源信息与本地配对数据。"
-    />
-    <meta name="theme-color" content="#f5f5f7" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="pp.meta.title">隐私政策 · GravityPort</title>
+    <meta name="description" data-i18n-attr="content:pp.meta.description" content="GravityPort 隐私政策：桌面版和浏览器扩展读取什么、存什么、什么时候联网，以及你能怎么控制。" />
+    <meta name="theme-color" content="#f2f3f0" />
+    <meta name="color-scheme" content="light" />
     <link rel="canonical" href="https://gravityport.azhuilab.com/privacy/" />
-    <link rel="icon" href="../assets/gravityport-mark.svg?v=20261017-logo-1" type="image/svg+xml" />
-    <title data-i18n="privacy.meta.title">GravityPort 隐私政策 · Privacy Policy</title>
-    <link rel="stylesheet" href="../styles.css?v=20261017-rename-1" />
-    <link rel="stylesheet" href="./styles.css?v=20260904-i18n-1" />
+    <link rel="icon" href="../assets/gravityport-mark.svg?v=20261021-press-49" type="image/svg+xml" />
+    <link rel="preload" href="../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="../assets/fonts/noto-sans-sc-900.woff2?v=20261021e" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../site/press.css?v=20261021-press-49" />
+    <script>
+      (function () {
+        var root = document.documentElement;
+        root.classList.remove("no-js");
+        root.classList.add("js");
+        try {
+          if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) root.classList.add("motion");
+        } catch (e) {}
+        var lang = "";
+        try {
+          var q = new URLSearchParams(location.search).get("lang");
+          if (q === "en" || q === "zh") lang = q;
+          if (!lang) lang = localStorage.getItem("gp-lang") || "";
+        } catch (e) {}
+        if (!lang) lang = /^zh\b/i.test(navigator.language || "") ? "zh" : "en";
+        root.setAttribute("data-lang", lang);
+        if (lang === "en") root.classList.add("lang-pending");
+        setTimeout(function () { root.classList.remove("lang-pending"); }, 900);
+        // If the page script never arrives, nothing may stay unprinted.
+        setTimeout(function () { if (!window.__gpReady) root.classList.remove("motion"); }, 4000);
+      })();
+    </script>
+    <script src="../site/strings.js?v=20261021-press-49" defer></script>
+    <script src="../site/privacy-strings.js?v=20261021-press-49" defer></script>
+    <script src="../site/press.js?v=20261021-press-49" defer></script>
   </head>
-  <body>
-    <header class="site-header privacy-header">
-      <div class="shell header-inner">
-        <a class="brand" href="../" data-i18n-attr="aria-label:privacy.header.homeAria" aria-label="返回 GravityPort 首页">
-          <img class="brand-mark" src="../assets/gravityport-mark.svg?v=20261017-logo-1" alt="" width="36" height="36" aria-hidden="true" decoding="async" />
-          <span class="brand-name">GravityPort</span>
-        </a>
+  <body class="page-privacy">
+    <svg class="sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.5" /><rect x="14" y="4" width="6" height="6" rx="1.5" /><rect x="4" y="14" width="6" height="6" rx="1.5" /><rect x="14" y="14" width="6" height="6" rx="1.5" /></symbol>
+      <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20 4.8 13a4.7 4.7 0 0 1 6.6-6.7l.6.6.6-.6a4.7 4.7 0 0 1 6.6 6.7Z" /></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9 7V4.5h6V7M7 7l.7 12a1.5 1.5 0 0 0 1.5 1.5h5.6a1.5 1.5 0 0 0 1.5-1.5L17 7M10 10.5v6M14 10.5v6" /></symbol>
+      <symbol id="i-left" viewBox="0 0 24 24"><path d="m14.5 5.5-6.5 6.5 6.5 6.5" /></symbol>
+      <symbol id="i-right" viewBox="0 0 24 24"><path d="m9.5 5.5 6.5 6.5-6.5 6.5" /></symbol>
+      <symbol id="i-down" viewBox="0 0 24 24"><path d="m5.5 9 6.5 6.5L18.5 9" /></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11M6.5 17.5l11-11" /></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6" /><path d="m15 15 4.5 4.5" /></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24"><path d="m9.5 4-.5 2-2 .9-1.9-.5-2 3.4 1.4 1.5v2.4l-1.4 1.5 2 3.4 1.9-.5 2 .9.5 2h4l.5-2 2-.9 1.9.5 2-3.4-1.4-1.5v-2.4l1.4-1.5-2-3.4-1.9.5-2-.9-.5-2Z" /><circle cx="11.5" cy="12" r="3" /></symbol>
+      <symbol id="i-inbox" viewBox="0 0 24 24"><path d="m4 13 2.5-8h11l2.5 8v5.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5V13Z" /><path d="M4 13h5l1.5 3h3l1.5-3h5" /></symbol>
+      <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 4 8 4-8 4-8-4ZM4 12l8 4 8-4M4 16l8 4 8-4" /></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M15.5 5.5v-1A1.5 1.5 0 0 0 14 3H4.5A1.5 1.5 0 0 0 3 4.5V14a1.5 1.5 0 0 0 1.5 1.5h1" /></symbol>
+      <symbol id="i-image" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" /><circle cx="9" cy="9" r="1.5" /><path d="m4 17 5-5 4 4 3-3 4 4" /></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M8.5 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.7 5.1a.8.8 0 0 0-1.2.7Z" /></symbol>
+      <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5" /><path d="M5 20v-1a7 7 0 0 1 14 0v1" /></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7" /></symbol>
+      <symbol id="i-folder" viewBox="0 0 24 24"><path d="M4 7V5.5A1.5 1.5 0 0 1 5.5 4H10l2.5 3h6A1.5 1.5 0 0 1 20 8.5v10a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5Z" /></symbol>
+      <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" /></symbol>
+      <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 4v15m0 0 6-6m-6 6-6-6" /></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M5 19.5h14" /></symbol>
+      <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><ellipse cx="12" cy="12" rx="3.5" ry="8" /><path d="M4 12h16" /></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></symbol>
+      <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 6 4.5 10.5 9 15" /><path d="M5 10.5h9.5a5 5 0 0 1 0 10H11" /></symbol>
+      <symbol id="i-apple" viewBox="0 0 24 24"><path class="solid" d="M16.4 12.8c0-2.3 1.9-3.4 2-3.5a4.3 4.3 0 0 0-3.4-1.8c-1.4-.2-2.8.8-3.5.8-.7 0-1.8-.8-3-.8a4.5 4.5 0 0 0-3.8 2.3c-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.4 1.2-.1 1.6-.8 3.1-.8 1.4 0 1.8.8 3.1.8 1.3 0 2.1-1.2 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.6-1-2.7-3.8ZM14.1 5.9c.6-.8 1.1-1.9 1-3-1 .1-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4Z" /></symbol>
+      <symbol id="i-windows" viewBox="0 0 24 24"><path class="solid" d="M3.5 5.6 10.3 4.7v6.6H3.5Zm7.6-1 9.4-1.3v8h-9.4Zm-7.6 7.6h6.8v6.6l-6.8-.9Zm7.6 0h9.4v8.1l-9.4-1.3Z" /></symbol>
+      <symbol id="i-puzzle" viewBox="0 0 24 24"><path d="M9 4.5a2 2 0 0 1 4 0V6h4a1 1 0 0 1 1 1v4h-1.5a2 2 0 0 0 0 4H18v4a1 1 0 0 1-1 1h-4v-1.5a2 2 0 0 0-4 0V20H5a1 1 0 0 1-1-1v-4h1.5a2 2 0 0 0 0-4H4V7a1 1 0 0 1 1-1h4Z" /></symbol>
+      <symbol id="i-github" viewBox="0 0 24 24"><path class="solid" d="M12 2.8a9.4 9.4 0 0 0-3 18.3c.5.1.6-.2.6-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6 0-.6 0-.6.9.1 1.4 1 1.4 1 .8 1.4 2.2 1 2.7.8.1-.6.3-1 .6-1.2-2.1-.2-4.3-1-4.3-4.7 0-1 .4-1.9 1-2.5-.1-.3-.4-1.2.1-2.6 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.2 2.6-1 2.6-1 .5 1.4.2 2.3.1 2.6.6.6 1 1.5 1 2.5 0 3.6-2.2 4.4-4.3 4.7.3.3.6.9.6 1.8v2.6c0 .3.2.6.7.5A9.4 9.4 0 0 0 12 2.8Z" /></symbol>
+    </svg>
 
-        <nav class="privacy-nav" data-i18n-attr="aria-label:privacy.header.navAria" aria-label="隐私政策导航">
-          <a href="#web-capture">Web Capture</a>
-          <a href="#data" data-i18n="privacy.header.data">数据</a>
-          <a href="#control" data-i18n="privacy.header.control">用户控制</a>
-          <a href="../" data-i18n="privacy.header.back">返回官网</a>
+    <a class="skip" href="#main" data-i18n="nav.skip">跳到正文</a>
+
+    <header class="masthead" data-masthead>
+      <div class="masthead__row">
+        <a class="brand" href="../" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页">
+          <img src="../assets/gravityport-mark.svg?v=20261021-press-49" alt="" width="28" height="28" />
+          <span>GravityPort</span>
+        </a>
+        <nav class="masthead__nav" id="site-nav" data-i18n-attr="aria-label:nav.label" aria-label="主导航">
+          <a href="../#context" data-i18n="nav.features">功能</a>
+          <a href="../#sources" data-i18n="nav.sources">来源</a>
+          <a href="../#organize" data-i18n="nav.demo">演示</a>
+          <a href="./" aria-current="true" data-i18n="nav.privacy">隐私</a>
+          <a href="../#download" data-i18n="nav.download">下载</a>
+          <a href="../#install" data-i18n="nav.guide">指南</a>
         </nav>
-        <div class="privacy-header-tools"><button class="language-toggle" type="button" data-locale-toggle data-i18n="common.nextLanguage" data-i18n-attr="aria-label:common.switchToEnglish" aria-label="切换到 English">EN</button></div>
+        <div class="masthead__tools">
+          <button class="lang" type="button" data-lang-toggle data-i18n-attr="aria-label:nav.langLabel" aria-label="切换到英文">
+            <span data-lang-option="zh">中</span><i aria-hidden="true">/</i><span data-lang-option="en">EN</span>
+          </button>
+          <a class="masthead__cta" href="../#download" data-i18n="nav.cta">下载</a>
+          <button class="masthead__menu" type="button" aria-controls="site-nav" aria-expanded="false" data-menu-toggle data-i18n-attr="aria-label:nav.menu" aria-label="打开导航">
+            <svg aria-hidden="true"><use href="#i-menu" /></svg>
+          </button>
+        </div>
       </div>
     </header>
 
-    <main class="privacy-main">
-      <section class="privacy-hero">
-        <div class="shell privacy-shell">
-          <div class="privacy-eyebrow" data-i18n="privacy.eyebrow">PRIVACY POLICY</div>
-          <h1 data-i18n="privacy.title">隐私政策</h1>
-          <p class="privacy-lede" data-i18n="privacy.lede">GravityPort 是一个本地优先的 AI 创作素材库。GravityPort Web Capture 的核心用途，是把用户在受支持 AI 网站上明确选择或启用自动收录的生成素材，以及可用的 Prompt / 来源上下文，保存到同一台电脑上的 GravityPort Desktop。</p>
-          <div class="privacy-meta">
-            <span data-i18n="privacy.meta.updated">最后更新 / Last updated</span>
-            <strong>2026-10-17</strong>
+    <main id="main">
+      <!-- SHEET: summary -->
+      <section class="sheet sheet--ink" id="top" aria-labelledby="pp-title">
+        <div class="trim">
+          <span class="crop crop--tl" aria-hidden="true"></span><span class="crop crop--tr" aria-hidden="true"></span><span class="crop crop--bl" aria-hidden="true"></span><span class="crop crop--br" aria-hidden="true"></span>
+          <div class="live">
+            <div class="intro" data-print>
+              <h1 class="display" id="pp-title" data-i18n="pp.title">隐私政策</h1>
+              <div class="pp-intro">
+                <p class="intro__lede" data-i18n="pp.lede">GravityPort 是本地素材库：没有账号，没有云端，素材库只在你的电脑上。这一页写清楚它读什么、存什么、什么时候联网。</p>
+                <p class="pp-updated mono" data-i18n="pp.updated">最后更新 2026-10-19</p>
+              </div>
+            </div>
+            <div class="keys" data-print>
+              <h2 class="keys__label mono" data-i18n="pp.keys.label">要点</h2>
+              <ul class="keys__list"><li><strong data-i18n="pp.k1.title">素材库</strong><span data-i18n="pp.k1.body">只在你的电脑上，不上传，不同步。</span></li><li><strong data-i18n="pp.k2.title">浏览器扩展</strong><span data-i18n="pp.k2.body">只把图片和来源信息发给你电脑上的 GravityPort。</span></li><li><strong data-i18n="pp.k3.title">自动联网</strong><span data-i18n="pp.k3.body">只有检查更新和每天最多一次的匿名活跃信号，都不含素材、Prompt、文件名或路径。</span></li><li><strong data-i18n="pp.k4.title">反馈</strong><span data-i18n="pp.k4.body">只在你点「发送」时提交，诊断日志默认不附带。</span></li><li><strong data-i18n="pp.k5.title">第三方</strong><span data-i18n="pp.k5.body">不卖数据，不做广告画像。</span></li></ul>
+            </div>
           </div>
         </div>
+        <p class="slug slug--sheet" aria-hidden="true"><span class="mono">SHEET 01 / 02</span><span class="mono">K FLOOD</span><span class="mono">PRIVACY · 2026-10-19</span></p>
       </section>
 
-      <div class="shell privacy-shell privacy-layout">
-        <aside class="privacy-toc" data-i18n-attr="aria-label:privacy.toc" aria-label="目录">
-          <strong data-i18n="privacy.toc">目录</strong>
-          <a href="#principles" data-i18n="privacy.toc.principles">核心原则</a>
-          <a href="#web-capture" data-i18n="privacy.toc.webCapture">Web Capture</a>
-          <a href="#data" data-i18n="privacy.toc.data">处理的数据</a>
-          <a href="#storage" data-i18n="privacy.toc.storage">存储与传输</a>
-          <a href="#permissions" data-i18n="privacy.toc.permissions">浏览器权限</a>
-          <a href="#desktop-metrics" data-i18n="privacy.toc.desktopMetrics">桌面端统计</a>
-          <a href="#pinterest" data-i18n="privacy.toc.pinterest">Pinterest 连接</a>
-          <a href="#feedback" data-i18n="privacy.toc.feedback">反馈</a>
-          <a href="#control" data-i18n="privacy.toc.control">用户控制</a>
-          <a href="#third-parties" data-i18n="privacy.toc.thirdParties">第三方服务</a>
-          <a href="#contact" data-i18n="privacy.toc.contact">联系与安全</a>
-        </aside>
-
-        <article class="privacy-document">
-          <section id="principles" class="policy-section">
-            <span class="policy-index">01</span>
-            <h2 data-i18n="privacy.principles.title">核心原则 / Core principles</h2>
-            <p data-i18n="privacy.principles.p1">GravityPort 不运营云端素材库、广告画像系统或远程用户账号。用户的素材库位于用户自己的电脑上，GravityPort 不会为了管理素材而把整个图库上传到 GravityPort 运营的远程服务。</p>
-            <div class="policy-callout">
-              <strong data-i18n="privacy.principles.callout.title">Web Capture 数据边界</strong>
-              <p data-i18n="privacy.principles.callout.body" data-i18n-html>浏览器扩展捕获的生成媒体、Prompt、聊天上下文和页面来源信息，仅发送到用户电脑上的 <code>127.0.0.1</code> / <code>localhost</code> GravityPort Desktop 服务。</p>
+      <!-- SHEET: policy -->
+      <section class="sheet sheet--stock" id="policy" aria-label="Policy">
+        <div class="trim">
+          <span class="crop crop--tl" aria-hidden="true"></span><span class="crop crop--tr" aria-hidden="true"></span><span class="crop crop--bl" aria-hidden="true"></span><span class="crop crop--br" aria-hidden="true"></span>
+          <div class="live">
+            <div class="policy">
+              <nav class="policy__toc" data-i18n-attr="aria-label:pp.toc" aria-label="目录">
+                <p class="policy__toclabel mono" data-i18n="pp.toc">目录</p>
+                <a href="#read" data-i18n="pp.toc.read">读取的数据</a><a href="#store" data-i18n="pp.toc.store">存储的数据</a><a href="#ext" data-i18n="pp.toc.ext">浏览器扩展</a><a href="#desktop" data-i18n="pp.toc.desktop">ChatGPT 桌面版的对话</a><a href="#online" data-i18n="pp.toc.online">自动联网</a><a href="#pinterest" data-i18n="pp.toc.pinterest">Pinterest</a><a href="#feedback" data-i18n="pp.toc.feedback">反馈</a><a href="#control" data-i18n="pp.toc.control">你能控制的</a><a href="#third" data-i18n="pp.toc.third">第三方服务</a><a href="#contact" data-i18n="pp.toc.contact">联系与安全</a>
+              </nav>
+              <article class="policy__doc">
+              <section class="policy__sec" id="read" aria-labelledby="read-title">
+                <h2 id="read-title" data-i18n="pp.read.title">读取的数据</h2>
+                <div class="policy__body" data-i18n-html="pp.read.body"><p>只读你启用的来源：</p><ul><li>Codex：生成图片的目录，以及对得上的本地 Codex 会话记录，用来补上 Prompt 和来源。</li><li>Grok Build CLI：<code>~/.grok/sessions</code> 里的图片、视频和对得上的 <code>chat_history.jsonl</code> 记录。</li><li>Cowart：GravityPort 专用画布，以及最近 14 天里从 Codex 启动过 Cowart 的项目画布。</li><li>浏览器扩展发来的图片和来源信息，见「浏览器扩展」。</li><li>ChatGPT 桌面版的本地状态文件，只读其中的对话编号，见「ChatGPT 桌面版的对话」。</li></ul><p>GravityPort 不扫描「下载」「桌面」、无关的项目文件夹，也不读任意网页。</p></div>
+              </section>
+              <section class="policy__sec" id="store" aria-labelledby="store-title">
+                <h2 id="store-title" data-i18n="pp.store.title">存储的数据</h2>
+                <div class="policy__body" data-i18n-html="pp.store.body"><p>素材库就是你选的那个文件夹，里面有：</p><ul><li>原图或视频，以及预览图和缩略图；</li><li>Prompt 和你说的话；</li><li>来源、时间、尺寸、模型或工具、页面地址等来源记录；</li><li>版本关系、标签、分组和堆叠；</li><li>参考图：作为私有附件和用到它的图存在一起，不出现在画廊、搜索和素材总数里；</li><li>ChatGPT 桌面版的同步进度 <code>.chatgpt-desktop-sync.json</code>：最多 200 段对话的编号、时间、重试次数和一个哈希值，不含提示词。</li></ul><p>素材库不会上传到 GravityPort 的服务器。导出分组时，导出文件只含元数据，不含任何本地路径。</p></div>
+              </section>
+              <section class="policy__sec" id="ext" aria-labelledby="ext-title">
+                <h2 id="ext-title" data-i18n="pp.ext.title">浏览器扩展</h2>
+                <div class="policy__body" data-i18n-html="pp.ext.body"><ul><li>只在 ChatGPT、Gemini、Flow、Google AI Studio 的页面上运行。</li><li>新装时自动收录默认关闭，并打开设置页，让你看完说明再决定；也可以用右键菜单手动保存。</li><li>ChatGPT：图片、对应的 Prompt 和你说的话、这一轮上传的参考图、对话和消息编号、这张图是第几轮（只有编号和序号，不含对话正文），以及对话标题（用来给堆叠起名）。</li><li>Gemini、Flow、Google AI Studio：图片，加上页面上能可靠对上的那一句提问或那张 Prompt 卡片，标为「未核实」。不读输入框、隐藏内容和模型思考。</li><li>收到的内容只发给你电脑上的 GravityPort（<code>127.0.0.1</code> / <code>localhost</code>），不发给任何服务器。</li><li>本机地址、配对 Token、自动收录开关和待重试队列存在 <code>chrome.storage.local</code>，不随 Google 账号同步；等待重试的媒体暂存在扩展本地，送达或过期后删除。</li><li>不读取、不保存、不发送账号密码、Cookie 和 API Key，也不读取 ChatGPT 的授权请求头。唯一用到 ChatGPT 登录的地方见下一节。</li><li>权限：<code>storage</code>、<code>contextMenus</code>、<code>alarms</code>、<code>unlimitedStorage</code>，以及上面这些站点、它们的图片和视频域名、本机地址。不运行远程代码。</li><li>开发版里有一个默认关闭的开发者诊断记录器，只能从设置页地址末尾加 <code>#dev</code> 打开，记录只留在扩展本地，不发给任何地方；正式发布前会移除。</li></ul></div>
+              </section>
+              <section class="policy__sec" id="desktop" aria-labelledby="desktop-title">
+                <h2 id="desktop-title" data-i18n="pp.desktop.title">ChatGPT 桌面版的对话</h2>
+                <div class="policy__body" data-i18n-html="pp.desktop.body"><p>ChatGPT 桌面版（现在 Codex 也在这个 App 里）不把聊天里的图存到电脑上。为了收录这些图，GravityPort 这样做：</p><ol><li>开着 Codex 来源时，约每 10 秒读一次桌面版的状态文件 <code>~/.codex/.codex-global-state.json</code>，只用其中的对话编号和每段对话最后一次提问的编号，不读提示词正文。</li><li>某段对话安静 90 秒后，交给已配对、开着自动收录的扩展，一次一段。</li><li>扩展用浏览器里已登录的 ChatGPT 账号，向 <code>chatgpt.com/api/auth/session</code> 取一次访问令牌，只用来读这一段对话、看里面有没有生成图。令牌不保存，不发给 GravityPort，也不发给 chatgpt.com 以外的任何地方。</li><li>没有图就到此为止；有图时，在一个最小化、不抢焦点的窗口里打开这段对话，像你自己打开一样收录，20 到 110 秒后自动关闭。</li></ol><p>这些请求由你的浏览器用你自己的 ChatGPT 登录发出，GravityPort 本身不连接 OpenAI。想停止：关掉扩展的自动收录，或停用扩展。想让 GravityPort 完全不读这个状态文件：用 <code>MOSA_DISABLE_BRIDGES=codex</code> 关掉 Codex 来源，这也会停止导入 Codex 的图。</p></div>
+              </section>
+              <section class="policy__sec" id="online" aria-labelledby="online-title">
+                <h2 id="online-title" data-i18n="pp.online.title">自动联网</h2>
+                <div class="policy__body" data-i18n-html="pp.online.body"><p>GravityPort 的本地服务只监听 <code>127.0.0.1</code>，不对外开放。桌面版只在下面两种情况自动联网，都发到 <code>mosa.azhuilab.com</code>，都不含素材、Prompt、文件名、路径或账号信息。</p><h3>检查更新</h3><p>打开窗口时，如果距上次检查超过 24 小时，或者你手动检查，就读一次更新清单。只有你点「下载并更新」，才下载对应平台的更新包；下载后按大小和 SHA-256 校验，只替换 App 本身，不碰素材库。</p><h3>匿名活跃信号</h3><p>按太平洋时间每天最多一次，发一个不带正文的请求，只含：</p><ul><li>事件类型（首次启动或每日活跃）和协议版本；</li><li>一个随机安装 ID：在你电脑上随机生成，不来自设备序列号、账号、路径或硬件信息；</li><li>GravityPort 版本、系统类别（macOS / Windows / 其他）和芯片架构（如 <code>arm64</code>、<code>x64</code>）。</li></ul><p>App 里没有开关，用环境变量 <code>MOSA_DISABLE_TELEMETRY=1</code> 关闭。关闭后安装 ID 只存在本地，不再发送。</p><pre class="cmd mono"><code><span class="tok-dim"># macOS，只对这一次启动生效</span>
+MOSA_DISABLE_TELEMETRY=1 /Applications/GravityPort.app/Contents/MacOS/GravityPort
+<span class="tok-dim"># macOS，从程序坞或访达打开也生效，直到重启电脑</span>
+launchctl setenv MOSA_DISABLE_TELEMETRY 1
+<span class="tok-dim"># Windows，之后每次启动都生效</span>
+setx MOSA_DISABLE_TELEMETRY 1</code></pre><p>还叫 MOSA 的旧版，把路径换成 <code>/Applications/MOSA.app/Contents/MacOS/MOSA</code>。Windows 上要恢复，在「系统属性 → 环境变量」里删掉它。</p><p>App 不下载任何模型。官网的下载链接可能带一个来源标签（如 <code>ref=…</code>），只用来统计下载从哪个页面来，不需要登录。</p></div>
+              </section>
+              <section class="policy__sec" id="pinterest" aria-labelledby="pinterest-title">
+                <h2 id="pinterest-title" data-i18n="pp.pinterest.title">Pinterest（尚未开放）</h2>
+                <div class="policy__body" data-i18n-html="pp.pinterest.body"><p>可以选择连接你的 Pinterest 账号，在 App 里浏览自己的画板和 Pin。功能已经做好，要等 Pinterest 批准正式接口后才开放；不连接，GravityPort 就不访问 Pinterest。</p><p>连接后只读：你的用户名，画板（含私密画板）的名称、描述、Pin 数和封面，以及 Pin 的标题、描述、链接和图片地址。这些只在你电脑上实时显示，不存进素材库，也不上传；内存里最多暂存 5 分钟。</p><p>授权令牌只存在你电脑上一个权限受限的文件里。授权时，我们的服务器只把授权码转交 Pinterest 换取令牌、原样返回，不保存，也不记日志。在设置里断开连接，就删除本地令牌；也可以在 Pinterest 账号设置里撤销授权。</p></div>
+              </section>
+              <section class="policy__sec" id="feedback" aria-labelledby="feedback-title">
+                <h2 id="feedback-title" data-i18n="pp.feedback.title">反馈</h2>
+                <div class="policy__body" data-i18n-html="pp.feedback.body"><p>只有你在「设置 → 反馈」里点「发送」，才会提交到 <code>mosa.azhuilab.com/api/feedback</code>，内容是：</p><ul><li>你写的正文（最多 5000 字），和你自愿填写的联系方式（只用来回复你）；</li><li>反馈类型、界面语言、App 版本、系统和版本、芯片架构；</li><li>勾选「附上诊断日志」时（默认不勾），附带最近的运行日志。发送前能看到完整内容；路径里的用户名、令牌和邮箱会被隐藏，可能含提示词的行整行去掉。</li></ul><p>不发送安装 ID、素材、提示词和素材库位置。服务器不保存 IP，只在内存里临时用来防止滥用。反馈存在官网服务器的私有目录，只有开发者能看，只用来回复你和改进产品。要删除你发过的反馈，写信到 <a href="mailto:fengseekling@gmail.com">fengseekling@gmail.com</a>，说明大概的发送时间。</p></div>
+              </section>
+              <section class="policy__sec" id="control" aria-labelledby="control-title">
+                <h2 id="control-title" data-i18n="pp.control.title">你能控制的</h2>
+                <div class="policy__body" data-i18n-html="pp.control.body"><ul><li>在「设置 → 存储」里把素材库搬到另一个空文件夹。</li><li>关掉扩展的自动收录：自动收录和 ChatGPT 桌面版的收录都停止，手动保存还能用。停用或卸载扩展则完全停止。</li><li>用 <code>MOSA_DISABLE_BRIDGES</code> 关掉某个来源（<code>codex</code>、<code>grok</code>、<code>cowart</code>）。</li><li>用 <code>MOSA_DISABLE_TELEMETRY=1</code> 关掉匿名活跃信号，见「自动联网」。</li><li>Pinterest 在你连接之前不会被访问，断开连接即删除本地令牌。</li><li>删除、移进回收站或归档素材。归档只是整理，不等于安全擦除；系统备份、浏览器数据和各工具自己的历史需要另外清理。</li></ul></div>
+              </section>
+              <section class="policy__sec" id="third" aria-labelledby="third-title">
+                <h2 id="third-title" data-i18n="pp.third.title">第三方服务</h2>
+                <div class="policy__body" data-i18n-html="pp.third.body"><p>ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、Cowart、Chrome 和 Pinterest 都是独立产品，它们自己的联网行为和隐私政策照样适用。</p><p>GravityPort 不出售数据，不把数据用于广告画像、信用评估或贷款。</p></div>
+              </section>
+              <section class="policy__sec" id="contact" aria-labelledby="contact-title">
+                <h2 id="contact-title" data-i18n="pp.contact.title">联系与安全</h2>
+                <div class="policy__body" data-i18n-html="pp.contact.body"><p>安全漏洞请按 GitHub 仓库里的安全说明报告。其他问题可以在 GitHub Issues 里提，但不要贴 Token、Prompt、私人素材或对话内容。</p></div><p class="policy__links"><a class="btn-line" href="https://github.com/fengseekling-coder/gravityport" target="_blank" rel="noreferrer"><svg aria-hidden="true"><use href="#i-github" /></svg><span data-i18n="pp.contact.github">GitHub 仓库</span></a><a class="btn-line" href="https://github.com/fengseekling-coder/gravityport/issues" target="_blank" rel="noreferrer"><svg aria-hidden="true"><use href="#i-external" /></svg><span data-i18n="pp.contact.issues">GitHub Issues</span></a></p>
+              </section>
+              </article>
             </div>
-          </section>
-
-          <section id="web-capture" class="policy-section">
-            <span class="policy-index">02</span>
-            <h2 data-i18n="privacy.webCapture.title">GravityPort Web Capture</h2>
-            <p data-i18n="privacy.webCapture.p1">GravityPort Web Capture 仅在扩展清单声明的 ChatGPT、Gemini、Flow 和 Google AI Studio 页面及其必要的媒体资源域名中运行。新安装默认关闭自动收录，并打开设置页供用户阅读数据说明后自行启用。</p>
-            <p data-i18n="privacy.webCapture.p2">用户也可以通过扩展面板或右键菜单手动保存支持的生成图片或视频。关闭自动收录后，扩展不会持续执行自动采集扫描；手动保存只会在完成该次用户操作所需的范围内处理相关页面数据。</p>
-          </section>
-
-          <section id="data" class="policy-section">
-            <span class="policy-index">03</span>
-            <h2 data-i18n="privacy.data.title">扩展处理的数据 / Data processed by the extension</h2>
-            <p data-i18n="privacy.data.lede">根据用户启用的功能和当前网站实际提供的数据，Web Capture 可能处理以下类别：</p>
-            <div class="data-grid">
-              <div class="data-card">
-                <h3 data-i18n="privacy.data.website.title">网站内容</h3>
-                <p data-i18n="privacy.data.website.body">用户可见的 AI 生成图片、支持的视频，以及与该生成结果局部关联的 Prompt、caption 或用户消息。</p>
-              </div>
-              <div class="data-card">
-                <h3 data-i18n="privacy.data.communication.title">个人通讯</h3>
-                <p data-i18n="privacy.data.communication.body">仅处理与被捕获生成结果相关联、且当前页面明确提供的 Prompt / 用户消息内容，不扫描用户的其他会话作为通用聊天记录。</p>
-              </div>
-              <div class="data-card">
-                <h3 data-i18n="privacy.data.network.title">网络记录</h3>
-                <p data-i18n="privacy.data.network.body">为保存来源与追溯信息，可能记录当前受支持页面 URL、provider、capture time，以及 ChatGPT 的 conversation / message 标识等页面来源元数据。</p>
-              </div>
-              <div class="data-card">
-                <h3 data-i18n="privacy.data.auth.title">身份验证信息</h3>
-                <p data-i18n="privacy.data.auth.body" data-i18n-html>扩展在 <code>chrome.storage.local</code> 中保存随机生成的本机 GravityPort 配对 Token，用于验证扩展与同一台电脑上的 GravityPort Desktop 通信。</p>
-              </div>
-            </div>
-
-            <h3 data-i18n="privacy.data.chatgpt.title">ChatGPT</h3>
-            <p data-i18n="privacy.data.chatgpt.p1">为把生成图片与正确的消息级 Prompt、生成事件和来源关联，扩展可能读取页面已经提供的生成响应、当前会话元数据、图片资源标识和对应用户消息。能够明确识别为本轮上传输入的参考图，可以作为该次生成记录的私有附件保存，而不是作为普通素材单独出现在素材库中。</p>
-            <p data-i18n="privacy.data.chatgpt.p2" data-i18n-html>为补全延迟出现的 caption，扩展可以使用当前网页已有浏览器会话发起当前站点的同源请求，但<strong>不会读取、复制、保存、发送或重放 ChatGPT Authorization 请求头或相关认证请求头</strong>。若同源请求不能返回所需元数据，图片仍可保存，Prompt 会保持不可用，而不会伪造内容。</p>
-
-            <h3 data-i18n="privacy.data.google.title">Gemini、Flow 与 Google AI Studio</h3>
-            <p data-i18n="privacy.data.google.body">这些站点只会在页面结构能够可靠建立局部关联时保存页面可见 Prompt，并把该文本标记为“页面可见、未验证为实际执行 Prompt”。扩展不会为了找 Prompt 而读取输入框、编辑器、隐藏内容、模型思考、账号密码、Cookie 或 API Key。</p>
-
-            <h3 data-i18n="privacy.data.notCollected.title">扩展不会收集的内容</h3>
-            <ul>
-              <li data-i18n="privacy.data.notCollected.one">姓名、邮箱、邮寄地址、年龄或身份证件等个人身份资料；</li>
-              <li data-i18n="privacy.data.notCollected.two">健康、财务或付款数据；</li>
-              <li data-i18n="privacy.data.notCollected.three">GPS 位置或设备附近位置；</li>
-              <li data-i18n="privacy.data.notCollected.four">用于广告画像的跨网站浏览历史；</li>
-              <li data-i18n="privacy.data.notCollected.five">鼠标轨迹、滚动历史、按键日志等行为分析数据；</li>
-              <li data-i18n="privacy.data.notCollected.six">OpenAI / Google 账号密码或 API Key。</li>
-            </ul>
-          </section>
-
-          <section id="storage" class="policy-section">
-            <span class="policy-index">04</span>
-            <h2 data-i18n="privacy.storage.title">存储与传输 / Storage and transfer</h2>
-            <p data-i18n="privacy.storage.p1" data-i18n-html>Web Capture 捕获的数据只发送到用户配置的本机 GravityPort 地址。默认桌面端服务绑定在 <code>127.0.0.1</code>，不设计为公网服务。扩展不会把捕获的图片、视频、Prompt、聊天内容、页面 URL 或 provider conversation ID 上传到 GravityPort 运营的远程服务器。</p>
-            <p data-i18n="privacy.storage.p2">GravityPort Desktop 将用户选择保存的媒体与关联元数据存储在用户自己的 GravityPort 素材库目录中。素材库可能包含原始图片/视频字节、缩略图、Prompt、用户消息、来源 URL、时间、尺寸、provider / model/tool 信息、标签、版本关系与参考图附件。</p>
-          </section>
-
-          <section id="permissions" class="policy-section">
-            <span class="policy-index">05</span>
-            <h2 data-i18n="privacy.permissions.title">浏览器权限 / Browser permissions</h2>
-            <dl class="permission-list">
-              <div>
-                <dt><code>storage</code></dt>
-                <dd data-i18n="privacy.permissions.storage" data-i18n-html>保存本机 GravityPort 地址、随机配对 Token 和用户的自动收录开关。使用 <code>chrome.storage.local</code>，不通过 Google 账号同步。</dd>
-              </div>
-              <div>
-                <dt><code>contextMenus</code></dt>
-                <dd data-i18n="privacy.permissions.contextMenus">提供“保存图片到 GravityPort”“保存视频到 GravityPort”等用户主动触发的右键操作。</dd>
-              </div>
-              <div>
-                <dt>Host permissions</dt>
-                <dd data-i18n="privacy.permissions.host" data-i18n-html>只用于受支持 AI 站点、必要的媒体资源域名，以及同一台电脑上的 <code>127.0.0.1</code> / <code>localhost</code> GravityPort 服务。</dd>
-              </div>
-            </dl>
-            <p data-i18n="privacy.permissions.note" data-i18n-html>扩展不使用远程代码，不从网络下载 JavaScript 或 WebAssembly 后执行，也不使用 <code>eval()</code> 或同类机制执行远程字符串代码。</p>
-          </section>
-
-          <section id="desktop-metrics" class="policy-section">
-            <span class="policy-index">06</span>
-            <h2 data-i18n="privacy.metrics.title">桌面端匿名使用统计 / Desktop anonymous usage metrics</h2>
-            <p data-i18n="privacy.metrics.p1" data-i18n-html>这一部分属于 GravityPort Desktop，而<strong>不是 Web Capture 扩展的素材数据传输</strong>。正式桌面版最多每 24 小时向 GravityPort 更新服务发送一次最小匿名使用请求，用于了解版本是否实际安装和持续使用；无论安装包来自官网、GitHub 还是直接分享，均使用同一机制。该统计仅限下方列出的最小字段，不在应用设置中提供关闭开关。</p>
-            <p data-i18n="privacy.metrics.lede">启用时，GravityPort 最多每 24 小时发送一次以下字段：</p>
-            <ul>
-              <li data-i18n="privacy.metrics.event" data-i18n-html><code>first_launch</code> 或 <code>daily_active</code> 事件类型；</li>
-              <li data-i18n="privacy.metrics.uuid">GravityPort 随机生成的安装 UUID；</li>
-              <li data-i18n="privacy.metrics.version">GravityPort 版本；</li>
-              <li data-i18n="privacy.metrics.os">操作系统类别（macOS / Windows / other）；</li>
-              <li data-i18n="privacy.metrics.arch" data-i18n-html>CPU 架构（例如 <code>arm64</code> 或 <code>x64</code>）。</li>
-            </ul>
-            <p data-i18n="privacy.metrics.p2">该请求不包含图库内容、素材数量、Prompt、文件名、本地路径、浏览历史、provider conversation ID、姓名或邮箱。随机安装 UUID 不由设备序列号、账号、路径、硬件指纹、Prompt 或素材生成。</p>
-          </section>
-
-          <section id="pinterest" class="policy-section">
-            <span class="policy-index">07</span>
-            <h2 data-i18n="privacy.pinterest.title">Pinterest 连接 / Pinterest connection</h2>
-            <p data-i18n="privacy.pinterest.p1">GravityPort 桌面版（原 MOSA Desktop）可以选择连接你的 Pinterest 账号，在应用里浏览你自己的画板和 Pin。这是可选功能；不连接，应用就不会访问 Pinterest。</p>
-            <p data-i18n="privacy.pinterest.lede">连接后，应用通过 Pinterest 官方 API 读取以下内容：</p>
-            <ul>
-              <li data-i18n="privacy.pinterest.account">你的 Pinterest 用户名；</li>
-              <li data-i18n="privacy.pinterest.boards">你的画板（包括私密画板）的名称、描述、Pin 数量和封面；</li>
-              <li data-i18n="privacy.pinterest.pins">画板中 Pin 的标题、描述、链接和图片地址。</li>
-            </ul>
-            <p data-i18n="privacy.pinterest.p2">这些内容只在你的电脑上实时显示，不会保存进 GravityPort 素材库，也不会上传到我们的服务器。为减少重复请求，应用会在内存中暂存最多 5 分钟，断开连接或退出应用后即清除。图片直接从 Pinterest 加载。</p>
-            <p data-i18n="privacy.pinterest.p3">授权令牌只保存在你的电脑上。授权时，我们的服务器只负责把授权码或刷新令牌连同应用密钥转交给 Pinterest 换取令牌，并把结果直接返回给你的电脑；服务器不保存授权码和令牌，也不把它们写入日志。</p>
-            <p data-i18n="privacy.pinterest.p4">你可以随时在 GravityPort 设置中断开 Pinterest，应用会删除本机保存的令牌；也可以在 Pinterest 账号设置的已授权应用中撤销 GravityPort 的访问权限。</p>
-          </section>
-
-          <section id="feedback" class="policy-section">
-            <span class="policy-index">08</span>
-            <h2 data-i18n="privacy.feedback.title">反馈 / Feedback</h2>
-            <p data-i18n="privacy.feedback.p1">应用不会在后台收集反馈：只有你在 GravityPort 设置的反馈页里点「发送」，才会把内容提交到我们的服务器。</p>
-            <p data-i18n="privacy.feedback.lede">点「发送」时，应用会提交以下内容：</p>
-            <ul>
-              <li data-i18n="privacy.feedback.message">你写的反馈正文；</li>
-              <li data-i18n="privacy.feedback.contact">你自愿填写的联系方式（可选，只用于回复你）；</li>
-              <li data-i18n="privacy.feedback.appInfo">App 版本、操作系统和芯片架构类型、界面语言（中文或英文）；</li>
-              <li data-i18n="privacy.feedback.diagnostics" data-i18n-html>勾选「附上诊断日志」（默认不勾）时，附带应用最近的运行日志。发送前你可以在应用里看到将要发送的完整内容；日志中文件路径里的用户名、访问令牌和邮箱地址会被隐藏，可能含提示词的行会整行去掉。</li>
-            </ul>
-            <p data-i18n="privacy.feedback.p2">我们不发送也不存储：安装 ID、你的素材、提示词、素材库位置。服务器不保存 IP 地址——IP 只在内存里临时用于防止提交被滥用，不写入磁盘或日志。</p>
-            <p data-i18n="privacy.feedback.p3">反馈保存在官网服务器的私有目录中，只有开发者登录后台才能查看；只用于回复你和改进产品，不用于广告，也不提供给第三方。</p>
-            <p data-i18n="privacy.feedback.p4" data-i18n-html>想删除自己发过的反馈，写信给 <a href="mailto:fengseekling@gmail.com">fengseekling@gmail.com</a>，说明大致的发送时间即可。</p>
-          </section>
-
-          <section id="control" class="policy-section">
-            <span class="policy-index">09</span>
-            <h2 data-i18n="privacy.control.title">用户控制 / User control</h2>
-            <ul>
-              <li data-i18n="privacy.control.one">新安装 Web Capture 时，自动收录默认关闭；用户可以在扩展设置中开启或再次关闭。</li>
-              <li data-i18n="privacy.control.two">用户可以卸载或禁用扩展，从而停止 Web Capture。</li>
-              <li data-i18n="privacy.control.three">用户可以删除本机 GravityPort 素材库中的素材和元数据，并自行管理系统备份或浏览器数据。</li>
-            </ul>
-            <p data-i18n="privacy.control.note">GravityPort 的“归档”属于素材组织行为，不承诺安全擦除。系统备份、浏览器缓存、来源工具历史或用户自行复制的文件，需要分别管理。</p>
-          </section>
-
-          <section id="third-parties" class="policy-section">
-            <span class="policy-index">10</span>
-            <h2 data-i18n="privacy.thirdParties.title">第三方服务 / Third-party services</h2>
-            <p data-i18n="privacy.thirdParties.p1">ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、Chrome 以及用户使用的其他 AI 服务都是独立产品。GravityPort 不控制这些服务自身的网络请求、账号体系或隐私政策。用户访问这些网站时，仍受对应服务的条款与隐私政策约束。</p>
-            <p data-i18n="privacy.thirdParties.p2">GravityPort 不出售用户数据，不把用户数据用于广告画像、信用评估或贷款，也不会为了与 Web Capture 单一用途无关的目的向第三方转移所捕获的用户数据。</p>
-          </section>
-
-          <section id="contact" class="policy-section">
-            <span class="policy-index">11</span>
-            <h2 data-i18n="privacy.contact.title">联系与安全 / Contact and security</h2>
-            <p data-i18n="privacy.contact.p">如需报告安全漏洞，请通过 GravityPort GitHub 仓库的安全说明与项目渠道联系。一般问题可通过 GitHub Issues 反馈，但不要在公开 Issue 中提交 Token、Prompt、私人素材、会话内容或其他敏感数据。</p>
-            <div class="policy-actions">
-              <a class="policy-button primary" href="https://github.com/fengseekling-coder/gravityport" target="_blank" rel="noreferrer" data-i18n="privacy.contact.github">GravityPort GitHub</a>
-              <a class="policy-button" href="https://github.com/fengseekling-coder/gravityport/issues" target="_blank" rel="noreferrer" data-i18n="privacy.contact.issues">GitHub Issues</a>
-            </div>
-          </section>
-        </article>
-      </div>
+          </div>
+        </div>
+        <p class="slug slug--sheet" aria-hidden="true"><span class="mono">SHEET 02 / 02</span><span class="mono">K</span><span class="mono">POLICY · BASED ON PRIVACY.MD 2026-10-19</span></p>
+      </section>
     </main>
 
-    <footer class="site-footer privacy-footer">
-      <div class="shell footer-inner">
-        <div>
-          <a class="brand footer-brand" href="../">
-            <img class="brand-mark" src="../assets/gravityport-mark-reversed.svg?v=20261017-logo-1" alt="" width="36" height="36" aria-hidden="true" decoding="async" />
-            <span class="brand-name">GravityPort</span>
-          </a>
-          <p>Local visual memory for AI creation.</p>
-        </div>
-        <div class="footer-links">
-          <a href="../" data-i18n="privacy.footer.site">官网</a>
-          <a href="./" aria-current="page" data-i18n="privacy.footer.policy">隐私政策</a>
-          <a href="https://github.com/fengseekling-coder/gravityport" target="_blank" rel="noreferrer">GitHub</a>
-        </div>
-        <span class="footer-copy">© 2026 GravityPort</span>
+    <footer class="colophon">
+      <div class="colophon__row">
+        <a class="brand" href="../" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页"><img src="../assets/gravityport-mark.svg?v=20261021-press-49" alt="" width="24" height="24" /><span>GravityPort</span></a>
+        <p class="colophon__line" data-i18n="footer.line">每张图，都记得自己从哪来。</p>
       </div>
+      <nav class="colophon__links" data-i18n-attr="aria-label:footer.label" aria-label="页脚导航">
+        <a href="../#install" data-i18n="footer.guide">安装扩展</a>
+        <a href="./" aria-current="page" data-i18n="footer.privacy">隐私政策</a>
+        <a href="https://github.com/fengseekling-coder/gravityport/releases" target="_blank" rel="noreferrer" data-i18n="footer.releases">版本发布</a>
+        <a href="https://github.com/fengseekling-coder/gravityport" target="_blank" rel="noreferrer">GitHub</a>
+        <button class="textlink" type="button" data-community-open data-i18n="footer.community">交流群</button>
+      </nav>
+      <p class="colophon__slug mono"><span>© <span data-year>2026</span> GravityPort</span><span data-i18n="footer.formerly">原名 MOSA</span><span data-i18n="footer.local">素材只在你的电脑上</span></p>
     </footer>
-    <script src="../i18n.js?v=20261017-rename-1"></script>
+
+    <dialog class="qr" data-community-dialog aria-labelledby="qr-title">
+      <h2 id="qr-title" data-i18n="community.title">加入交流群</h2>
+      <p data-i18n="community.body">用微信扫码加入。</p>
+      <img src="../assets/mosa-community-qr.jpg" alt="" width="220" height="220" loading="lazy" data-i18n-attr="alt:community.alt" />
+      <form method="dialog"><button class="btn-line" type="submit" data-i18n="community.close">关闭</button></form>
+    </dialog>
   </body>
 </html>

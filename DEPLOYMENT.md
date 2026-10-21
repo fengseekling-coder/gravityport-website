@@ -6,9 +6,11 @@
 
 ```text
 mosa-website/
-├── index.html                         官网页面
-├── styles.css                         页面样式
-├── script.js                          页面交互和下载按钮
+├── index.html                         官网首页
+├── privacy/                           隐私政策
+├── site/                              共用样式、脚本和中英文文案
+├── assets/                            标志、字体、页面用图
+├── guide/  demo/                      旧地址，跳转到首页
 ├── site-config.js                     版本号和正式下载地址
 ├── releases/                          （不进仓库）服务器上的桌面更新清单，由发布脚本生成
 ├── scripts/                            桌面包校验、上传和监控脚本
@@ -47,7 +49,7 @@ sudo certbot certonly --webroot -w /var/www/letsencrypt \
 
 ## 2. 更新官网文字、样式或脚本
 
-在本目录修改 `index.html`、`styles.css`、`script.js` 或其他官网文件，然后执行：
+在本目录修改 `index.html`、`site/` 下的样式、脚本、文案或其他官网文件，然后执行：
 
 ```bash
 cd <官网仓库>

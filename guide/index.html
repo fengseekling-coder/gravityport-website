@@ -1,61 +1,16 @@
 <!doctype html>
 <html lang="zh-CN">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" data-i18n-attr="content:guide.meta.description" content="GravityPort Web Capture 安装教程。" />
-    <meta name="theme-color" content="#f4f4f7" />
-    <link rel="canonical" href="https://gravityport.azhuilab.com/guide/" />
-    <link rel="icon" href="../assets/gravityport-mark.svg?v=20261017-logo-1" type="image/svg+xml" />
-    <title data-i18n="guide.meta.title">GravityPort Web Capture · 安装教程</title>
-    <link rel="stylesheet" href="./styles.css?v=20261017-rename-1" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>GravityPort · 安装浏览器扩展</title>
+    <link rel="canonical" href="https://gravityport.azhuilab.com/#install" />
+    <meta http-equiv="refresh" content="0; url=../#install" />
+    <script>location.replace("../#install");</script>
+    <style>body{margin:0;padding:40px 20px;background:#f2f3f0;color:#121212;font:16px/1.6 -apple-system,"PingFang SC",sans-serif}</style>
   </head>
   <body>
-    <header class="guide-header">
-      <div class="guide-shell guide-header-inner">
-        <a class="guide-brand" href="../" data-i18n-attr="aria-label:common.home" aria-label="GravityPort 首页"><img class="guide-mark" src="../assets/gravityport-mark.svg?v=20261017-logo-1" alt="" width="34" height="34" aria-hidden="true" decoding="async" /><b>GravityPort</b></a>
-        <div class="guide-header-tools"><button class="language-toggle" type="button" data-locale-toggle data-i18n="common.nextLanguage" data-i18n-attr="aria-label:common.switchToEnglish" aria-label="切换到 English">EN</button><a class="guide-back" href="../" data-i18n="guide.header.back">返回官网</a></div>
-      </div>
-    </header>
-
-    <main>
-      <section class="guide-hero">
-        <div class="guide-shell guide-hero-inner">
-          <span class="guide-kicker" data-i18n="guide.kicker">WEB CAPTURE / INSTALL GUIDE</span>
-          <h1><span data-i18n="guide.titleLead">四步接好</span><br /><span data-i18n="guide.titleAccent">GravityPort Web Capture。</span></h1>
-          <p data-i18n="guide.lede">浏览器扩展负责把网页里的 AI 生成结果送进本机 GravityPort。正式下载开放后，按照下面的步骤安装即可。</p>
-          <p class="guide-legacy-note" data-i18n="common.legacyNameNote">GravityPort 原名 MOSA。目前下载到的安装包和装好后的 App 仍显示旧名，下一个版本起改为 GravityPort。</p>
-          <a class="guide-button" href="../#download"><span data-i18n="guide.cta">前往下载页</span> <span>↗</span></a>
-        </div>
-      </section>
-
-      <section class="guide-content">
-        <div class="guide-shell guide-grid">
-          <ol class="guide-steps">
-            <li><span class="step-number">01</span><div><h2 data-i18n="guide.step.download.title">下载并解压 ZIP</h2><p data-i18n="guide.step.download.body">下载 GravityPort Web Capture ZIP 后，把它解压到一个固定的本地文件夹。不要直接在 ZIP 压缩包里加载扩展。</p></div></li>
-            <li><span class="step-number">02</span><div><h2 data-i18n="guide.step.extensions.title">打开扩展管理页</h2><p data-i18n="guide.step.extensions.body" data-i18n-html>在 Chrome / Chromium 地址栏输入 <code>chrome://extensions</code>，然后打开右上角的“开发者模式”。</p></div></li>
-            <li><span class="step-number">03</span><div><h2 data-i18n="guide.step.load.title">加载完整插件包文件夹</h2><p data-i18n="guide.step.load.body" data-i18n-html>点击“加载已解压的扩展程序”，选择解压后的插件文件夹。打开后第一层应该能直接看到 <code>manifest.json</code>。</p></div></li>
-            <li><span class="step-number">04</span><div><h2 data-i18n="guide.step.test.title">打开 GravityPort 并测试连接</h2><p data-i18n="guide.step.test.body" data-i18n-html>先启动 GravityPort Desktop，再打开扩展选项。扩展会自动发现本机 GravityPort 并完成安全配对；点击“测试连接”，看到成功提示后即可使用。</p></div></li>
-          </ol>
-
-          <aside class="guide-side">
-            <div class="package-card">
-              <span class="side-label" data-i18n="guide.side.zipRoot">ZIP ROOT</span>
-              <h2 data-i18n="guide.side.confirm.title">确认你选对了目录</h2>
-              <p data-i18n="guide.side.confirm.body">被选择的文件夹第一层应该直接看到这些文件：</p>
-              <ul><li><code>manifest.json</code><span data-i18n="guide.side.manifest">扩展入口</span></li><li><code>background.js</code><span data-i18n="guide.side.background">后台服务</span></li><li><code>options.html</code><span data-i18n="guide.side.options">设置页</span></li></ul>
-            </div>
-            <div class="tip-card">
-              <span class="side-label" data-i18n="guide.side.troubleshooting">TROUBLESHOOTING</span>
-              <h2 data-i18n="guide.side.troubleshootingTitle">连接不上时先检查</h2>
-              <ul><li data-i18n="guide.side.troubleshootingOne">GravityPort Desktop 是否已经启动。</li><li data-i18n="guide.side.troubleshootingTwo">是否在扩展选项中重新点击了“测试连接”。</li><li data-i18n="guide.side.troubleshootingThree">扩展更新后，是否在扩展管理页点击了刷新。</li><li data-i18n="guide.side.troubleshootingFour">仍无法连接时，依次重启 GravityPort Desktop 和浏览器。</li></ul>
-            </div>
-          </aside>
-        </div>
-      </section>
-    </main>
-
-    <footer class="guide-footer"><div class="guide-shell"><span>© 2026 GravityPort</span><a href="../privacy/" data-i18n="guide.footer.privacy">隐私政策</a></div></footer>
-    <script src="../i18n.js?v=20261017-rename-1"></script>
+    <p>安装步骤已经移到官网首页：<a href="../#install">打开安装浏览器扩展</a>。<br />The install steps now live on the home page: <a href="../#install">Install the browser extension</a>.</p>
   </body>
 </html>
