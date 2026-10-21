@@ -259,6 +259,34 @@ test("packaged build identity is read from web/app/build-identity.json", (t) => 
   assert.equal(manifest.gitSha, FIXTURE_GIT_SHA, "the DMG extension must stamp the identity gitSha");
 });
 
+test("packaged build identity is read from web/gravityport/dist/build-identity.json", (t) => {
+  const version = "0.2.1-rc.35";
+  // makeSourceTree root doubles as out/make, so the script derives the
+  // repository root as root/../.. and must find the identity in web/gravityport/dist there.
+  // The legacy app/build-identity.json location is deliberately absent so
+  // reading it could only fail.
+  const { root } = makeSourceTree({ product: "MOSA", macVersion: version });
+  const dmgDir = path.join(root, "dmg", "darwin", "arm64");
+  fs.mkdirSync(dmgDir, { recursive: true });
+  const dmgPath = path.join(dmgDir, `MOSA-darwin-arm64-${version}.dmg`);
+  const scratch = makeTempDir("mosa-dmg-fixture.");
+  execFileSync("hdiutil", ["create", "-size", "1m", "-fs", "HFS+", "-volname", "MOSAProbe", "-quiet", "probe.dmg"], { cwd: scratch });
+  execFileSync("hdiutil", ["convert", "probe.dmg", "-format", "UDZO", "-o", dmgPath, "-quiet"], { cwd: scratch });
+  t.after(() => fs.rmSync(scratch, { recursive: true, force: true }));
+
+  const identityDir = path.join(root, "..", "..", "web", "gravityport", "dist");
+  fs.mkdirSync(identityDir, { recursive: true });
+  fs.writeFileSync(path.join(identityDir, "build-identity.json"), `${JSON.stringify({
+    productVersion: version,
+    gitSha: FIXTURE_GIT_SHA,
+  }, null, 2)}\n`);
+
+  const stateFile = path.join(makeTempDir("mosa-state."), "state");
+  const manifest = runDryRun({ sourceDir: root, stateFile, product: "MOSA" });
+  assert.equal(manifest.version, version);
+  assert.equal(manifest.gitSha, FIXTURE_GIT_SHA, "the DMG extension must stamp the identity gitSha");
+});
+
 test("an explicitly configured DMG must carry the release product and version in its name", (t) => {
   const version = "0.2.1-rc.35";
   const { root } = makeSourceTree({ product: "MOSA", macVersion: version });
@@ -323,7 +351,8 @@ test("the script pins the GravityPort remote paths and the new build identity pa
   const scriptSource = fs.readFileSync(scriptPath, "utf8");
   assert.match(scriptSource, /releases\/gravityport\/latest\.json/, "GravityPort manifest path");
   assert.match(scriptSource, /releases\/gravityport\/history/, "GravityPort history directory");
-  assert.match(scriptSource, /web\/app\/build-identity\.json/, "build identity moved to web/app in the app repository");
+  assert.match(scriptSource, /web\/gravityport\/dist\/build-identity\.json/, "build identity lives next to the built UI bundle");
+  assert.match(scriptSource, /web\/app\/build-identity\.json/, "the web/app layout is still accepted");
   assert.doesNotMatch(scriptSource, /source_repo_root\/app\/build-identity\.json/, "the legacy app/ identity path must be gone");
   assert.match(scriptSource, /MOSA_RELEASE_PRODUCT must be/, "product validation is fail-closed");
   assert.match(scriptSource, /desktop-release-monitor\.gravityport\.state/, "GravityPort keeps its own last-published state");

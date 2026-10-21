@@ -670,8 +670,6 @@ p, li, dd { text-wrap: pretty; }
 .firstrun li { display: grid; grid-template-columns: 7em minmax(0, 1fr); gap: 16px; font-size: 15px; line-height: 1.7; color: var(--muted-ink); }
 .firstrun li strong { color: var(--stock); }
 .firstrun li a { color: var(--stock); }
-.firstrun__mosa { grid-column: 2; font-size: 14px; color: var(--muted-ink); border-top: 1px solid var(--hair-ink); padding-top: 14px; }
-.firstrun__mosa[hidden] { display: none; }
 
 /* ---------- FAQ ---------- */
 /* Install: four steps on the left, the folder check and the fixes on the right. */
@@ -797,7 +795,6 @@ p, li, dd { text-wrap: pretty; }
   .faq { grid-template-columns: 1fr; }
   .install { grid-template-columns: 1fr; }
   .firstrun { grid-template-columns: 1fr; }
-  .firstrun__mosa { grid-column: 1; }
   .free { grid-template-columns: 1fr; }
   .colorbar { display: none; }
 }

@@ -981,9 +981,6 @@
       sha.hidden = !ok;
       if (ok) $("[data-windows-sha-value]").textContent = winRaw.sha256;
     }
-    const files = [release && release.mac && release.mac.file, release && release.windows && release.windows.file, config.mac && config.mac.url, config.windows && config.windows.url].filter(Boolean).join(" ");
-    const note = $("[data-mosa-note]");
-    if (note) note.hidden = !/MOSA-/.test(files);
   }
   const configured = (kind, item) => {
     const c = config[kind];
