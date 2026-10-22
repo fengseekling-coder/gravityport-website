@@ -38,7 +38,7 @@ function renameFile(filePath, newName) {
 
 // Builds a fake out/make source tree for one product. nested=true mirrors the
 // electron-builder layout that wraps the payload in a product directory.
-function makeSourceTree({ product = "MOSA", macVersion = "0.3.0", windowsVersion = null, nested = false, wrongMacPayload = false, wrongWindowsPayload = false } = {}) {
+function makeSourceTree({ product = "MOSA", macVersion = "0.3.0", windowsVersion = null, nested = false, wrongMacPayload = false, wrongWindowsPayload = false, installer = null } = {}) {
   const root = makeTempDir("mosa-release-src.");
   const macAppName = `${product}.app`;
   const macPayloadApp = wrongMacPayload ? "MOSA.app" : macAppName;
@@ -61,7 +61,16 @@ function makeSourceTree({ product = "MOSA", macVersion = "0.3.0", windowsVersion
     windowsPath = path.join(windowsDir, `${product}-win32-x64-${windowsVersion}.zip`);
     fs.renameSync(windowsZip, windowsPath);
   }
-  return { root, macPath, windowsPath };
+  // installer: { dir: "installer" (where the build writes it) or "zip" (next
+  // to the update ZIP, as an unpacked CI artifact leaves it), version, bytes }
+  let installerPath = null;
+  if (installer) {
+    const installerDir = path.join(root, installer.dir || "installer", "win32", "x64");
+    fs.mkdirSync(installerDir, { recursive: true });
+    installerPath = path.join(installerDir, `${product}-win32-x64-${installer.version || windowsVersion || macVersion}.exe`);
+    fs.writeFileSync(installerPath, installer.bytes ?? "MZ fake installer");
+  }
+  return { root, macPath, windowsPath, installerPath };
 }
 
 const NOTES_ZH = "产品化发布测试：显式中文发布说明。";
@@ -101,11 +110,11 @@ function runDryRun({ sourceDir, stateFile, previousManifest = "", product } = {}
   return JSON.parse(fs.readFileSync(outputPath, "utf8"));
 }
 
-function runScriptExpectFailure({ sourceDir, stateFile, product } = {}) {
+function runScriptExpectFailure({ sourceDir, stateFile, product, extraEnv = {} } = {}) {
   let caught = null;
   try {
     execFileSync("bash", [scriptPath], {
-      env: safeEnv({ sourceDir, stateFile, product }),
+      env: { ...safeEnv({ sourceDir, stateFile, product }), ...extraEnv },
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -371,4 +380,51 @@ test("a state file left by the other product would skip the release as a downgra
   });
   assert.match(stdout, /跳过降级/);
   assert.equal(fs.existsSync(outputPath), false);
+});
+
+const sha256Of = (file) => execFileSync("shasum", ["-a", "256", file]).toString().split(" ")[0];
+
+test("a GravityPort release with a Windows installer lists it beside the update ZIP", () => {
+  for (const dir of ["installer", "zip"]) {
+    const { root, windowsPath, installerPath } = makeSourceTree({
+      product: "GravityPort", macVersion: "0.3.4", windowsVersion: "0.3.4", installer: { dir },
+    });
+    const stateFile = path.join(makeTempDir("mosa-state."), "state");
+    const manifest = runDryRun({ sourceDir: root, stateFile, product: "GravityPort" });
+    assert.equal(manifest.platforms.windows.file, "GravityPort-win32-x64-0.3.4.zip", "in-app updates keep the ZIP");
+    assert.equal(manifest.platforms.windows.sha256, sha256Of(windowsPath));
+    assert.deepEqual(manifest.platforms.windows.installer, {
+      file: "GravityPort-win32-x64-0.3.4.exe",
+      size: fs.statSync(installerPath).size,
+      sha256: sha256Of(installerPath),
+    }, `installer found in ${dir}/win32/x64`);
+  }
+});
+
+test("only the same version's installer rides along, and only with its update ZIP", () => {
+  const otherVersion = makeSourceTree({
+    product: "GravityPort", macVersion: "0.3.4", windowsVersion: "0.3.4", installer: { version: "0.3.3" },
+  });
+  const withoutOther = runDryRun({ sourceDir: otherVersion.root, stateFile: path.join(makeTempDir("mosa-state."), "state"), product: "GravityPort" });
+  assert.equal(withoutOther.platforms.windows.installer, undefined);
+
+  const noZip = makeSourceTree({ product: "GravityPort", macVersion: "0.3.4", installer: { version: "0.3.4" } });
+  const macOnly = runDryRun({ sourceDir: noZip.root, stateFile: path.join(makeTempDir("mosa-state."), "state"), product: "GravityPort" });
+  assert.equal(macOnly.platforms.windows, undefined, "an installer alone never makes a Windows release");
+
+  const error = runScriptExpectFailure({
+    sourceDir: noZip.root,
+    stateFile: path.join(makeTempDir("mosa-state."), "state"),
+    product: "GravityPort",
+    extraEnv: { MOSA_RELEASE_WINDOWS_INSTALLER: noZip.installerPath },
+  });
+  assert.match(String(error.stderr), /a Windows installer ships with its update ZIP/);
+});
+
+test("an installer that is not a Windows program is refused before anything is uploaded", () => {
+  const { root } = makeSourceTree({
+    product: "GravityPort", macVersion: "0.3.4", windowsVersion: "0.3.4", installer: { bytes: "<html>not a program</html>" },
+  });
+  const error = runScriptExpectFailure({ sourceDir: root, stateFile: path.join(makeTempDir("mosa-state."), "state"), product: "GravityPort" });
+  assert.match(String(error.stderr), /Windows installer is not a Windows program/);
 });

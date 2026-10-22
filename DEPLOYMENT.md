@@ -70,7 +70,7 @@ git push origin main
 
 已发布桌面客户端仍从 `https://mosa.azhuilab.com/releases/latest.json` 或 `https://mosa.azhuilab.com/releases/gravityport/latest.json` 读取更新清单，并从旧域名的 `/downloads/` 下载。官网页面和分享链接统一使用 `gravityport.azhuilab.com`。发布器会同步写入 `version`、`publishedAt`、双语 `notes`、两个平台的文件名、大小和 SHA-256；客户端只读取版本和说明，不接受清单里的任意跳转 URL。
 
-## 3. 发布桌面安装包（macOS DMG + Windows ZIP）
+## 3. 发布桌面安装包（macOS DMG + Windows ZIP 和安装程序）
 
 截图中的两个真实包对应：
 
@@ -78,6 +78,8 @@ git push origin main
 <mosa 仓库>/out/make/dmg/darwin/arm64/MOSA-darwin-arm64-0.2.1-rc.5.dmg
 <mosa 仓库>/out/make/zip/win32/x64/MOSA-win32-x64-0.2.1-rc.5.zip
 ```
+
+Windows 还有一个安装程序（`<产品>-win32-x64-<版本>.exe`，一个文件，双击安装），和同版本的 Windows ZIP 一起发布。发布器先在 `<mosa 仓库>/out/make/installer/win32/x64/` 找它，再在 ZIP 旁边找（解压 CI 产物时它可能和 ZIP 放在一起）；也可以用 `MOSA_RELEASE_WINDOWS_INSTALLER` 指定文件。找到后用 `--windows-installer` 交给清单生成器，写进签名清单的 `platforms.windows.installer`（`file`、`size`、`sha256`），再和其他包一样上传、核对 SHA-256。官网的 Windows 下载按钮在清单带安装程序时给 `.exe`，否则给 ZIP；已经装好的应用照旧从 ZIP 更新。没有同版本 ZIP 的安装程序不会单独发布。
 
 服务器地址和部署账号不写进仓库，放在本机的 `~/.config/mosa/release.env`（权限 600，一行一个 `KEY=value`）：
 
@@ -98,11 +100,11 @@ cd <官网仓库>
 监控任务由 macOS `launchd` 在登录后运行，并同时使用目录变更触发和 5 分钟兜底轮询。每次候选发布必须满足：
 
 1. 两个平台存在相同版本的桌面包。
-2. 文件大小连续稳定后，macOS DMG 通过 `hdiutil verify`，Windows ZIP 通过 `unzip -t` 且包含对应的启动文件。
+2. 文件大小连续稳定后，macOS DMG 通过 `hdiutil verify`，Windows ZIP 通过 `unzip -t` 且包含对应的启动文件；有 Windows 安装程序时，它必须是 Windows 程序（文件头 `MZ`）。
 3. 上传到服务器临时目录后，服务器端 SHA-256 与本机一致。
 4. 两个包先进入 `downloads/`，最后才原子替换 `releases/latest.json`。
 
-因此只有一个平台、正在生成中的包、损坏包或低于已发布版本的包都不会推进线上版本。每次替换前的旧清单会备份到服务器 `releases/history/`，便于回滚。桌面包会保留最新四个完整版本（当前版本加三个历史版本）：发布器在新包与 `releases/latest.json` 原子切换完成后，才删除更旧的 macOS / Windows 成对包；浏览器扩展 ZIP 和不成对文件不会被删除。
+因此只有一个平台、正在生成中的包、损坏包或低于已发布版本的包都不会推进线上版本。每次替换前的旧清单会备份到服务器 `releases/history/`，便于回滚。桌面包会保留最新四个完整版本（当前版本加三个历史版本）：发布器在新包与 `releases/latest.json` 原子切换完成后，才删除更旧的 macOS / Windows 成对包（那个版本有 Windows 安装程序的话一起删）；浏览器扩展 ZIP 和不成对文件不会被删除。
 
 手动只校验、不上传：
 
@@ -117,7 +119,7 @@ cd <官网仓库>
 ~/Library/Logs/MOSA/desktop-release-monitor.err.log
 ```
 
-桌面包大于 GitHub 单文件限制，所以不要把它们复制到仓库后提交；发布器直接从主项目输出目录上传。若需要人工发布，确保文件名保持 `MOSA-darwin-arm64-版本.dmg` 和 `MOSA-win32-x64-版本.zip`。
+桌面包大于 GitHub 单文件限制，所以不要把它们复制到仓库后提交；发布器直接从主项目输出目录上传。若需要人工发布，确保文件名保持 `MOSA-darwin-arm64-版本.dmg`、`MOSA-win32-x64-版本.zip` 和 `MOSA-win32-x64-版本.exe`。
 
 ## 4. 发布浏览器扩展包
 
@@ -300,7 +302,7 @@ scripts/admin-auth.mjs
 https://mosa.azhuilab.com/admin/
 ```
 
-页面读取同目录下由服务器生成的 `stats.json`，并显示匿名安装实例、首次启动、自然日 DAU、最近 7 个统计日活跃、最近 30 个统计日活跃、桌面下载请求、扩展下载请求、官网页面访问、首页访问、首页→下载转化、近 30 个统计日趋势、平台、版本、渠道与下载文件分布。统计日统一使用 `America/Los_Angeles`，避免服务器 UTC 日期与后台查看日期错位。下载数字明确表示成功 HTTP GET / Range 请求数，不等同于独立下载人数或安装人数。页面访问来自 Nginx 日志近似 PV，不是点击事件；首页→下载是下载请求除以首页访问。`admin/stats.json` 已加入 `.gitignore`，官网 Actions 也会在 `rsync --delete` 时显式排除它，因此部署静态网站不会删除服务器上的实时统计文件。
+页面读取同目录下由服务器生成的 `stats.json`，并显示匿名安装实例、首次启动、自然日 DAU、最近 7 个统计日活跃、最近 30 个统计日活跃、桌面下载请求、扩展下载请求、官网页面访问、首页访问、首页→下载转化、近 30 个统计日趋势、平台、版本、渠道与下载文件分布。统计日统一使用 `America/Los_Angeles`，避免服务器 UTC 日期与后台查看日期错位。下载数字明确表示成功 HTTP GET / Range 请求数，不等同于独立下载人数或安装人数；桌面下载包括更新 ZIP、macOS DMG 和 Windows 安装程序（以前计入「其他」的 DMG 下载，下次生成时会归回桌面下载）。页面访问来自 Nginx 日志近似 PV，不是点击事件；首页→下载是下载请求除以首页访问。`admin/stats.json` 已加入 `.gitignore`，官网 Actions 也会在 `rsync --delete` 时显式排除它，因此部署静态网站不会删除服务器上的实时统计文件。
 
 服务器部署完成后，先确保 Node.js、`apache2-utils` 和现有密码文件已经准备好，再以 root 执行一次：
 
@@ -349,7 +351,7 @@ MOSA_RELEASE_PRODUCT=GravityPort MOSA_RELEASE_NOTES_ZH=… MOSA_RELEASE_NOTES_EN
 
 | | MOSA | GravityPort |
 |---|---|---|
-| 安装包文件名前缀 | `MOSA-darwin-arm64-<版本>.zip/.dmg`、`MOSA-win32-x64-<版本>.zip` | `GravityPort-darwin-arm64-<版本>.zip/.dmg`、`GravityPort-win32-x64-<版本>.zip` |
+| 安装包文件名前缀 | `MOSA-darwin-arm64-<版本>.zip/.dmg`、`MOSA-win32-x64-<版本>.zip/.exe` | `GravityPort-darwin-arm64-<版本>.zip/.dmg`、`GravityPort-win32-x64-<版本>.zip/.exe` |
 | 更新清单 | `releases/latest.json` | `releases/gravityport/latest.json` |
 | 清单备份 | `releases/history/latest-<时间戳>.json` | `releases/gravityport/history/latest-<时间戳>.json` |
 | 包内容校验 | `MOSA.app/Contents/MacOS/MOSA`、`MOSA.exe` | `GravityPort.app/Contents/MacOS/GravityPort`、`GravityPort.exe` |
