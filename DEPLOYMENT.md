@@ -290,10 +290,12 @@ admin/app.js
 scripts/admin-auth.mjs
 ```
 
-生产地址建议保持为：
+统计后台继续使用旧的私有地址；`mosa.azhuilab.com/admin/` 从旧域名迁移说明页中豁免，登录与数据请求仍通过同一 Nginx 会话认证。`gravityport.azhuilab.com` 不提供 `/admin/` 路径。
+
+生产地址：
 
 ```text
-https://gravityport.azhuilab.com/admin/
+https://mosa.azhuilab.com/admin/
 ```
 
 页面读取同目录下由服务器生成的 `stats.json`，并显示匿名安装实例、首次启动、自然日 DAU、最近 7 个统计日活跃、最近 30 个统计日活跃、桌面下载请求、扩展下载请求、官网页面访问、首页访问、首页→下载转化、近 30 个统计日趋势、平台、版本、渠道与下载文件分布。统计日统一使用 `America/Los_Angeles`，避免服务器 UTC 日期与后台查看日期错位。下载数字明确表示成功 HTTP GET / Range 请求数，不等同于独立下载人数或安装人数。页面访问来自 Nginx 日志近似 PV，不是点击事件；首页→下载是下载请求除以首页访问。`admin/stats.json` 已加入 `.gitignore`，官网 Actions 也会在 `rsync --delete` 时显式排除它，因此部署静态网站不会删除服务器上的实时统计文件。
@@ -319,14 +321,14 @@ MOSA_ACCESS_LOG=/实际/nginx/access.log MOSA_NODE_BIN=/usr/bin/node MOSA_STATS_
 
 同一个密码文件也用于登录会话校验；如果文件已经存在，不要再次使用 `-c`，直接保留它即可。脚本还会安装并启动 `mosa-private-stats-auth.service`，它只监听 `127.0.0.1:39127`，状态文件位于 Web 根目录之外的 `/var/lib/mosa-stats-auth/sessions.json`，只保存会话 token 的 SHA-256 摘要。
 
-统计页不使用 MOSA 用户账号。访问保护交给 Nginx `auth_request`，示例配置在 `ops/nginx-private-stats.conf.example`。locations 片段由官网 HTTPS `server {}` 提供，后台地址为 `gravityport.azhuilab.com`：
+统计页不使用 MOSA 用户账号。访问保护交给 Nginx `auth_request`，示例配置在 `ops/nginx-private-stats.conf.example`。locations 片段由 MOSA HTTPS `server {}` 提供，后台地址为 `mosa.azhuilab.com`：
 
 ```bash
 sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-此后访问 `https://gravityport.azhuilab.com/admin/` 会进入网页登录页；登录成功后 Cookie 有效 30 天，浏览器不会再反复弹出原生认证框。页面右上角提供“退出”，会立即撤销当前会话。`/admin/stats.json` 仍由同一会话保护，不能绕过页面直接公开访问。页面自身还带 `noindex` 与 `X-Robots-Tag`，但真正的访问边界仍以 Nginx `auth_request` 和服务端会话校验为准。
+此后访问 `https://mosa.azhuilab.com/admin/` 会进入网页登录页；登录成功后 Cookie 有效 30 天，浏览器不会再反复弹出原生认证框。页面右上角提供“退出”，会立即撤销当前会话。`/admin/stats.json` 仍由同一会话保护，不能绕过页面直接公开访问。页面自身还带 `noindex` 与 `X-Robots-Tag`，但真正的访问边界仍以 Nginx `auth_request` 和服务端会话校验为准。
 
 ## 11. 两种产品、两条更新源
 
