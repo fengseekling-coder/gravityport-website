@@ -23,17 +23,18 @@
     <link rel="alternate" hreflang="zh-CN" href="https://gravityport.azhuilab.com/" />
     <link rel="alternate" hreflang="en" href="https://gravityport.azhuilab.com/en/" />
     <link rel="alternate" hreflang="x-default" href="https://gravityport.azhuilab.com/en/" />
-    <link rel="icon" href="./assets/gravityport-mark.svg?v=20261022-press-59" type="image/svg+xml" />
+    <link rel="icon" href="./assets/gravityport-mark.svg?v=20261022-press-61" type="image/svg+xml" />
     <link rel="preload" href="./assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="./assets/fonts/noto-sans-sc-900.woff2?v=20261021e" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="./assets/fonts/fragment-mono-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="./site/press.css?v=20261022-press-60" />
-    <script src="./site/boot.js?v=20261022-press-59"></script>
-    <script src="./site-config.js?v=20261022-press-59" defer></script>
-    <script src="./desktop-release-feed.js?v=20261022-press-59" defer></script>
-    <script src="./assets/work/work.js?v=20261022-press-59" defer></script>
-    <script src="./site/strings.js?v=20261022-press-59" defer></script>
-    <script src="./site/press.js?v=20261022-press-59" defer></script>
+    <link rel="stylesheet" href="./site/press.css?v=20261022-press-61" />
+    <script src="./site/boot.js?v=20261022-press-61"></script>
+    <script src="./site-config.js?v=20261022-press-61" defer></script>
+    <script src="./desktop-release-feed.js?v=20261022-press-61" defer></script>
+    <script src="./site/download-links.js?v=20261022-press-61" defer></script>
+    <script src="./assets/work/work.js?v=20261022-press-61" defer></script>
+    <script src="./site/strings.js?v=20261022-press-61" defer></script>
+    <script src="./site/press.js?v=20261022-press-61" defer></script>
   </head>
   <body>
     <svg class="sprite" aria-hidden="true" focusable="false">
@@ -72,7 +73,7 @@
     <header class="masthead" data-masthead>
       <div class="masthead__row">
         <a class="brand" href="#top" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页">
-          <img src="./assets/gravityport-mark.svg?v=20261022-press-59" alt="" width="28" height="28" />
+          <img src="./assets/gravityport-mark.svg?v=20261022-press-61" alt="" width="28" height="28" />
           <span>GravityPort</span>
         </a>
         <nav class="masthead__nav" id="site-nav" data-i18n-attr="aria-label:nav.label" aria-label="主导航">
@@ -643,7 +644,7 @@
 
     <footer class="colophon">
       <div class="colophon__row">
-        <a class="brand" href="#top" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页"><img src="./assets/gravityport-mark.svg?v=20261022-press-59" alt="" width="24" height="24" /><span>GravityPort</span></a>
+        <a class="brand" href="#top" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页"><img src="./assets/gravityport-mark.svg?v=20261022-press-61" alt="" width="24" height="24" /><span>GravityPort</span></a>
         <p class="colophon__line" data-i18n="footer.line">每张图，都记得自己从哪来。</p>
       </div>
       <nav class="colophon__links" data-i18n-attr="aria-label:footer.label" aria-label="页脚导航">
@@ -660,6 +661,19 @@
       <h2 id="qr-title" data-i18n="community.title">加入交流群</h2>
       <img src="./assets/gravityport-community-qr-20261022.jpg" alt="" width="2000" height="2667" loading="lazy" data-i18n-attr="alt:community.alt" />
       <form method="dialog"><button class="btn-line" type="submit" data-i18n="community.close">关闭</button></form>
+    </dialog>
+
+    <dialog class="handoff" data-handoff-dialog aria-labelledby="handoff-title">
+      <h2 id="handoff-title" data-i18n="handoff.title">到电脑上下载</h2>
+      <p data-i18n="handoff.body">GravityPort 装在 Mac 或 Windows 电脑上。复制网址，在电脑上打开就能下载。</p>
+      <p class="handoff__url mono" data-handoff-url>https://gravityport.azhuilab.com/?ref=phone#download</p>
+      <button class="btn-fluo" type="button" data-handoff-copy><svg aria-hidden="true"><use href="#i-copy" /></svg><span data-i18n="handoff.copy">复制网址</span></button>
+      <p class="handoff__status" data-handoff-status role="status"></p>
+      <p data-i18n="handoff.hint">可以用微信「文件传输助手」发到电脑上。</p>
+      <div class="handoff__foot">
+        <a class="textlink" href="#download" data-handoff-anyway data-i18n="handoff.anyway">仍在这台设备上下载</a>
+        <form method="dialog"><button class="btn-line" type="submit" data-i18n="handoff.close">关闭</button></form>
+      </div>
     </dialog>
 
     <p class="slugtip mono" data-slugtip role="tooltip" hidden></p>

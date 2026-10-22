@@ -358,6 +358,9 @@ Images marked as slugged print a tooltip on pointer: ink block, stock mono upper
 ### Stamp
 A 112px fluo ring with a hand "OK", rotated -12deg, beside the download heading: the press-ok mark. One per page, hidden on phones.
 
+### Dialogs
+Stock panels on a 60% ink backdrop, square, with the dialog shadow; the title in the headline voice at 70% width. The community dialog centres the group QR code over a line close button. The phone handoff dialog opens instead of a download on phones and tablets: left-aligned, at most 420px wide, the page address on a stock-2 block in mono (it is data), one full-width fluo copy button, a status line in bold ink, then a text link to download on the device anyway beside the line close button. On stock, the fluo button hovers to ink with fluo text.
+
 ### Motion grammar
 - **Cadence:** one sheet takes 900ms on cubic-bezier(0.16, 1, 0.3, 1). Section blocks marked to print wipe in from the gripper edge (clip-path inset from the bottom to 0) when they enter the viewport.
 - **Print trigger:** a block prints once its top passes 92% of the viewport height, read from `getBoundingClientRect()` on scroll, resize and hashchange plus a 300ms poll. Never trigger it with an IntersectionObserver on the clipped block itself: a block clipped to nothing has zero visible area, so the observer never fires and the page stays blank. Visual checks must scroll the real page; never force the printed state in a capture.

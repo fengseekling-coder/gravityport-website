@@ -205,7 +205,16 @@ window.GP_STRINGS = {
 
     "community.title": "加入交流群",
     "community.alt": "交流群二维码",
-    "community.close": "关闭"
+    "community.close": "关闭",
+
+    "handoff.title": "到电脑上下载",
+    "handoff.body": "GravityPort 装在 Mac 或 Windows 电脑上。复制网址，在电脑上打开就能下载。",
+    "handoff.hint": "可以用微信「文件传输助手」发到电脑上。",
+    "handoff.copy": "复制网址",
+    "handoff.copied": "已复制",
+    "handoff.copyFailed": "没能自动复制，长按网址手动复制。",
+    "handoff.anyway": "仍在这台设备上下载",
+    "handoff.close": "关闭"
   },
 
   en: {
@@ -413,6 +422,15 @@ window.GP_STRINGS = {
 
     "community.title": "Join the community",
     "community.alt": "Community group QR code",
-    "community.close": "Close"
+    "community.close": "Close",
+
+    "handoff.title": "Download on your computer",
+    "handoff.body": "GravityPort runs on Mac and Windows. Copy the link and open it on your computer to download.",
+    "handoff.hint": "Send it to yourself in a chat or by email, then open it there.",
+    "handoff.copy": "Copy link",
+    "handoff.copied": "Copied",
+    "handoff.copyFailed": "Couldn’t copy it automatically. Press and hold the link to copy it.",
+    "handoff.anyway": "Download on this device anyway",
+    "handoff.close": "Close"
   }
 };
