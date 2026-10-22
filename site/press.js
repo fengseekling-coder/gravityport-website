@@ -9,19 +9,23 @@
   const prefersMotion = () => root.classList.contains("motion");
   const $ = (sel, scope) => (scope || document).querySelector(sel);
   const $$ = (sel, scope) => Array.from((scope || document).querySelectorAll(sel));
+  // The English home page lives one level down (/en/), so site files resolve from the site root, not the page.
+  const siteBase = new URL(root.getAttribute("data-site-root") || "./", document.baseURI).href;
+  const fromSite = (u) => (/^(?:[a-z][a-z0-9+.-]*:|\/|#)/i.test(u) ? u : new URL(u, siteBase).href);
   // Absolute URLs: these also end up inside CSS custom properties, where a relative url() would resolve against the stylesheet.
-  const img = (slug, w) => new URL(`assets/work/${slug}-${w || 360}.webp`, document.baseURI).href;
+  const img = (slug, w) => new URL(`assets/work/${slug}-${w || 360}.webp`, siteBase).href;
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   /* ---------------- Language ---------------- */
   let lang = root.getAttribute("data-lang") === "en" ? "en" : "zh";
+  const pageLang = root.getAttribute("data-page-lang");
   const t = (key, vars) => {
     let s = (STR[lang] && STR[lang][key]) ?? (STR.zh && STR.zh[key]) ?? "";
     if (vars) Object.keys(vars).forEach((k) => { s = s.replace(`{${k}}`, vars[k]); });
     return s;
   };
 
-  function applyLang(next) {
+  function applyLang(next, save) {
     lang = next === "en" ? "en" : "zh";
     root.setAttribute("data-lang", lang);
     root.setAttribute("lang", lang === "en" ? "en" : "zh-CN");
@@ -42,12 +46,23 @@
     });
     const titleKey = document.querySelector("title[data-i18n]")?.getAttribute("data-i18n") || "meta.title";
     document.title = t(titleKey);
-    try { localStorage.setItem("gp-lang", lang); } catch (e) { /* storage may be blocked */ }
+    if (save) {
+      try { localStorage.setItem("gp-lang", lang); } catch (e) { /* storage may be blocked */ }
+    }
     root.classList.remove("lang-pending");
     document.dispatchEvent(new CustomEvent("gp:lang", { detail: { lang } }));
   }
 
-  $$("[data-lang-toggle]").forEach((btn) => btn.addEventListener("click", () => applyLang(lang === "zh" ? "en" : "zh")));
+  // Pages with a language of their own (the home pages) go to the other page; the rest switch in place.
+  $$("[data-lang-toggle]").forEach((btn) => btn.addEventListener("click", () => {
+    const next = lang === "zh" ? "en" : "zh";
+    if (pageLang !== "zh" && pageLang !== "en") { applyLang(next, true); return; }
+    try { localStorage.setItem("gp-lang", next); } catch (e) { /* storage may be blocked */ }
+    const params = new URLSearchParams(location.search);
+    params.delete("lang");
+    const query = params.toString();
+    location.href = (next === "en" ? "/en/" : "/") + (query ? `?${query}` : "") + location.hash;
+  }));
 
   /* ---------------- Masthead ---------------- */
   const masthead = $("[data-masthead]");
@@ -950,7 +965,7 @@
   function setDownload(kind, url) {
     $$(`[data-download="${kind}"]`).forEach((a) => {
       if (downloadsEnabled && url) {
-        a.href = url;
+        a.href = fromSite(url);
         a.removeAttribute("aria-disabled");
         a.classList.remove("is-pending");
       } else {
@@ -1019,7 +1034,7 @@
     const lib = window.MOSADesktopReleaseFeed;
     if (!downloadsEnabled || !feedUrl || !lib || typeof window.fetch !== "function") return;
     try {
-      const res = await fetch(feedUrl, { cache: "no-store", credentials: "omit" });
+      const res = await fetch(fromSite(feedUrl), { cache: "no-store", credentials: "omit" });
       if (!res.ok) return;
       const data = await res.json();
       const normalized = lib.normalizeDesktopRelease(data);

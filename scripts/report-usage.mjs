@@ -38,9 +38,14 @@ const DESKTOP_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z
 const EXTENSION_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-Web-Capture-[A-Za-z0-9._-]+\.zip$/;
 const USAGE_REPORT_PATHS = new Set(["/releases/latest.json", "/releases/gravityport/latest.json"]);
 const HOME_PAGE_MIN_BYTES = 20_000;
+// Both home pages: "/" (Chinese) and "/en/" (English).
+const HOME_PAGE_PATHS = new Set(["/", "/en/"]);
 const PUBLIC_PAGE_PATHS = new Map([
   ["/", "/"],
   ["/index.html", "/"],
+  ["/en", "/en/"],
+  ["/en/", "/en/"],
+  ["/en/index.html", "/en/"],
   ["/guide", "/guide/"],
   ["/guide/", "/guide/"],
   ["/guide/index.html", "/guide/"],
@@ -325,10 +330,11 @@ function countPageView(parsed, aggregate) {
   if (method !== "GET" || status < 200 || status >= 300) return;
   const path = normalizePublicPagePath(url.pathname);
   if (!path) return;
-  if (path === "/" && bytes < HOME_PAGE_MIN_BYTES) return;
+  const isHome = HOME_PAGE_PATHS.has(path);
+  if (isHome && bytes < HOME_PAGE_MIN_BYTES) return;
   increment(aggregate.pageViewCounts, path);
   increment(aggregate.dailyPageViews, analyticsDayKey(time));
-  if (path === "/") {
+  if (isHome) {
     aggregate.homePageViews = (Number(aggregate.homePageViews) || 0) + 1;
     increment(aggregate.dailyHomePageViews, analyticsDayKey(time));
   }

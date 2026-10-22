@@ -185,6 +185,23 @@ test("MOSA public page views count home, guide, and demo without treating other-
   assert.equal(repeated.totalDownloadRequests, 2);
 });
 
+test("the English home page counts as its own path and as a home page view", () => {
+  const root = mkdtempSync(join(tmpdir(), "mosa-stats-en-"));
+  writeFileSync(join(root, "access.log"), [
+    logLineWithBytes("02/Sep/2026:09:00:00 +0000", "GET", "/", 200, 24977),
+    logLineWithBytes("02/Sep/2026:09:01:00 +0000", "GET", "/en/?ref=youtube", 200, 25120),
+    logLineWithBytes("02/Sep/2026:09:02:00 +0000", "GET", "/en/index.html", 200, 25120),
+    logLineWithBytes("02/Sep/2026:09:03:00 +0000", "GET", "/en", 301, 162),
+    logLineWithBytes("02/Sep/2026:09:04:00 +0000", "GET", "/en/", 200, 1663),
+  ].join(""));
+
+  const stats = runReport(root);
+  assert.equal(stats.pageViewsByPath["/"], 1);
+  assert.equal(stats.pageViewsByPath["/en/"], 2, "the redirect and the too-small response are not page views");
+  assert.equal(stats.totalHomePageViews, 3);
+  assert.equal(stats.daily.at(-1).homePageViews, 3);
+});
+
 test("existing v2 state backfills page views from already processed bytes without changing download totals", () => {
   const root = mkdtempSync(join(tmpdir(), "mosa-stats-backfill-"));
   const accessLog = join(root, "access.log");
