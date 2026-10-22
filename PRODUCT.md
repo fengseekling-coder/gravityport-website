@@ -87,5 +87,6 @@ Decided by the owner on 2026-10-22; these override anything above.
 
 - Say what GravityPort does for the visitor. One word beats a sentence; one sentence beats two.
 - No limitations, caveats, certification or signing notes, "preview" labels, former names, or internal principles (how missing Prompts are labelled and the like). A good app doesn't need them.
+- Exception: the download area keeps the one-line first-open steps for macOS (Open Anyway) and Windows (Run anyway), and the extension steps say to tick auto-capture. These are steps, not caveats; without them new users cannot open the app or get automatic capture (owner, 10-22).
 - Positioning in one line: 纯本地 AI 素材管理工具 / a fully local AI asset manager.
 - Don't say "open source"; "source on GitHub" is fine. Don't say "free for personal use".
