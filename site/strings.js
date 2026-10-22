@@ -204,7 +204,6 @@ window.GP_STRINGS = {
     "footer.local": "素材只在你的电脑上",
 
     "community.title": "加入交流群",
-    "community.body": "用微信扫码加入。",
     "community.alt": "交流群二维码",
     "community.close": "关闭"
   },
@@ -413,7 +412,6 @@ window.GP_STRINGS = {
     "footer.local": "Your assets stay on your computer",
 
     "community.title": "Join the community",
-    "community.body": "Scan with WeChat to join.",
     "community.alt": "Community group QR code",
     "community.close": "Close"
   }
