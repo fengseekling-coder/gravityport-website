@@ -334,18 +334,10 @@
 
   /* ---------------- Slug tooltip on images ---------------- */
   const tip = $("[data-slugtip]");
-  const statusOf = (w) => {
-    if (!w) return "recorded";
-    if (w.promptStatus === "not-available" || (!w.prompt && !w.instruction)) return "missing";
-    if (w.promptStatus === "provider-visible-prompt") return "unverified";
-    return "recorded";
-  };
-  const ruleFor = { recorded: "rule rule--solid", unverified: "rule rule--dashed", missing: "rule rule--gap" };
   function slugHTML(slug) {
     const w = WORK[slug];
     if (!w) return "";
-    const st = statusOf(w);
-    return `${w.source} · ${w.w}×${w.h} · ${w.created}<br><span class="${ruleFor[st]}"></span>${t(`tip.${st}`)}`;
+    return `${w.source} · ${w.w}×${w.h} · ${w.created}`;
   }
   if (tip) {
     const show = (el, x, y) => {
@@ -363,10 +355,10 @@
 
   /* ---------------- Sources: live feed ---------------- */
   const FEED = [
-    { label: "ChatGPT", color: "var(--src-chatgpt)", slug: "signal-2", say: "鸟太多了，看着有点乱，只留三五只就好。丝带再细一点、更轻盈，像一根发光的丝线。其他保持不变。", gloss: "Too many birds, it looks busy; keep three to five. Make the ribbon thinner and lighter, like a glowing thread. Leave the rest.", status: "recorded" },
-    { label: "Google AI Studio", color: "var(--src-studio)", slug: "yuanzi", say: "把海报中的人物放大一倍，其他的保持不变", gloss: "Make the figure twice as large, keep everything else.", status: "unverified" },
-    { label: "Codex", color: "var(--src-codex)", slug: "pink-train", say: "你直接生图就行，3:4", gloss: "Just generate it, 3:4.", status: "recorded" },
-    { label: "Flow", color: "var(--src-flow)", slug: "singer-flow", say: "", gloss: "", status: "missing" },
+    { label: "ChatGPT", color: "var(--src-chatgpt)", slug: "signal-2", say: "鸟太多了，看着有点乱，只留三五只就好。丝带再细一点、更轻盈，像一根发光的丝线。其他保持不变。", gloss: "Too many birds, it looks busy; keep three to five. Make the ribbon thinner and lighter, like a glowing thread. Leave the rest." },
+    { label: "Google AI Studio", color: "var(--src-studio)", slug: "yuanzi", say: "把海报中的人物放大一倍，其他的保持不变", gloss: "Make the figure twice as large, keep everything else." },
+    { label: "Codex", color: "var(--src-codex)", slug: "pink-train", say: "你直接生图就行，3:4", gloss: "Just generate it, 3:4." },
+    { label: "Flow", color: "var(--src-flow)", slug: "singer-flow", say: "", gloss: "" },
   ];
   const feed = $("[data-feed]");
   if (feed) {
@@ -390,8 +382,7 @@
 
     const writeSlug = (item) => {
       const w = WORK[item.slug];
-      slugEl.innerHTML = `<span>${item.label}</span><span>${w ? `${w.w}×${w.h}` : ""}</span><span>${w ? w.created : ""}</span>` +
-        `<span class="${ruleFor[item.status]}"></span><span>${t(`feed.${item.status}`)}</span>`;
+      slugEl.innerHTML = `<span>${item.label}</span><span>${w ? `${w.w}×${w.h}` : ""}</span><span>${w ? w.created : ""}</span>`;
     };
     const setSource = (item) => {
       label.textContent = item.label;
@@ -408,8 +399,8 @@
         }
         say.hidden = false;
       } else {
-        say.textContent = t("feed.noCard");
-        say.classList.add("is-muted");
+        say.textContent = "";
+        say.hidden = true;
       }
       genImg.style.setProperty("--img", `url("${img(item.slug, 960)}")`);
     };
