@@ -6,9 +6,18 @@
 # 路由到现有官网 TLS 上游 127.0.0.1:9444。
 
 # 放在 HTTPS server {} 级别、所有 location 之前。
-# 旧域名将网页访问内部改写到迁移页，应用更新、下载和 API 路径保持原样。
+# 旧域名将公开网页访问内部改写到迁移页；统计后台继续留在旧域名并保留登录保护。
+# GravityPort 官网域名不提供统计后台。
+if ($host = gravityport.azhuilab.com) {
+    rewrite ^/admin(?:/|$) /__gravityport_admin_not_found last;
+}
+
+location = /__gravityport_admin_not_found {
+    return 404;
+}
+
 if ($host = mosa.azhuilab.com) {
-    rewrite ^/(?!releases/|downloads/|api/|domain-changed\.html$|\.).* /domain-changed.html last;
+    rewrite ^/(?!releases/|downloads/|api/|admin(?:/|$)|_mosa_admin_auth$|domain-changed\.html$|\.).* /domain-changed.html last;
 }
 
 # 迁移页使用内联样式，因此单独允许 inline style；不启用脚本或其他外部资源。
