@@ -8,14 +8,14 @@
     <meta name="theme-color" content="#f2f3f0" />
     <meta name="color-scheme" content="light" />
     <link rel="canonical" href="https://gravityport.azhuilab.com/privacy/" />
-    <link rel="icon" href="../assets/gravityport-mark.svg?v=20261022-press-57" type="image/svg+xml" />
+    <link rel="icon" href="../assets/gravityport-mark.svg?v=20261022-press-59" type="image/svg+xml" />
     <link rel="preload" href="../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="../assets/fonts/noto-sans-sc-900.woff2?v=20261021e" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="../site/press.css?v=20261022-press-57" />
-    <script src="../site/boot.js?v=20261022-press-57"></script>
-    <script src="../site/strings.js?v=20261022-press-57" defer></script>
-    <script src="../site/privacy-strings.js?v=20261022-press-57" defer></script>
-    <script src="../site/press.js?v=20261022-press-57" defer></script>
+    <link rel="stylesheet" href="../site/press.css?v=20261022-press-59" />
+    <script src="../site/boot.js?v=20261022-press-59"></script>
+    <script src="../site/strings.js?v=20261022-press-59" defer></script>
+    <script src="../site/privacy-strings.js?v=20261022-press-59" defer></script>
+    <script src="../site/press.js?v=20261022-press-59" defer></script>
   </head>
   <body class="page-privacy">
     <svg class="sprite" aria-hidden="true" focusable="false">
@@ -54,7 +54,7 @@
     <header class="masthead" data-masthead>
       <div class="masthead__row">
         <a class="brand" href="../" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页">
-          <img src="../assets/gravityport-mark.svg?v=20261022-press-57" alt="" width="28" height="28" />
+          <img src="../assets/gravityport-mark.svg?v=20261022-press-59" alt="" width="28" height="28" />
           <span>GravityPort</span>
         </a>
         <nav class="masthead__nav" id="site-nav" data-i18n-attr="aria-label:nav.label" aria-label="主导航">
@@ -87,7 +87,7 @@
               <h1 class="display" id="pp-title" data-i18n="pp.title">隐私政策</h1>
               <div class="pp-intro">
                 <p class="intro__lede" data-i18n="pp.lede">GravityPort 是本地素材库：没有账号，没有云端，素材库只在你的电脑上。这一页写清楚它读什么、存什么、什么时候联网。</p>
-                <p class="pp-updated mono" data-i18n="pp.updated">最后更新 2026-10-21</p>
+                <p class="pp-updated mono" data-i18n="pp.updated">最后更新 2026-10-22</p>
               </div>
             </div>
             <div class="keys" data-print>
@@ -96,7 +96,7 @@
             </div>
           </div>
         </div>
-        <p class="slug slug--sheet" aria-hidden="true"><span class="mono">SHEET 01 / 02</span><span class="mono">K FLOOD</span><span class="mono">PRIVACY · 2026-10-21</span></p>
+        <p class="slug slug--sheet" aria-hidden="true"><span class="mono">SHEET 01 / 02</span><span class="mono">K FLOOD</span><span class="mono">PRIVACY · 2026-10-22</span></p>
       </section>
 
       <!-- SHEET: policy -->
@@ -124,16 +124,16 @@
               </section>
               <section class="policy__sec" id="desktop" aria-labelledby="desktop-title">
                 <h2 id="desktop-title" data-i18n="pp.desktop.title">ChatGPT 桌面版的对话</h2>
-                <div class="policy__body" data-i18n-html="pp.desktop.body"><p>ChatGPT 桌面版（现在 Codex 也在这个 App 里）不把聊天里的图存到电脑上。为了收录这些图，GravityPort 这样做：</p><ol><li>开着 Codex 来源时，约每 10 秒读一次桌面版的状态文件 <code>~/.codex/.codex-global-state.json</code>，只用其中的对话编号和每段对话最后一次提问的编号，不读提示词正文。</li><li>某段对话安静 90 秒后，交给已配对、开着自动收录的扩展，一次一段。</li><li>扩展用浏览器里已登录的 ChatGPT 账号，向 <code>chatgpt.com/api/auth/session</code> 取一次访问令牌，只用来读这一段对话、看里面有没有生成图。令牌不保存，不发给 GravityPort，也不发给 chatgpt.com 以外的任何地方。</li><li>没有图就到此为止；有图时，在一个最小化、不抢焦点的窗口里打开这段对话，像你自己打开一样收录，20 到 110 秒后自动关闭。</li></ol><p>这些请求由你的浏览器用你自己的 ChatGPT 登录发出，GravityPort 本身不连接 OpenAI。想停止：关掉扩展的自动收录，或停用扩展。想让 GravityPort 完全不读这个状态文件：用 <code>MOSA_DISABLE_BRIDGES=codex</code> 关掉 Codex 来源，这也会停止导入 Codex 的图。</p></div>
+                <div class="policy__body" data-i18n-html="pp.desktop.body"><p>ChatGPT 桌面版（现在 Codex 也在这个 App 里）不把聊天里的图存到电脑上。为了收录这些图，GravityPort 这样做：</p><ol><li>开着 Codex 来源时，约每 10 秒读一次桌面版的状态文件 <code>~/.codex/.codex-global-state.json</code>，只用其中的对话编号和每段对话最后一次提问的编号，不读提示词正文。</li><li>某段对话安静 90 秒后，交给已配对、开着自动收录的扩展，一次一段。</li><li>扩展用浏览器里已登录的 ChatGPT 账号，向 <code>chatgpt.com/api/auth/session</code> 取一次访问令牌，只用来读这一段对话、看里面有没有生成图。令牌不保存，不发给 GravityPort，也不发给 chatgpt.com 以外的任何地方。</li><li>没有图就到此为止；有图时，在一个最小化、不抢焦点的窗口里打开这段对话，像你自己打开一样收录，20 到 110 秒后自动关闭。</li></ol><p>这些请求由你的浏览器用你自己的 ChatGPT 登录发出，GravityPort 本身不连接 OpenAI。想停止：关掉扩展的自动收录，或停用扩展。想让 GravityPort 完全不读这个状态文件：用 <code>GRAVITYPORT_DISABLE_BRIDGES=codex</code> 关掉 Codex 来源，这也会停止导入 Codex 的图。</p></div>
               </section>
               <section class="policy__sec" id="online" aria-labelledby="online-title">
                 <h2 id="online-title" data-i18n="pp.online.title">自动联网</h2>
-                <div class="policy__body" data-i18n-html="pp.online.body"><p>GravityPort 的本地服务只监听 <code>127.0.0.1</code>，不对外开放。桌面版只在下面两种情况自动联网，都发到 <code>mosa.azhuilab.com</code>，都不含素材、Prompt、文件名、路径或账号信息。</p><h3>检查更新</h3><p>打开窗口时，如果距上次检查超过 24 小时，或者你手动检查，就读一次更新清单。只有你点「下载并更新」，才下载对应平台的更新包；下载后按大小和 SHA-256 校验，只替换 App 本身，不碰素材库。</p><h3>匿名活跃信号</h3><p>按太平洋时间每天最多一次，发一个不带正文的请求，只含：</p><ul><li>事件类型（首次启动或每日活跃）和协议版本；</li><li>一个随机安装 ID：在你电脑上随机生成，不来自设备序列号、账号、路径或硬件信息；</li><li>GravityPort 版本、系统类别（macOS / Windows / 其他）和芯片架构（如 <code>arm64</code>、<code>x64</code>）。</li></ul><p>App 里没有开关，用环境变量 <code>MOSA_DISABLE_TELEMETRY=1</code> 关闭。关闭后安装 ID 只存在本地，不再发送。</p><pre class="cmd mono"><code><span class="tok-dim"># macOS，只对这一次启动生效</span>
-MOSA_DISABLE_TELEMETRY=1 /Applications/GravityPort.app/Contents/MacOS/GravityPort
+                <div class="policy__body" data-i18n-html="pp.online.body"><p>GravityPort 的本地服务只监听 <code>127.0.0.1</code>，不对外开放。桌面版只在下面两种情况自动联网，都发到 <code>gravityport.azhuilab.com</code>，都不含素材、Prompt、文件名、路径或账号信息。</p><h3>检查更新</h3><p>打开窗口时，如果距上次检查超过 24 小时，或者你手动检查，就读一次更新清单。只有你点「下载并更新」，才下载对应平台的更新包；下载后按大小和 SHA-256 校验，只替换 App 本身，不碰素材库。</p><h3>匿名活跃信号</h3><p>按太平洋时间每天最多一次，发一个不带正文的请求，只含：</p><ul><li>事件类型（首次启动或每日活跃）和协议版本；</li><li>一个随机安装 ID：在你电脑上随机生成，不来自设备序列号、账号、路径或硬件信息；</li><li>GravityPort 版本、系统类别（macOS / Windows / 其他）和芯片架构（如 <code>arm64</code>、<code>x64</code>）。</li></ul><p>App 里没有开关，用环境变量 <code>GRAVITYPORT_DISABLE_TELEMETRY=1</code> 关闭（0.3.3 及以后的版本；旧版本请先在「设置 → 关于」里更新）。关闭后安装 ID 只存在本地，不再发送。</p><pre class="cmd mono"><code><span class="tok-dim"># macOS，只对这一次启动生效</span>
+GRAVITYPORT_DISABLE_TELEMETRY=1 /Applications/GravityPort.app/Contents/MacOS/GravityPort
 <span class="tok-dim"># macOS，从程序坞或访达打开也生效，直到重启电脑</span>
-launchctl setenv MOSA_DISABLE_TELEMETRY 1
+launchctl setenv GRAVITYPORT_DISABLE_TELEMETRY 1
 <span class="tok-dim"># Windows，之后每次启动都生效</span>
-setx MOSA_DISABLE_TELEMETRY 1</code></pre><p>Windows 上要恢复，在「系统属性 → 环境变量」里删掉它。</p><p>App 不下载任何模型。官网的下载链接可能带一个来源标签（如 <code>ref=…</code>），只用来统计下载从哪个页面来，不需要登录。</p></div>
+setx GRAVITYPORT_DISABLE_TELEMETRY 1</code></pre><p>Windows 上要恢复，在「系统属性 → 环境变量」里删掉它。</p><p>App 不下载任何模型。官网的下载链接可能带一个来源标签（如 <code>ref=…</code>），只用来统计下载从哪个页面来，不需要登录。</p></div>
               </section>
               <section class="policy__sec" id="pinterest" aria-labelledby="pinterest-title">
                 <h2 id="pinterest-title" data-i18n="pp.pinterest.title">Pinterest（尚未开放）</h2>
@@ -141,11 +141,11 @@ setx MOSA_DISABLE_TELEMETRY 1</code></pre><p>Windows 上要恢复，在「系统
               </section>
               <section class="policy__sec" id="feedback" aria-labelledby="feedback-title">
                 <h2 id="feedback-title" data-i18n="pp.feedback.title">反馈</h2>
-                <div class="policy__body" data-i18n-html="pp.feedback.body"><p>只有你在「设置 → 反馈」里点「发送」，才会提交到 <code>mosa.azhuilab.com/api/feedback</code>，内容是：</p><ul><li>你写的正文（最多 5000 字），和你自愿填写的联系方式（只用来回复你）；</li><li>反馈类型、界面语言、App 版本、系统和版本、芯片架构；</li><li>勾选「附上诊断日志」时（默认不勾），附带最近的运行日志。发送前能看到完整内容；路径里的用户名、令牌和邮箱会被隐藏，可能含提示词的行整行去掉。</li></ul><p>不发送安装 ID、素材、提示词和素材库位置。服务器不保存 IP，只在内存里临时用来防止滥用。反馈存在官网服务器的私有目录，只有开发者能看，只用来回复你和改进产品。要删除你发过的反馈，写信到 <a href="mailto:fengseekling@gmail.com">fengseekling@gmail.com</a>，说明大概的发送时间。</p></div>
+                <div class="policy__body" data-i18n-html="pp.feedback.body"><p>只有你在「设置 → 反馈」里点「发送」，才会提交到 <code>gravityport.azhuilab.com/api/feedback</code>，内容是：</p><ul><li>你写的正文（最多 5000 字），和你自愿填写的联系方式（只用来回复你）；</li><li>反馈类型、界面语言、App 版本、系统和版本、芯片架构；</li><li>勾选「附上诊断日志」时（默认不勾），附带最近的运行日志。发送前能看到完整内容；路径里的用户名、令牌和邮箱会被隐藏，可能含提示词的行整行去掉。</li></ul><p>不发送安装 ID、素材、提示词和素材库位置。服务器不保存 IP，只在内存里临时用来防止滥用。反馈存在官网服务器的私有目录，只有开发者能看，只用来回复你和改进产品。要删除你发过的反馈，写信到 <a href="mailto:fengseekling@gmail.com">fengseekling@gmail.com</a>，说明大概的发送时间。</p></div>
               </section>
               <section class="policy__sec" id="control" aria-labelledby="control-title">
                 <h2 id="control-title" data-i18n="pp.control.title">你能控制的</h2>
-                <div class="policy__body" data-i18n-html="pp.control.body"><ul><li>在「设置 → 存储」里把素材库搬到另一个空文件夹。</li><li>关掉扩展的自动收录：自动收录和 ChatGPT 桌面版的收录都停止，手动保存还能用。停用或卸载扩展则完全停止。</li><li>用 <code>MOSA_DISABLE_BRIDGES</code> 关掉某个来源（<code>codex</code>、<code>grok</code>、<code>cowart</code>）。</li><li>用 <code>MOSA_DISABLE_TELEMETRY=1</code> 关掉匿名活跃信号，见「自动联网」。</li><li>Pinterest 在你连接之前不会被访问，断开连接即删除本地令牌。</li><li>删除、移进回收站或归档素材。归档只是整理，不等于安全擦除；系统备份、浏览器数据和各工具自己的历史需要另外清理。</li></ul></div>
+                <div class="policy__body" data-i18n-html="pp.control.body"><ul><li>在「设置 → 存储」里把素材库搬到另一个空文件夹。</li><li>关掉扩展的自动收录：自动收录和 ChatGPT 桌面版的收录都停止，手动保存还能用。停用或卸载扩展则完全停止。</li><li>用 <code>GRAVITYPORT_DISABLE_BRIDGES</code> 关掉某个来源（<code>codex</code>、<code>grok</code>、<code>cowart</code>）。</li><li>用 <code>GRAVITYPORT_DISABLE_TELEMETRY=1</code> 关掉匿名活跃信号，见「自动联网」。</li><li>Pinterest 在你连接之前不会被访问，断开连接即删除本地令牌。</li><li>删除、移进回收站或归档素材。归档只是整理，不等于安全擦除；系统备份、浏览器数据和各工具自己的历史需要另外清理。</li></ul></div>
               </section>
               <section class="policy__sec" id="third" aria-labelledby="third-title">
                 <h2 id="third-title" data-i18n="pp.third.title">第三方服务</h2>
@@ -159,13 +159,13 @@ setx MOSA_DISABLE_TELEMETRY 1</code></pre><p>Windows 上要恢复，在「系统
             </div>
           </div>
         </div>
-        <p class="slug slug--sheet" aria-hidden="true"><span class="mono">SHEET 02 / 02</span><span class="mono">K</span><span class="mono">POLICY · BASED ON PRIVACY.MD 2026-10-21</span></p>
+        <p class="slug slug--sheet" aria-hidden="true"><span class="mono">SHEET 02 / 02</span><span class="mono">K</span><span class="mono">POLICY · BASED ON PRIVACY.MD 2026-10-22</span></p>
       </section>
     </main>
 
     <footer class="colophon">
       <div class="colophon__row">
-        <a class="brand" href="../" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页"><img src="../assets/gravityport-mark.svg?v=20261022-press-57" alt="" width="24" height="24" /><span>GravityPort</span></a>
+        <a class="brand" href="../" data-i18n-attr="aria-label:nav.home" aria-label="GravityPort 首页"><img src="../assets/gravityport-mark.svg?v=20261022-press-59" alt="" width="24" height="24" /><span>GravityPort</span></a>
         <p class="colophon__line" data-i18n="footer.line">每张图，都记得自己从哪来。</p>
       </div>
       <nav class="colophon__links" data-i18n-attr="aria-label:footer.label" aria-label="页脚导航">
