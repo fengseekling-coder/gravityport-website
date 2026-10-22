@@ -712,7 +712,7 @@ p, li, dd { text-wrap: pretty; }
 .qr::backdrop { background: rgba(18, 18, 18, 0.6); }
 .qr h2 { font-family: var(--font-display); font-weight: 860; font-stretch: 70%; font-size: 30px; }
 .qr p { color: var(--muted); }
-.qr img { width: 220px; height: 220px; }
+.qr img { width: 260px; max-width: calc(100vw - 96px); height: auto; }
 .slugtip { position: fixed; z-index: 80; max-width: 360px; padding: 8px 10px; background: var(--ink); color: var(--stock); pointer-events: none; text-transform: uppercase; line-height: 1.5; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
 .slugtip .rule { width: 26px; margin-right: 6px; color: var(--fluo); }
 
