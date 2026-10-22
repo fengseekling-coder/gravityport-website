@@ -79,3 +79,22 @@ test("omitting the product keeps the legacy MOSA-only behaviour", () => {
 test("an unknown product name is rejected", () => {
   assert.throws(() => select(["MOSA-darwin-arm64-0.2.1.zip", "MOSA-win32-x64-0.2.1.zip"], 4, "Fedora"), /Unknown desktop release product/);
 });
+
+test("a stale release that shipped a Windows installer names it as a third column", () => {
+  const remote = [
+    ...versionList("GravityPort", ["0.3.3", "0.3.4", "0.3.5", "0.3.6", "0.3.7", "0.3.8"]),
+    "GravityPort-darwin-arm64-0.3.3.dmg",
+    "GravityPort-darwin-arm64-0.3.4.dmg",
+    "GravityPort-win32-x64-0.3.4.exe",
+    "GravityPort-win32-x64-0.3.8.exe",
+    // An installer never makes a release complete on its own, and never
+    // belongs to macOS or to the other product.
+    "GravityPort-win32-x64-0.3.0.exe",
+    "GravityPort-darwin-arm64-0.3.4.exe",
+    "MOSA-win32-x64-0.3.4.exe",
+  ];
+  assert.deepEqual(select(remote, 4, "GravityPort"), [
+    "GravityPort-darwin-arm64-0.3.4.dmg\tGravityPort-win32-x64-0.3.4.zip\tGravityPort-win32-x64-0.3.4.exe",
+    "GravityPort-darwin-arm64-0.3.3.dmg\tGravityPort-win32-x64-0.3.3.zip",
+  ]);
+});

@@ -66,7 +66,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 本仓库的 `main` 分支配置了 GitHub Actions。推送到 `main` 后，Actions 会通过专用 SSH 部署账号把网站和 `downloads/` 下载包同步到 DMIT 的 `/var/www/mosa-website/`，并执行 HTTPS 冒烟检查；`browser-extension/` 只放在仓库里，不发布到网站；不会启动 Node.js，也不会反向代理 MOSA 本地服务。
 
-桌面包约 128–154 MB，超过 GitHub 单文件限制，不提交到 Git。macOS 本机的监控任务会观察 `<mosa 仓库>/out/make/dmg/darwin/arm64/` 与 `<mosa 仓库>/out/make/zip/win32/x64/`：当 macOS arm64 DMG 和 Windows x64 ZIP 的同版本包都写完后，自动校验包、计算 SHA-256，通过受限的部署账号上传到网站，并原子更新 `releases/latest.json`。服务器仅保留最新四个完整桌面版本（当前版本加三个历史版本）；扩展 ZIP 与不成对文件不会被这项清理触及。
+桌面包约 128–154 MB，超过 GitHub 单文件限制，不提交到 Git。macOS 本机的监控任务会观察 `<mosa 仓库>/out/make/dmg/darwin/arm64/` 与 `<mosa 仓库>/out/make/zip/win32/x64/`（Windows 安装程序在 `<mosa 仓库>/out/make/installer/win32/x64/`）：当 macOS arm64 DMG 和 Windows x64 ZIP 的同版本包都写完后，自动校验包、计算 SHA-256，通过受限的部署账号上传到网站，并原子更新 `releases/latest.json`。服务器仅保留最新四个完整桌面版本（当前版本加三个历史版本）；扩展 ZIP 与不成对文件不会被这项清理触及。
 
 首次启用监控：
 

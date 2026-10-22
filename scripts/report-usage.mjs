@@ -34,7 +34,8 @@ const USAGE_EVENTS = new Set(["first_launch", "daily_active"]);
 const USAGE_PLATFORMS = new Set(["macos", "windows", "other"]);
 const ARCH_PATTERN = /^[0-9A-Za-z._-]{1,24}$/;
 const VERSION_PATTERN = /^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
-const DESKTOP_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z0-9._-]+\.zip$/;
+// Update ZIPs, the macOS DMG and the Windows installer.
+const DESKTOP_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z0-9._-]+\.(?:zip|dmg|exe)$/;
 const EXTENSION_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-Web-Capture-[A-Za-z0-9._-]+\.zip$/;
 const USAGE_REPORT_PATHS = new Set(["/releases/latest.json", "/releases/gravityport/latest.json"]);
 const HOME_PAGE_MIN_BYTES = 20_000;
@@ -149,12 +150,18 @@ function setPairsToMap(value) {
 
 function hydrateAggregate(value) {
   if (!value || typeof value !== "object") return newAggregate();
+  const downloadCounts = pairsToMap(value.downloadCounts);
+  // The kinds are worked out again from the per-file counts, so files counted
+  // before the patterns knew them (macOS DMGs, the Windows installer) move
+  // out of "other".
+  const byKind = { desktop: new Map(), extension: new Map(), other: new Map() };
+  for (const [file, count] of downloadCounts) byKind[classifyDownload(file)].set(file, count);
   return {
     installs: pairsToMap(value.installs),
-    downloadCounts: pairsToMap(value.downloadCounts),
-    desktopDownloadCounts: pairsToMap(value.desktopDownloadCounts),
-    extensionDownloadCounts: pairsToMap(value.extensionDownloadCounts),
-    otherDownloadCounts: pairsToMap(value.otherDownloadCounts),
+    downloadCounts,
+    desktopDownloadCounts: byKind.desktop,
+    extensionDownloadCounts: byKind.extension,
+    otherDownloadCounts: byKind.other,
     refCounts: pairsToMap(value.refCounts),
     dailyDownloads: pairsToMap(value.dailyDownloads),
     dailyActiveSets: setPairsToMap(value.dailyActiveSets),

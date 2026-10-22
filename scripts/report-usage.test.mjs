@@ -253,6 +253,44 @@ test("existing v2 state backfills page views from already processed bytes withou
   assert.equal(repeated.totalHomePageViews, 1, "page-view backfill must run only once");
 });
 
+test("downloads stored before the desktop pattern knew their file move out of other downloads", () => {
+  const root = mkdtempSync(join(tmpdir(), "mosa-stats-reclassify-"));
+  const statePath = join(root, "private", "usage-state.json");
+  writeFileSync(join(root, "access.log"), "");
+  mkdirSync(dirname(statePath), { recursive: true });
+  writeFileSync(statePath, `${JSON.stringify({
+    schemaVersion: 2,
+    updatedAt: NOW,
+    coverageStart: Date.parse(NOW),
+    sources: [],
+    aggregate: {
+      installs: [],
+      downloadCounts: [
+        ["GravityPort-darwin-arm64-0.3.3.dmg", 5],
+        ["GravityPort-darwin-arm64-0.3.3.zip", 1],
+        ["GravityPort-Web-Capture-0.15.37.zip", 2],
+        ["robots.txt", 1],
+      ],
+      desktopDownloadCounts: [["GravityPort-darwin-arm64-0.3.3.zip", 1]],
+      extensionDownloadCounts: [["GravityPort-Web-Capture-0.15.37.zip", 2]],
+      otherDownloadCounts: [["GravityPort-darwin-arm64-0.3.3.dmg", 5], ["robots.txt", 1]],
+      refCounts: [["direct", 9]],
+      dailyDownloads: [],
+      dailyActiveSets: [],
+      dailyFirstLaunchSets: [],
+      pageViewCounts: [],
+    },
+  })}\n`);
+
+  const report = runReport(root);
+  assert.equal(report.totalDownloadRequests, 9);
+  assert.equal(report.totalDesktopDownloadRequests, 6, "the DMG downloads now count as desktop downloads");
+  assert.equal(report.desktopDownloadsByFile["GravityPort-darwin-arm64-0.3.3.dmg"], 5);
+  assert.equal(report.totalExtensionDownloadRequests, 2);
+  assert.equal(report.totalOtherDownloadRequests, 1);
+  assert.equal(runReport(root).totalDesktopDownloadRequests, 6, "a later run keeps the same counts");
+});
+
 test("the same installation reporting on both update sources counts exactly once", () => {
   const root = mkdtempSync(join(tmpdir(), "mosa-stats-dual-source-"));
   const accessLog = join(root, "access.log");
@@ -297,14 +335,19 @@ test("GravityPort desktop packages are counted as desktop downloads", () => {
     logLine("02/Sep/2026:09:00:00 +0000", "GET", "/downloads/GravityPort-darwin-arm64-0.3.0.zip", 200),
     logLine("02/Sep/2026:09:01:00 +0000", "GET", "/downloads/GravityPort-win32-x64-0.3.0.zip", 206),
     logLine("02/Sep/2026:09:02:00 +0000", "GET", "/downloads/MOSA-Web-Capture-0.15.3.zip", 200),
+    logLine("02/Sep/2026:09:03:00 +0000", "GET", "/downloads/GravityPort-darwin-arm64-0.3.3.dmg", 200),
+    logLine("02/Sep/2026:09:04:00 +0000", "GET", "/downloads/GravityPort-win32-x64-0.3.4.exe", 200),
+    logLine("02/Sep/2026:09:05:00 +0000", "GET", "/downloads/something-else.exe", 200),
   ].join(""));
 
   const report = runReport(root);
-  assert.equal(report.totalDesktopDownloadRequests, 2);
+  assert.equal(report.totalDesktopDownloadRequests, 4);
   assert.equal(report.desktopDownloadsByFile["GravityPort-darwin-arm64-0.3.0.zip"], 1);
   assert.equal(report.desktopDownloadsByFile["GravityPort-win32-x64-0.3.0.zip"], 1);
+  assert.equal(report.desktopDownloadsByFile["GravityPort-darwin-arm64-0.3.3.dmg"], 1, "the macOS DMG");
+  assert.equal(report.desktopDownloadsByFile["GravityPort-win32-x64-0.3.4.exe"], 1, "the Windows installer");
   assert.equal(report.totalExtensionDownloadRequests, 1, "the extension pattern is unchanged");
-  assert.equal(report.totalOtherDownloadRequests, 0, "GravityPort zips must not fall into other downloads");
+  assert.equal(report.totalOtherDownloadRequests, 1, "only files outside the desktop and extension packages fall into other downloads");
 });
 
 test("GravityPort and MOSA extension packages are both counted as extension downloads", () => {

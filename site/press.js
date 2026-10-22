@@ -949,7 +949,6 @@
   // A campaign link (?ref=…) passes its tag on to the download, so the stats panel counts downloads per channel.
   const pageRef = links ? links.campaignRef(location.search) : "";
   let release = null;
-  let rawRelease = null;
   const fmtSize = (bytes) => {
     if (typeof bytes !== "number" || bytes <= 0) return "";
     return bytes >= 1e6 ? `${Math.round(bytes / 1e6)} MB` : `${Math.max(1, Math.round(bytes / 1e3))} KB`;
@@ -977,24 +976,42 @@
     setAll("[data-mac-version]", v(macVersion));
     setAll("[data-windows-version]", v(winVersion));
     setAll("[data-extension-version]", v(extVersion));
-    const raw = rawRelease && rawRelease.platforms ? rawRelease.platforms : {};
-    const winRaw = release && release.windows && raw.windows && raw.windows.file === release.windows.file ? raw.windows : null;
-    const macRaw = release && release.mac && raw.macos && raw.macos.file === release.mac.file ? raw.macos : null;
+    const winFile = feedFile("windows");
     const sized = (n) => (n ? ` · ${fmtSize(n)}` : "");
-    setAll("[data-windows-size]", sized(knownSize("windows", winRaw && winRaw.size)));
-    // The Mac button links the DMG while the feed's size describes the update
-    // ZIP, so the feed size only applies when the link itself is a ZIP.
-    const macLink = $('[data-download="mac"]');
-    const macLinksZip = macLink && /\.zip(?:[?#]|$)/i.test(macLink.getAttribute("href") || "");
-    setAll("[data-mac-size]", sized(knownSize("mac", macLinksZip && macRaw ? macRaw.size : 0)));
+    setAll("[data-windows-size]", sized(knownSize("windows", winFile && winFile.size)));
+    const macFile = feedFile("mac");
+    setAll("[data-mac-size]", sized(knownSize("mac", macFile && macFile.size)));
     setAll("[data-extension-size]", sized(knownSize("extension", 0)));
+    // The Windows button links the installer once a release ships one, and the portable ZIP before that.
+    const winDetail = /\.exe$/i.test(linkedFile("windows")) ? "download.win.detailInstaller" : "download.win.detail";
+    $$("[data-windows-detail]").forEach((el) => {
+      el.setAttribute("data-i18n", winDetail);
+      el.textContent = t(winDetail);
+    });
     const sha = $("[data-windows-sha]");
     if (sha) {
-      const ok = winRaw && /^[0-9a-f]{64}$/i.test(winRaw.sha256 || "");
+      const ok = Boolean(winFile && winFile.sha256);
       sha.hidden = !ok;
-      if (ok) $("[data-windows-sha-value]").textContent = winRaw.sha256;
+      if (ok) $("[data-windows-sha-value]").textContent = winFile.sha256;
     }
   }
+  // The file a download button links now, by name.
+  function linkedFile(kind) {
+    const a = $(`[data-download="${kind}"]`);
+    if (!a || a.classList.contains("is-pending")) return "";
+    try {
+      return decodeURIComponent(new URL(a.href, document.baseURI).pathname.split("/").pop());
+    } catch (e) {
+      return "";
+    }
+  }
+  // The feed's size and SHA-256 describe one file, so they are shown only while the button links
+  // that file: the checked-in config can point it elsewhere (the Mac button links the DMG, while the
+  // feed lists the update ZIP).
+  const feedFile = (kind) => {
+    const item = release && release[kind];
+    return item && item.file === linkedFile(kind) ? item : null;
+  };
   const configured = (kind, item) => {
     const c = config[kind];
     const cv = c && typeof c.version === "string" ? c.version.replace(/^v/i, "") : "";
@@ -1034,7 +1051,6 @@
       const normalized = lib.normalizeDesktopRelease(data);
       if (!normalized || !normalized.version) return;
       release = normalized;
-      rawRelease = data;
       if (release.mac) setDownload("mac", configured("mac", release.mac));
       if (release.windows) setDownload("windows", configured("windows", release.windows));
       refreshDownloads();

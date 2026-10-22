@@ -164,3 +164,70 @@ test("artifact filenames with an unknown product prefix are rejected", () => {
   const normalized = feed.normalizeDesktopRelease(crossProduct);
   assert.ok(normalized.windows, "the MOSA prefix stays accepted");
 });
+
+const installerEntry = (version, overrides = {}) => ({
+  file: `GravityPort-win32-x64-${version}.exe`,
+  size: 3,
+  sha256: "c".repeat(64),
+  ...overrides,
+});
+
+const gravityPortWindows = (version, installer) => ({
+  version,
+  platforms: {
+    windows: windowsEntry(version, { file: `GravityPort-win32-x64-${version}.zip`, ...(installer === undefined ? {} : { installer }) }),
+  },
+});
+
+test("Windows links the installer when the release ships one, with the installer's own size and SHA-256", () => {
+  const { windows } = feed.normalizeDesktopRelease(gravityPortWindows("0.3.4", installerEntry("0.3.4")));
+  assert.equal(windows.file, "GravityPort-win32-x64-0.3.4.exe");
+  assert.equal(windows.url, "https://gravityport.azhuilab.com/downloads/GravityPort-win32-x64-0.3.4.exe");
+  assert.equal(windows.size, 3);
+  assert.equal(windows.sha256, "c".repeat(64));
+});
+
+test("each linked file carries the size and SHA-256 the manifest records for it", () => {
+  const release = { version: "0.3.3", platforms: { macos: macEntry("0.3.3"), windows: windowsEntry("0.3.3") } };
+  const { mac, windows } = feed.normalizeDesktopRelease(release);
+  assert.deepEqual([mac.size, mac.sha256], [1, "a".repeat(64)]);
+  assert.deepEqual([windows.size, windows.sha256], [2, "b".repeat(64)]);
+  const malformed = feed.normalizeDesktopRelease({
+    version: "0.3.3",
+    platforms: { windows: windowsEntry("0.3.3", { size: -1, sha256: "not-a-hash" }) },
+  }).windows;
+  assert.equal(malformed.url, "https://gravityport.azhuilab.com/downloads/MOSA-win32-x64-0.3.3.zip", "the link still works");
+  assert.deepEqual([malformed.size, malformed.sha256], [0, ""], "malformed facts are not shown");
+});
+
+test("a release without a usable installer keeps linking the Windows ZIP", () => {
+  assert.equal(feed.normalizeDesktopRelease(gravityPortWindows("0.3.3")).windows.file, "GravityPort-win32-x64-0.3.3.zip");
+  for (const installer of [
+    installerEntry("0.3.3"),
+    installerEntry("0.3.4", { file: "MOSA-win32-x64-0.3.4.exe" }),
+    installerEntry("0.3.4", { file: "GravityPort-win32-x64-0.3.4.msi" }),
+    installerEntry("0.3.4", { file: "../GravityPort-win32-x64-0.3.4.exe" }),
+    installerEntry("0.3.4", { size: 0 }),
+    installerEntry("0.3.4", { size: "3" }),
+    installerEntry("0.3.4", { sha256: "not-a-hash" }),
+    installerEntry("0.3.4", { sha256: undefined }),
+    "GravityPort-win32-x64-0.3.4.exe",
+    [],
+    null,
+  ]) {
+    assert.equal(
+      feed.normalizeDesktopRelease(gravityPortWindows("0.3.4", installer)).windows.file,
+      "GravityPort-win32-x64-0.3.4.zip",
+      JSON.stringify(installer),
+    );
+  }
+});
+
+test("the installer never stands in for a missing or invalid Windows ZIP, and never brings its own host", () => {
+  const noZip = { version: "0.3.4", platforms: { windows: { installer: installerEntry("0.3.4") } } };
+  assert.equal(feed.normalizeDesktopRelease(noZip).windows, null);
+  const staleZip = { version: "0.3.4", platforms: { windows: windowsEntry("0.3.3", { installer: installerEntry("0.3.4") }) } };
+  assert.equal(feed.normalizeDesktopRelease(staleZip).windows, null);
+  const hostile = gravityPortWindows("0.3.4", installerEntry("0.3.4", { url: "https://evil.example/GravityPort.exe" }));
+  assert.equal(feed.normalizeDesktopRelease(hostile).windows.url, "https://gravityport.azhuilab.com/downloads/GravityPort-win32-x64-0.3.4.exe");
+});
