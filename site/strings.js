@@ -4,6 +4,7 @@ window.GP_STRINGS = {
     "meta.title": "GravityPort — 每张 AI 图，都记得自己从哪来",
     "meta.description": "GravityPort 是免费的本地 AI 素材库：把 ChatGPT、Gemini、Flow、Google AI Studio、Codex 等工具生成的图片和视频收回你的电脑，连同 Prompt、来源和每一轮修改。不用注册，不上传。",
     "meta.ogLocale": "zh_CN",
+    "meta.ogImageAlt": "GravityPort：那条提示词去哪了？",
 
     "nav.skip": "跳到正文",
     "nav.home": "GravityPort 首页",
@@ -234,6 +235,7 @@ window.GP_STRINGS = {
     "meta.title": "GravityPort — Every AI image remembers where it came from",
     "meta.description": "GravityPort is a free, local library for AI images and video. It brings what you make in ChatGPT, Gemini, Flow, Google AI Studio, Codex and more back to your computer, with the Prompt, the source and every round of changes. No account, no uploads.",
     "meta.ogLocale": "en_US",
+    "meta.ogImageAlt": "GravityPort: Where did that prompt go?",
 
     "nav.skip": "Skip to content",
     "nav.home": "GravityPort home",
