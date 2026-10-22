@@ -713,6 +713,22 @@ p, li, dd { text-wrap: pretty; }
 .qr h2 { font-family: var(--font-display); font-weight: 860; font-stretch: 70%; font-size: 30px; }
 .qr p { color: var(--muted); }
 .qr img { width: 260px; max-width: calc(100vw - 96px); height: auto; }
+/* Phones and tablets: a download button opens this, with the address to open on a computer. */
+.handoff { border: 0; padding: 28px 24px 24px; width: min(420px, calc(100vw - 32px)); background: var(--stock); color: var(--ink); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35); display: none; }
+.handoff[open] { display: grid; gap: 14px; }
+.handoff::backdrop { background: rgba(18, 18, 18, 0.6); }
+.handoff h2 { font-family: var(--font-display); font-weight: 860; font-stretch: 70%; font-size: 30px; line-height: 1.1; }
+.handoff p { color: var(--muted); font-size: 15px; line-height: 1.6; }
+.handoff .handoff__url { padding: 12px 14px; background: var(--stock-2); color: var(--ink); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; -webkit-user-select: all; user-select: all; }
+.handoff .btn-fluo { justify-content: center; }
+.handoff .btn-fluo:hover { background: var(--ink); color: var(--fluo); box-shadow: none; }
+.handoff .handoff__status { color: var(--ink); font-weight: 700; }
+.handoff__status:empty { display: none; }
+.handoff__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-top: 4px; }
+.handoff__foot .textlink { font-size: 15px; color: var(--muted); }
+.handoff__foot .btn-line { color: var(--ink); }
+.handoff__foot .btn-line:hover { background: var(--ink); color: var(--stock); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.handoff__field { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .slugtip { position: fixed; z-index: 80; max-width: 360px; padding: 8px 10px; background: var(--ink); color: var(--stock); pointer-events: none; text-transform: uppercase; line-height: 1.5; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
 .slugtip .rule { width: 26px; margin-right: 6px; color: var(--fluo); }
 

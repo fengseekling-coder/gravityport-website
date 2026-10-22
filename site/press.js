@@ -945,6 +945,9 @@
   /* ---------------- Downloads (release feed) ---------------- */
   const config = window.MOSA_SITE_CONFIG || {};
   const downloadsEnabled = config.downloadsEnabled !== false;
+  const links = window.GP_DOWNLOAD_LINKS || null;
+  // A campaign link (?ref=…) passes its tag on to the download, so the stats panel counts downloads per channel.
+  const pageRef = links ? links.campaignRef(location.search) : "";
   let release = null;
   let rawRelease = null;
   const fmtSize = (bytes) => {
@@ -956,7 +959,7 @@
   function setDownload(kind, url) {
     $$(`[data-download="${kind}"]`).forEach((a) => {
       if (downloadsEnabled && url) {
-        a.href = fromSite(url);
+        a.href = links ? links.withRef(fromSite(url), pageRef) : fromSite(url);
         a.removeAttribute("aria-disabled");
         a.classList.remove("is-pending");
       } else {
@@ -1048,6 +1051,57 @@
     const value = $("[data-windows-sha-value]").textContent;
     try { await navigator.clipboard.writeText(value); btn.textContent = t("download.copied"); setTimeout(() => { btn.textContent = t("download.copy"); }, 1600); } catch (e) { /* clipboard denied */ }
   }));
+
+  /* ---------------- Phones: hand the download over to a computer ---------------- */
+  // The desktop app cannot be installed on a phone or tablet, so there a download button
+  // opens a dialog with this page's address to copy and open on a computer instead.
+  const handoff = $("[data-handoff-dialog]");
+  const handheld = Boolean(links) && links.isHandheld(navigator.userAgent, navigator.maxTouchPoints, navigator.userAgentData && navigator.userAgentData.mobile);
+  if (handoff && handheld && typeof handoff.showModal === "function") {
+    const address = links.handoffUrl(location.href, pageRef);
+    const urlBox = $("[data-handoff-url]", handoff);
+    const status = $("[data-handoff-status]", handoff);
+    const anyway = $("[data-handoff-anyway]", handoff);
+    urlBox.textContent = address;
+    const copyText = async (text) => {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (e) { /* older in-app browsers have no clipboard API: try the selection below */ }
+      const field = document.createElement("textarea");
+      field.className = "handoff__field";
+      field.value = text;
+      field.setAttribute("readonly", "");
+      handoff.append(field);
+      field.select();
+      field.setSelectionRange(0, text.length);
+      let copied = false;
+      try { copied = document.execCommand("copy"); } catch (e) { copied = false; }
+      field.remove();
+      return copied;
+    };
+    $$("[data-download]").forEach((a) => a.addEventListener("click", (e) => {
+      if (a.classList.contains("is-pending")) return;
+      e.preventDefault();
+      anyway.href = a.href;
+      status.textContent = "";
+      handoff.showModal();
+    }));
+    $("[data-handoff-copy]", handoff).addEventListener("click", async () => {
+      if (await copyText(address)) {
+        status.textContent = t("handoff.copied");
+        return;
+      }
+      // Leave the address selected so a long press copies it.
+      status.textContent = t("handoff.copyFailed");
+      const range = document.createRange();
+      range.selectNodeContents(urlBox);
+      const selection = window.getSelection();
+      if (selection) { selection.removeAllRanges(); selection.addRange(range); }
+    });
+    anyway.addEventListener("click", () => handoff.close());
+    handoff.addEventListener("click", (e) => { if (e.target === handoff) handoff.close(); });
+  }
 
   /* ---------------- Community dialog, year ---------------- */
   const dialog = $("[data-community-dialog]");
