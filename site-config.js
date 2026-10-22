@@ -9,13 +9,13 @@ window.MOSA_SITE_CONFIG = Object.freeze({
   // 兜底到 rc.14 时会以 "Windows Preview 0.2.1-rc.14" 呈现，绝不伪装成
   // 最新版。URL 指向真实存在的第一方下载文件。
   mac: {
-    version: "v0.3.2",
-    url: "./downloads/GravityPort-darwin-arm64-0.3.2.dmg",
+    version: "v0.3.3",
+    url: "./downloads/GravityPort-darwin-arm64-0.3.3.dmg",
     label: "下载 macOS 包",
   },
   windows: {
-    version: "v0.3.2",
-    url: "./downloads/GravityPort-win32-x64-0.3.2.zip",
+    version: "v0.3.3",
+    url: "./downloads/GravityPort-win32-x64-0.3.3.zip",
     label: "下载 Windows 包",
   },
   extension: {
