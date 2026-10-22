@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 
 const HOST = "127.0.0.1";
 const PORT = Number(process.env.PINTEREST_TOKEN_PORT || 39128);
-const CLIENT_ID = process.env.PINTEREST_CLIENT_ID || "1624448";
+const CLIENT_ID = process.env.PINTEREST_CLIENT_ID || "1628239";
 const SECRET_FILE = process.env.PINTEREST_SECRET_FILE || "";
 
 const MAX_BODY_BYTES = 8 * 1024;

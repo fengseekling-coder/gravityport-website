@@ -140,7 +140,7 @@ test("authorization_code success with only whitelisted fields", async () => {
     assert.equal(res.status, 200);
     assert.equal(captured.method, "POST");
     assert.equal(captured.contentType, "application/x-www-form-urlencoded");
-    assert.equal(captured.authorization, `Basic ${Buffer.from("1624448:test_secret").toString("base64")}`);
+    assert.equal(captured.authorization, `Basic ${Buffer.from("1628239:test_secret").toString("base64")}`);
     assert.match(captured.body, /grant_type=authorization_code/);
     assert.match(captured.body, /code=test_code_789/);
     assert.match(captured.body, /redirect_uri=http%3A%2F%2Flocalhost%3A43517%2Fapi%2Fpinterest%2Fcallback/);

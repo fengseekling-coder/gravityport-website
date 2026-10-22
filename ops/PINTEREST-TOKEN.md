@@ -45,7 +45,7 @@ ls -la /etc/gravityport/pinterest-app-secret
 
 - `__MOSA_NODE_BIN__`：Node.js 可执行文件路径（例如 `/usr/bin/node`）
 - `__MOSA_SITE_ROOT__`：官网仓库根目录（例如 `/var/www/mosa.azhuilab.com`）
-- `__PINTEREST_CLIENT_ID__`：Pinterest 应用 ID（默认 `1624448`）
+- `__PINTEREST_CLIENT_ID__`：Pinterest 应用 ID（默认 `1628239`）
 - `__PINTEREST_TOKEN_PORT__`：服务监听端口（默认 `39128`）
 - `__PINTEREST_ALLOWED_REDIRECTS__`：允许的回调地址（默认 `http://localhost:43517/api/pinterest/callback`）
 
