@@ -141,7 +141,7 @@ window.GP_STRINGS = {
     "local.signal.end": "。",
 
     "free.title": "免费。",
-    "free.body": "免费使用，不用注册。现有功能以后也不收费；将来如果加入 AI 功能，只对那部分收费。",
+    "free.body": "免费使用，GravityPort 纯本地 AI 素材管理工具。",
     "free.github": "源码公开在 GitHub",
 
     "download.title": "装上它，<br />从下一张图<wbr />开始。",
@@ -351,7 +351,7 @@ window.GP_STRINGS = {
     "local.signal.end": ".",
 
     "free.title": "Free.",
-    "free.body": "Free to use, no sign-up. What it does today stays free; if AI features arrive later, only those may cost money.",
+    "free.body": "Free to use. GravityPort is a fully local AI asset manager.",
     "free.github": "Source available on GitHub",
 
     "download.title": "Install it. Start with your next image.",
