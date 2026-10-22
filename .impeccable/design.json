@@ -500,14 +500,6 @@
       "css": ":host{--stock:#f2f3f0;--stock-2:#e6e7e2;--ink:#121212;--fluo:#39ff14;--muted:#5b5c57;--muted-ink:#a2a39d;--ease:cubic-bezier(0.16,1,0.3,1);--font-display:'Archivo','GP Hei','PingFang SC',sans-serif;--font-mono:'Fragment Mono',ui-monospace,Menlo,monospace;--font-hand:'GP Hand','Kaiti SC',cursive;--font-ui:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;}.ds-sheet{background:var(--stock);padding:28px 32px 34px;} .ds-trim{position:relative;} .ds-live{background:var(--ink);color:var(--stock);padding:48px 40px;} .ds-live h2{margin:0;font-family:var(--font-display);font-weight:860;font-stretch:68%;font-size:44px;line-height:0.93;letter-spacing:-0.012em;} .ds-c{position:absolute;width:0;height:0;} .ds-c::before,.ds-c::after{content:'';position:absolute;background:var(--ink);} .ds-c::before{height:1px;width:22px;top:0;} .ds-c::after{width:1px;height:22px;left:0;} .tl{left:0;top:0;} .tr{right:0;top:0;} .bl{left:0;bottom:0;} .br{right:0;bottom:0;} .tl::before,.bl::before{right:9px;} .tr::before,.br::before{left:9px;} .tl::after,.tr::after{bottom:9px;} .bl::after,.br::after{top:9px;} .ds-slug{display:flex;gap:6px 22px;margin:0;padding:14px 0 0 30px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.02em;text-transform:uppercase;color:var(--muted);} .ds-slug span:first-child{color:var(--ink);}"
     },
     {
-      "name": "Provenance Rules",
-      "kind": "custom",
-      "refersTo": "slug",
-      "description": "Rule-type vocabulary: solid recorded, dashed observed-unverified, gap unavailable.",
-      "html": "<ul class=\"ds-rules\"><li><span class=\"ds-rule\"></span>Recorded</li><li><span class=\"ds-rule dashed\"></span>Observed, unverified</li><li><span class=\"ds-rule gap\"></span>Unavailable</li></ul>",
-      "css": ":host{--stock:#f2f3f0;--stock-2:#e6e7e2;--ink:#121212;--fluo:#39ff14;--muted:#5b5c57;--muted-ink:#a2a39d;--ease:cubic-bezier(0.16,1,0.3,1);--font-display:'Archivo','GP Hei','PingFang SC',sans-serif;--font-mono:'Fragment Mono',ui-monospace,Menlo,monospace;--font-hand:'GP Hand','Kaiti SC',cursive;--font-ui:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;}.ds-rules{list-style:none;margin:0;padding:24px;display:grid;gap:14px;background:var(--stock);color:var(--ink);font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:0.02em;} .ds-rules li{display:flex;align-items:center;gap:14px;} .ds-rule{display:inline-block;width:44px;height:0;border-top:2px solid currentColor;} .ds-rule.dashed{border-top-style:dashed;} .ds-rule.gap{border:0;height:2px;background:linear-gradient(90deg,currentColor 0 34%,transparent 34% 66%,currentColor 66%);}"
-    },
-    {
       "name": "Proof with Round Tag",
       "kind": "card",
       "refersTo": "proof-tag",
@@ -538,7 +530,6 @@
     "keyCharacteristics": [
       "Every section is a sheet: margin, crop marks, live area, numbered slug with an ink spec.",
       "Stock / key black / one fluorescent spot; CMY only as print furniture.",
-      "Provenance drawn by rule type: solid recorded, dashed observed-unverified, gap unavailable.",
       "Condensed black display in Archivo and Noto Sans SC Black; Fragment Mono only for data and slugs; Long Cang only for hand proof notes.",
       "The real GravityPort window, built in HTML with the owner's own images, is the hero and the demos.",
       "One press cadence (900 ms, cubic-bezier(0.16, 1, 0.3, 1)); reduced motion shows every final state."
@@ -605,11 +596,6 @@
         "section": "elevation"
       },
       {
-        "name": "The Rule Type Rule",
-        "body": "Any place that states where an image came from shows the matching rule type, and the rule type always matches the record. Never draw a solid rule over an unverified or missing Prompt.",
-        "section": "shapes"
-      },
-      {
         "name": "The Print, Never Fade Rule",
         "body": "Reveals are prints (clip-path wipes), plates registering, or slugs typing out. No opacity fade-slide, no scale-up entrances, no bounce.",
         "section": "components"
@@ -624,7 +610,6 @@
       "**Do** build every new page (privacy, release notes, online demo) as a run of sheets: margin, four crop marks, a live area that is ink, stock or fluo, and a mono slug with `SHEET NN / TT` and the ink spec that actually printed.",
       "**Do** alternate ink and stock sheets; reserve the fluo flood for one sheet per page at most.",
       "**Do** use fluo for exactly the primary action, selection and proof marks on any sheet.",
-      "**Do** draw every provenance statement with its rule type: solid recorded, dashed observed-unverified, gap unavailable.",
       "**Do** set section headings in condensed black display (Archivo 820–900 at 62–78% width; GP Hei for Chinese) and size Chinese and English separately with the `:root[lang|=\"en\"]` overrides.",
       "**Do** rerun `python3 -I scripts/fetch-site-fonts.py` after changing any display line or hand note, and register a new page's display and hand keys in that script.",
       "**Do** use the owner's approved images from `assets/work/` with their recorded slug data; show the product with the HTML app mock.",
