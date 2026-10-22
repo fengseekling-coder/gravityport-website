@@ -190,7 +190,6 @@ Density is a printer's density: condensed black display lines, mono data in the 
 **Key Characteristics:**
 - Every section is a sheet: margin, crop marks, live area, numbered slug with an ink spec.
 - Stock / key black / one fluorescent spot; CMY only as print furniture.
-- Provenance drawn by rule type: solid recorded, dashed observed-unverified, gap unavailable.
 - Condensed black display in Archivo and Noto Sans SC Black; Fragment Mono only for data and slugs; Long Cang only for hand proof notes.
 - The real GravityPort window, built in HTML with the owner's own images, is the hero and the demos.
 - One press cadence (900 ms, cubic-bezier(0.16, 1, 0.3, 1)); reduced motion shows every final state.
@@ -239,7 +238,7 @@ A cool, slightly green-grey paper, a near-neutral key black, and one fluorescent
 - **Display** (860, width 68%, clamp(38px, 5.4vw, 84px), line-height 1.06, -0.02em; English clamp(42px, 6.2vw, 96px), line-height 0.93): one per sheet, the section heading, balanced wrap, deliberate line breaks. Chinese lines break only at `<br>` and `<wbr>` points written into the string (keep-all, with anywhere as a last resort).
 - **Display Hero** (860, width 68%, clamp(46px, 5.3vw, 84px); English up to 100px at 0.92; phones clamp(34px, 11.6vw, 52px)): the h1 only.
 - **Display Flood** (900, width 62%, clamp(96px, 17vw, 340px) Chinese / clamp(96px, 25vw, 460px) English, 0.9, -0.03em): a single word on a fluo flood sheet, sized to fill the left 7/12 column; the text beside it starts on the lede line and ends on the word's bottom line (Chinese) or baseline (English). One per page at most.
-- **Headline** (860, width 72%, clamp(26px, 2.6vw, 38px), 1.1): sub-heading inside a sheet (the honesty block); the colophon line and dialog title use the same voice at 70%.
+- **Headline** (860, width 72%, clamp(26px, 2.6vw, 38px), 1.1): sub-heading inside a sheet; the colophon line and dialog title use the same voice at 70%.
 - **Title** (820, width 78%, clamp(20px, 1.8vw, 26px), 1.2; download platforms run to clamp(22px, 2.1vw, 30px)): column heads, platform names, first-run heading.
 - **Lede** (400, clamp(16px, 1.25vw, 19px), 1.75; English 1.6): one paragraph under a display line, max 34em Chinese / 30em English. All running text uses pretty wrapping so no line ends on a single character.
 - **Body** (400, 16px, 1.7; English 1.6): running text; table and note text steps to 14.5–15.5px.
@@ -272,7 +271,7 @@ A cool, slightly green-grey paper, a near-neutral key black, and one fluorescent
 
 **Intro.** Every sheet opens the same way: the display line on the left, the lede on the right, bottom-aligned (7/5 split). Only the versions sheet stacks its lede under the heading, because its demo runs the full width below. There is no full-width "wide" intro.
 
-**Grids inside the live area.** Asymmetric splits in twelfths (7/5, 5/7, 6/7, 7/4, 4/7, 3/9), never equal-thirds feature cards except where the content is genuinely three parallel columns (honesty cases, local docket). Where two columns sit side by side (context ticket, organize, versions compare, sort), both start on the same top line and end on the same bottom line: the shorter column pushes its last block to the bottom, or its rows share out the height. Sources and agents run their demo as one full-width row under the intro instead of a side column.
+**Grids inside the live area.** Asymmetric splits in twelfths (7/5, 5/7, 6/7, 7/4, 4/7, 3/9), never equal-thirds feature cards except where the content is genuinely three parallel columns (local docket). Where two columns sit side by side (context ticket, organize, versions compare, sort), both start on the same top line and end on the same bottom line: the shorter column pushes its last block to the bottom, or its rows share out the height. Sources and agents run their demo as one full-width row under the intro instead of a side column.
 
 **Rhythm.** Section internals step by `section-gap` (clamp(48px, 6vw, 96px)); tables and lists use 14–20px row padding; display to lede gap is clamp(20px, 4vw, 72px) side by side or clamp(18px, 2vw, 28px) stacked.
 
@@ -308,14 +307,6 @@ The press sheets are flat: depth comes from floods (ink vs stock vs fluo), heavy
 
 Square. Every site element (buttons, chips, tags, fields, tables, floods, tooltips, dialog) has 0 radius. Rounded corners belong to the product: the app window (12px all round; on phones, where the hero window crops off the right trim, only its top-left corner shows), app controls (7px), cards (6px), tiles (5px), chat bubbles in the feed and console (14px / 12px with a 3px tail corner). The only circles are the registration target, the hand-drawn marker ring and the OK stamp. Lines are print lines: 1px hairlines for crop marks and row rules, 3px ink head rules over tables, FAQ, docket columns and the colophon, 1.5px inset strokes for line buttons.
 
-**Provenance rules** are a shape vocabulary of their own: a 44px horizontal 2px stroke beside every piece of provenance.
-- **Solid**: recorded (the Prompt or instruction was captured from the source).
-- **Dashed**: observed, unverified (text visible on the page near the image, not confirmed as its Prompt).
-- **Gap** (solid, open middle third, solid): unavailable (nothing recorded; GravityPort says so instead of inventing).
-
-### Named Rules
-**The Rule Type Rule.** Any place that states where an image came from shows the matching rule type, and the rule type always matches the record. Never draw a solid rule over an unverified or missing Prompt.
-
 ## Components
 
 ### Buttons
@@ -336,7 +327,7 @@ Blocky, square, heavy; they look like a printed panel, not a pill.
 - **Colophon:** a 3px ink head rule, a condensed display line, underlined links (30% ink, full ink on hover), and a mono uppercase slug.
 
 ### Tables and ruled lists
-Docket and data lists (context ticket, honesty cases, FAQ, platforms, first-run steps, install steps, trash list): a 3px head rule (ink on stock, stock on black), 1px rows (ink on stock, 16% stock hairline on black), a fixed-width term column (7.2em Chinese, 9em English). The context ticket's rows share out the poster's height so its last rule lands on the poster's bottom edge. FAQ uses details/summary with a drawn plus that rotates to a cross over 300ms; it sits on an ink sheet with stock rules.
+Docket and data lists (context ticket, FAQ, platforms, first-run steps, install steps, trash list): a 3px head rule (ink on stock, stock on black), 1px rows (ink on stock, 16% stock hairline on black), a fixed-width term column (7.2em Chinese, 9em English). The context ticket's rows share out the poster's height so its last rule lands on the poster's bottom edge. FAQ uses details/summary with a drawn plus that rotates to a cross over 300ms; it sits on an ink sheet with stock rules.
 
 ### Sources list
 The capture sources read as one line of names (Archivo 700, 16–19px), each led by its 8×16px source-ink chip, followed by one 13px muted sentence on how each group is collected. No per-source cards.
@@ -385,7 +376,6 @@ A 112px fluo ring with a hand "OK", rotated -12deg, beside the download heading:
 - **Do** build every new page (privacy, release notes, online demo) as a run of sheets: margin, four crop marks, a live area that is ink, stock or fluo, and a mono slug with `SHEET NN / TT` and the ink spec that actually printed.
 - **Do** alternate ink and stock sheets; reserve the fluo flood for one sheet per page at most.
 - **Do** use fluo for exactly the primary action, selection and proof marks on any sheet.
-- **Do** draw every provenance statement with its rule type: solid recorded, dashed observed-unverified, gap unavailable.
 - **Do** set section headings in condensed black display (Archivo 820–900 at 62–78% width; GP Hei for Chinese) and size Chinese and English separately with the `:root[lang|="en"]` overrides.
 - **Do** rerun `python3 -I scripts/fetch-site-fonts.py` after changing any display line or hand note, and register a new page's display and hand keys in that script.
 - **Do** use the owner's approved images from `assets/work/` with their recorded slug data; show the product with the HTML app mock.
