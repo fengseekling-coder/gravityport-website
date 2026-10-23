@@ -1,4 +1,4 @@
-# MOSA Website
+# GravityPort Website
 
 这是一个和主项目 `mosa/` 完全分离的静态官网目录，不依赖主项目运行时，也不引用主项目内部文件。
 
@@ -14,12 +14,12 @@ python3 -m http.server 8080
 
 ## 配置下载地址
 
-桌面下载按钮只读取 `releases/latest.json`：页面不会内置旧桌面包地址，因此只会提供当前清单中的最新 macOS / Windows 成对版本。`site-config.js` 只保留浏览器扩展的静态下载地址：
+桌面下载按钮只读取 `releases/gravityport/latest.json`：页面不会内置旧桌面包地址，因此只会提供当前清单中的最新 macOS / Windows 成对版本。`site-config.js` 只保留浏览器扩展的静态下载地址：
 
 ```js
 window.MOSA_SITE_CONFIG = Object.freeze({
   desktop: {
-    feedUrl: "./releases/latest.json",
+    feedUrl: "./releases/gravityport/latest.json",
   },
   mac: {
     version: "",
@@ -32,8 +32,8 @@ window.MOSA_SITE_CONFIG = Object.freeze({
     label: "下载 Windows 包",
   },
   extension: {
-    version: "0.15.3",
-    url: "./downloads/GravityPort-Web-Capture-0.15.3.zip",
+    version: "v0.15.37",
+    url: "./downloads/GravityPort-Web-Capture-0.15.37.zip",
     label: "浏览器包下载",
   },
 });
@@ -52,7 +52,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 - `site-config.js`：版本号与下载地址
 - `guide/`、`demo/`：旧地址，自动跳到首页对应的那一屏
 - `robots.txt` / `sitemap.xml`：搜索引擎抓取与站点地图
-- `releases/latest.json`：桌面版本、校验值和平台包清单
+- `releases/gravityport/latest.json`：桌面版本、校验值和平台包清单
 - `browser-extension/`：浏览器扩展当前版本的源码快照和发布说明
 - `downloads/`：正式安装包/扩展包放置位置，不属于主应用目录
 - `scripts/`：桌面包校验、上传和自动监控脚本
@@ -66,7 +66,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 本仓库的 `main` 分支配置了 GitHub Actions。推送到 `main` 后，Actions 会通过专用 SSH 部署账号把网站和 `downloads/` 下载包同步到 DMIT 的 `/var/www/mosa-website/`，并执行 HTTPS 冒烟检查；`browser-extension/` 只放在仓库里，不发布到网站；不会启动 Node.js，也不会反向代理 MOSA 本地服务。
 
-桌面包约 128–154 MB，超过 GitHub 单文件限制，不提交到 Git。macOS 本机的监控任务会观察 `<mosa 仓库>/out/make/dmg/darwin/arm64/` 与 `<mosa 仓库>/out/make/zip/win32/x64/`（Windows 安装程序在 `<mosa 仓库>/out/make/installer/win32/x64/`）：当 macOS arm64 DMG 和 Windows x64 ZIP 的同版本包都写完后，自动校验包、计算 SHA-256，通过受限的部署账号上传到网站，并原子更新 `releases/latest.json`。服务器仅保留最新四个完整桌面版本（当前版本加三个历史版本）；扩展 ZIP 与不成对文件不会被这项清理触及。
+桌面包约 128–154 MB，超过 GitHub 单文件限制，不提交到 Git。macOS 本机的监控任务会观察 `<mosa 仓库>/out/make/dmg/darwin/arm64/` 与 `<mosa 仓库>/out/make/zip/win32/x64/`（Windows 安装程序在 `<mosa 仓库>/out/make/installer/win32/x64/`）：当 macOS arm64 DMG 和 Windows x64 ZIP 的同版本包都写完后，自动校验包、计算 SHA-256，通过受限的部署账号上传到网站，并原子更新 `releases/gravityport/latest.json`。服务器仅保留最新四个完整桌面版本（当前版本加三个历史版本）；扩展 ZIP 与不成对文件不会被这项清理触及。
 
 首次启用监控：
 
@@ -93,10 +93,10 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 ```bash
 git add -A
-git commit -m "Update MOSA website"
+git commit -m "Update GravityPort website"
 git push origin main
 ```
 
 仓库 Actions 需要以下 Secrets：`DEPLOY_HOST`、`DEPLOY_PORT`、`DEPLOY_USER`、`DEPLOY_REMOTE_DIR`、`DEPLOY_SSH_KEY` 和 `DEPLOY_KNOWN_HOSTS`。其中私钥只保存在 GitHub Secrets，不放入仓库。
 
-正式包按以下约定保存：`downloads/GravityPort-Web-Capture-版本.zip`、`downloads/MOSA-darwin-arm64-版本.dmg` 或 `downloads/MOSA-版本.pkg`。浏览器扩展 ZIP 可以提交并由 Actions 同步；桌面 DMG/ZIP 由本机监控程序直接发布。服务器只保留最新四组完整的桌面包，旧包不出现在官网页面。
+正式包按以下约定保存：`downloads/GravityPort-Web-Capture-版本.zip`、`downloads/GravityPort-darwin-arm64-版本.dmg`、`downloads/GravityPort-win32-x64-版本.zip`，带安装程序的版本还有 `downloads/GravityPort-win32-x64-版本.exe`。浏览器扩展 ZIP 可以提交并由 Actions 同步；桌面 DMG/ZIP 由本机监控程序直接发布。服务器只保留最新四组完整的桌面包，旧包不出现在官网页面。

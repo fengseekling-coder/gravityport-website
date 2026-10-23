@@ -18,7 +18,7 @@ mosa-website/
 ├── browser-extension/                 当前扩展版本的源码快照和说明（不发布到网站）
 │   └── MOSA-Web-Capture-0.15.3/
 └── downloads/                         会发布到官网的安装包和扩展包
-    └── MOSA-Web-Capture-0.15.3.zip
+    └── GravityPort-Web-Capture-0.15.37.zip
 ```
 
 公开下载地址统一使用：
@@ -55,7 +55,7 @@ sudo certbot certonly --webroot -w /var/www/letsencrypt \
 cd <官网仓库>
 git diff --check
 git add -A
-git commit -m "Update MOSA website"
+git commit -m "Update GravityPort website"
 git push origin main
 ```
 
@@ -66,7 +66,7 @@ git push origin main
 3. 同步 `downloads/` 中的正式包。
 4. 检查 GravityPort 首页、MOSA 旧域名迁移页、更新清单、CSS、JS、HTTPS 和 HTTP→HTTPS 路由。
 
-静态文件更新不需要启动 Node.js，也不需要重启或 reload Nginx。`index.html` 和 `site-config.js` 配置为不缓存；页面启动时还会读取 `releases/latest.json`，因此桌面包更新后不需要再修改页面文案。
+静态文件更新不需要启动 Node.js，也不需要重启或 reload Nginx。`index.html` 和 `site-config.js` 配置为不缓存；页面启动时还会读取 `releases/gravityport/latest.json`，因此桌面包更新后不需要再修改页面文案。
 
 已发布桌面客户端仍从 `https://mosa.azhuilab.com/releases/latest.json` 或 `https://mosa.azhuilab.com/releases/gravityport/latest.json` 读取更新清单，并从旧域名的 `/downloads/` 下载。官网页面和分享链接统一使用 `gravityport.azhuilab.com`。发布器会同步写入 `version`、`publishedAt`、双语 `notes`、两个平台的文件名、大小和 SHA-256；客户端只读取版本和说明，不接受清单里的任意跳转 URL。
 
@@ -102,9 +102,9 @@ cd <官网仓库>
 1. 两个平台存在相同版本的桌面包。
 2. 文件大小连续稳定后，macOS DMG 通过 `hdiutil verify`，Windows ZIP 通过 `unzip -t` 且包含对应的启动文件；有 Windows 安装程序时，它必须是 Windows 程序（文件头 `MZ`）。
 3. 上传到服务器临时目录后，服务器端 SHA-256 与本机一致。
-4. 两个包先进入 `downloads/`，最后才原子替换 `releases/latest.json`。
+4. 两个包先进入 `downloads/`，最后才原子替换 `releases/gravityport/latest.json`。
 
-因此只有一个平台、正在生成中的包、损坏包或低于已发布版本的包都不会推进线上版本。每次替换前的旧清单会备份到服务器 `releases/history/`，便于回滚。桌面包会保留最新四个完整版本（当前版本加三个历史版本）：发布器在新包与 `releases/latest.json` 原子切换完成后，才删除更旧的 macOS / Windows 成对包（那个版本有 Windows 安装程序的话一起删）；浏览器扩展 ZIP 和不成对文件不会被删除。
+因此只有一个平台、正在生成中的包、损坏包或低于已发布版本的包都不会推进线上版本。每次替换前的旧清单会备份到服务器 `releases/gravityport/history/`，便于回滚。桌面包会保留最新四个完整版本（当前版本加三个历史版本）：发布器在新包与 `releases/gravityport/latest.json` 原子切换完成后，才删除更旧的 macOS / Windows 成对包（那个版本有 Windows 安装程序的话一起删）；浏览器扩展 ZIP 和不成对文件不会被删除。
 
 手动只校验、不上传：
 
@@ -119,7 +119,7 @@ cd <官网仓库>
 ~/Library/Logs/MOSA/desktop-release-monitor.err.log
 ```
 
-桌面包大于 GitHub 单文件限制，所以不要把它们复制到仓库后提交；发布器直接从主项目输出目录上传。若需要人工发布，确保文件名保持 `MOSA-darwin-arm64-版本.dmg`、`MOSA-win32-x64-版本.zip` 和 `MOSA-win32-x64-版本.exe`。
+桌面包大于 GitHub 单文件限制，所以不要把它们复制到仓库后提交；发布器直接从主项目输出目录上传。若需要人工发布，确保文件名保持 `GravityPort-darwin-arm64-版本.dmg`、`GravityPort-win32-x64-版本.zip` 和 `GravityPort-win32-x64-版本.exe`。
 
 ## 4. 发布浏览器扩展包
 
@@ -129,29 +129,29 @@ cd <官网仓库>
 browser-extension/MOSA-Web-Capture-0.15.3/
 ```
 
-新版本先新建一个版本目录，并确保目录名与 `manifest.json` 的 `version` 一致。例如下一版 `0.14.1`：
+新版本先新建一个版本目录，并确保目录名与 `manifest.json` 的 `version` 一致，目录和 ZIP 都用 `GravityPort-Web-Capture-` 前缀。例如下一版 `0.15.38`：
 
 ```text
-browser-extension/MOSA-Web-Capture-0.14.1/
+browser-extension/GravityPort-Web-Capture-0.15.38/
 ```
 
 把扩展运行文件放入该目录。扩展包至少应包含 `manifest.json`、`background.js`、`content.js`、`content.css`、`page-hook.js`、`provider-sites.js`、`options.html` 和 `options.js`。然后从版本目录内部打包，保证 ZIP 根目录直接包含 `manifest.json`：
 
 ```bash
-cd browser-extension/MOSA-Web-Capture-0.14.1
-rm -f ../../downloads/MOSA-Web-Capture-0.14.1.zip
-zip -qr -X ../../downloads/MOSA-Web-Capture-0.14.1.zip .
+cd browser-extension/GravityPort-Web-Capture-0.15.38
+rm -f ../../downloads/GravityPort-Web-Capture-0.15.38.zip
+zip -qr -X ../../downloads/GravityPort-Web-Capture-0.15.38.zip .
 cd <官网仓库>
-unzip -t downloads/MOSA-Web-Capture-0.14.1.zip
-unzip -l downloads/MOSA-Web-Capture-0.14.1.zip | grep 'manifest.json'
+unzip -t downloads/GravityPort-Web-Capture-0.15.38.zip
+unzip -l downloads/GravityPort-Web-Capture-0.15.38.zip | grep 'manifest.json'
 ```
 
 再编辑 `site-config.js`，把扩展配置切换到新包：
 
 ```js
 extension: {
-  version: "v0.14.1",
-  url: "./downloads/MOSA-Web-Capture-0.14.1.zip",
+  version: "v0.15.38",
+  url: "./downloads/GravityPort-Web-Capture-0.15.38.zip",
   label: "浏览器包下载",
 },
 ```
@@ -160,27 +160,27 @@ extension: {
 
 ```bash
 git add -A
-git commit -m "Publish MOSA Web Capture 0.14.1"
+git commit -m "Publish GravityPort Web Capture 0.15.38"
 git push origin main
 ```
 
-用户下载 ZIP 后解压，在 Chrome / Chromium 的 `chrome://extensions` 开启开发者模式，选择“加载已解压的扩展程序”。这个包不是签名 CRX，扩展仍然只连接用户本机的 `127.0.0.1` 或 `localhost` MOSA 服务。
+用户下载 ZIP 后解压，在 Chrome / Chromium 的 `chrome://extensions` 开启开发者模式，选择“加载已解压的扩展程序”。这个包不是签名 CRX，扩展仍然只连接用户本机的 `127.0.0.1` 或 `localhost` GravityPort 服务。
 
 ## 5. 发布 macOS 安装包
 
-当前标准桌面发布会自动把 macOS DMG 与 Windows ZIP 成对上传，并更新 `releases/latest.json`；不需要再手动修改 `site-config.js`。若只拿到一个独立的 macOS `.dmg` 或 `.pkg`，才使用下面的单包发布方式：
+当前标准桌面发布会自动把 macOS DMG 与 Windows ZIP 成对上传，并更新 `releases/gravityport/latest.json`；不需要再手动修改 `site-config.js`。若只拿到一个独立的 macOS `.dmg`，才使用下面的单包发布方式：
 
 ```text
-downloads/MOSA-darwin-arm64-0.2.1-rc.5.dmg
+downloads/GravityPort-darwin-arm64-0.3.3.dmg
 ```
 
 然后在 `site-config.js` 填写真实版本和地址：
 
 ```js
 mac: {
-  version: "v0.2.1-rc.5",
-  url: "./downloads/MOSA-darwin-arm64-0.2.1-rc.5.dmg",
-  label: "下载 MOSA",
+  version: "v0.3.3",
+  url: "./downloads/GravityPort-darwin-arm64-0.3.3.dmg",
+  label: "下载 macOS 包",
 },
 ```
 
@@ -188,18 +188,18 @@ mac: {
 
 ```bash
 git add -A
-git commit -m "Publish MOSA macOS 0.2.0"
+git commit -m "Publish GravityPort macOS 0.3.3"
 git push origin main
 ```
 
 没有正式安装包时，保持 `mac.version` 和 `mac.url` 为空，官网会继续显示“即将上线”，不要创建占位文件或假下载链接。超大的安装包不要强行提交 Git；可以放到 GitHub Release、对象存储或 CDN，并把完整 URL 写进 `site-config.js`。
 
-只有安装包已经真实可下载时才提升 `releases/latest.json` 的版本号，避免客户端提示一个尚未提供下载的新版本。例如发布 `0.2.1`：
+只有安装包已经真实可下载时才提升 `releases/gravityport/latest.json` 的版本号，避免客户端提示一个尚未提供下载的新版本。例如发布 `0.3.4`：
 
 ```json
 {
-  "version": "0.2.1",
-  "publishedAt": "2026-09-01T10:00:00Z",
+  "version": "0.3.4",
+  "publishedAt": "2026-10-24T10:00:00Z",
   "notes": {
     "zh": "修复素材收录稳定性并优化性能。",
     "en": "Improves capture reliability and performance."
@@ -212,13 +212,13 @@ git push origin main
 建议使用带版本号的稳定文件名：
 
 ```text
-downloads/MOSA-Web-Capture-0.14.1.zip
-downloads/MOSA-darwin-arm64-0.2.1-rc.5.dmg
-downloads/MOSA-win32-x64-0.2.1-rc.5.zip
-downloads/MOSA-0.2.0-universal.pkg
+downloads/GravityPort-Web-Capture-0.15.37.zip
+downloads/GravityPort-darwin-arm64-0.3.3.dmg
+downloads/GravityPort-win32-x64-0.3.3.zip
+downloads/GravityPort-win32-x64-0.3.3.exe
 ```
 
-不要覆盖旧版本文件。服务器保留最新四组完整桌面包，便于回滚；桌面当前版本和官网下载地址都只由 `releases/latest.json` 驱动。清单暂时不可用时，官网不会回退到旧包，而是提示稍后重试。
+不要覆盖旧版本文件。服务器保留最新四组完整桌面包，便于回滚；桌面当前版本和官网下载地址都只由 `releases/gravityport/latest.json` 驱动。清单暂时不可用时，官网不会回退到旧包，而是提示稍后重试。
 
 ## 7. 发布后检查
 
@@ -226,16 +226,16 @@ downloads/MOSA-0.2.0-universal.pkg
 
 ```bash
 curl -fI https://gravityport.azhuilab.com/
-curl -fI https://gravityport.azhuilab.com/downloads/MOSA-darwin-arm64-0.2.1-rc.5.dmg
-curl -fI https://gravityport.azhuilab.com/downloads/MOSA-win32-x64-0.2.1-rc.5.zip
+curl -fI https://gravityport.azhuilab.com/downloads/GravityPort-darwin-arm64-0.3.3.dmg
+curl -fI https://gravityport.azhuilab.com/downloads/GravityPort-win32-x64-0.3.3.zip
 curl -fsS https://mosa.azhuilab.com/ | rg 'gravityport.azhuilab.com'
 ```
 
-DMG/ZIP 应返回 `200`、`Content-Disposition: attachment`，且清单中的大小与 SHA-256 与发布包一致。若下载地址返回 `404`，先检查文件名大小写、`releases/latest.json` 和发布器日志。
+DMG/ZIP 应返回 `200`、`Content-Disposition: attachment`，且清单中的大小与 SHA-256 与发布包一致。若下载地址返回 `404`，先检查文件名大小写、`releases/gravityport/latest.json` 和发布器日志。
 
 ## 8. 回滚
 
-如果新版本有问题，使用最近三份服务器保留包之一重新发布对应的 `releases/latest.json` 即可；也可以使用 Git 的 `git revert` 回滚页面变更。不要直接删除服务器上的桌面包；发布器会在下一次成功发布后按四版本策略自动清理超出的完整包对。
+如果新版本有问题，使用最近三份服务器保留包之一重新发布对应的 `releases/gravityport/latest.json` 即可；也可以使用 Git 的 `git revert` 回滚页面变更。不要直接删除服务器上的桌面包；发布器会在下一次成功发布后按四版本策略自动清理超出的完整包对。
 
 ## 9. 安全边界
 
@@ -248,7 +248,7 @@ DMG/ZIP 应返回 `200`、`Content-Disposition: attachment`，且清单中的大
 
 ## 10. 匿名安装 / 活跃与渠道统计
 
-MOSA 桌面端不会要求用户注册账号。正式桌面版每天最多一次向 `releases/latest.json` 发送独立的无响应体匿名使用请求，附带：`event`、随机且持久化的 `install_id`、`platform`、`arch` 和 `version`。它与安装包下载渠道解耦，因此从官网、GitHub 或直接分享获得的正式安装包都会使用同一上报机制。这些字段不会包含素材、Prompt、文件路径或用户账号数据；应用设置中不提供关闭该最小匿名统计的开关。
+GravityPort 桌面端不会要求用户注册账号。正式桌面版每天最多一次向 `releases/gravityport/latest.json` 发送独立的无响应体匿名使用请求，附带：`event`、随机且持久化的 `install_id`、`platform`、`arch` 和 `version`。它与安装包下载渠道解耦，因此从官网、GitHub 或直接分享获得的正式安装包都会使用同一上报机制。这些字段不会包含素材、Prompt、文件路径或用户账号数据；应用设置中不提供关闭该最小匿名统计的开关。
 
 官网支持 `?ref=` 渠道标签。例如：
 
@@ -268,7 +268,7 @@ node scripts/report-usage.mjs /path/to/nginx/access.log
 ```
 
 输出包含：匿名安装 ID 总数、已报告首次启动数、24 小时 DAU、7 天 WAU、30 天 MAU、平台/版本请求分布、桌面包/扩展包下载请求、下载文件分布和 `ref` 渠道分布。一次性模式只读取当前日志，不修改服务器或应用数据。
-同一份日志也会给出官网公开页的近似 PV、首页访问，以及首页访问到下载请求的比值。首页只计体长足够的 MOSA `GET /`；`/guide/`、`/demo/`、`/privacy/` 按路径统计。这不是按钮点击率，也不会把 `/admin/`、静态资源或下载请求算成页面访问。
+同一份日志也会给出官网公开页的近似 PV、首页访问，以及首页访问到下载请求的比值。首页只计体长足够的 GravityPort `GET /`；`/guide/`、`/demo/`、`/privacy/` 按路径统计。这不是按钮点击率，也不会把 `/admin/`、静态资源或下载请求算成页面访问。
 
 生产环境应使用持久化增量模式：
 
@@ -280,7 +280,7 @@ node scripts/report-usage.mjs /var/log/nginx/access.log \
 
 此模式会自动发现同目录下常见的 `access.log.1`、`access.log.2.gz` 和日期式轮转文件，用文件游标与内容指纹识别已经处理过的部分。日志重命名、压缩或普通轮转后不会重复累计；历史总数保存在私有 state 文件中，也不会因为旧日志被 Nginx 删除而回退。state 文件必须放在 Web 根目录之外，不应通过 Nginx 暴露。
 
-若希望进一步减少日志中的网络元数据，生产 Nginx 可为 `/releases/latest.json` 单独配置不含 `$remote_addr`、User-Agent 和 Referer 的 usage log，只保留时间与 `$request_uri`；修改 Nginx 配置后需要单独执行 `nginx -t` 再 reload，这不属于静态网站 Actions 的职责。
+若希望进一步减少日志中的网络元数据，生产 Nginx 可为更新清单路径（`/releases/latest.json` 与 `/releases/gravityport/latest.json`）单独配置不含 `$remote_addr`、User-Agent 和 Referer 的 usage log，只保留时间与 `$request_uri`；修改 Nginx 配置后需要单独执行 `nginx -t` 再 reload，这不属于静态网站 Actions 的职责。
 
 ### 私有统计面板
 
