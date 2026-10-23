@@ -271,7 +271,7 @@ A cool, slightly green-grey paper, a near-neutral key black, and one fluorescent
 
 **Intro.** Every sheet opens the same way: the display line on the left, the lede on the right, bottom-aligned (7/5 split). Only the versions sheet stacks its lede under the heading, because its demo runs the full width below. There is no full-width "wide" intro.
 
-**Grids inside the live area.** Asymmetric splits in twelfths (7/5, 5/7, 6/7, 7/4, 4/7, 3/9), never equal-thirds feature cards except where the content is genuinely three parallel columns (local docket). Where two columns sit side by side (context ticket, organize, versions compare, sort), both start on the same top line and end on the same bottom line: the shorter column pushes its last block to the bottom, or its rows share out the height. Sources and agents run their demo as one full-width row under the intro instead of a side column.
+**Grids inside the live area.** Asymmetric splits in twelfths (7/5, 5/7, 6/7, 7/4, 4/7, 3/9), never equal-thirds feature cards. Where two columns sit side by side (context ticket, organize, versions compare, sort, local docket), both start on the same top line and end on the same bottom line: the shorter column pushes its last block to the bottom, or its rows share out the height. Sources and agents run their demo as one full-width row under the intro instead of a side column.
 
 **Rhythm.** Section internals step by `section-gap` (clamp(48px, 6vw, 96px)); tables and lists use 14–20px row padding; display to lede gap is clamp(20px, 4vw, 72px) side by side or clamp(18px, 2vw, 28px) stacked.
 
