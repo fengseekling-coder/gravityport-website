@@ -15,9 +15,8 @@ concurrency:
 
 jobs:
   test:
-    # The release-publisher tests build real DMGs with hdiutil, so they need macOS.
-    runs-on: macos-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out website
         uses: actions/checkout@v4
@@ -27,8 +26,15 @@ jobs:
         with:
           node-version: 22
 
+      # The release-publisher tests need the App checkout next to this one
+      # (../mosa, ../mosa-writer-snapshot) and macOS hdiutil; they run locally
+      # at release time instead.
       - name: Run website tests
-        run: node --test scripts/*.test.mjs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t tests < <(ls scripts/*.test.mjs | grep -v -e publish-desktop-release -e extend-desktop-release-manifest)
+          node --test "${tests[@]}"
 
   deploy:
     needs: test
