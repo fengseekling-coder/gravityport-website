@@ -42,7 +42,7 @@ Confirmed capabilities a visitor can be told about:
 - Version tree grouped by conversation turn; side-by-side compare of any two versions in a family.
 - Full-screen viewer with zoom; video cards show a first frame and a play badge.
 - Local visual search (Visual Pack) is hidden in the app as of 2026-10-21 and must not be advertised on the site.
-- Trash keeps deleted assets for 90 days with per-item countdown and undo; `gravityport backup` / `backup-verify` / `restore` commands for whole-library backups.
+- Trash keeps deleted assets for 90 days with per-item countdown and undo.
 - Light and dark themes; Chinese and English interface.
 
 Not available yet — must not be presented as available:

@@ -489,17 +489,6 @@
                 </ul>
                 <p data-i18n="local.trash.body">删除的图在回收站保留 90 天，每张都有倒计时；刚删完还能直接撤销。</p>
               </section>
-              <section class="docket__col" aria-labelledby="local-backup">
-                <h3 id="local-backup" data-i18n="local.backup.title">整库备份</h3>
-                <pre class="cmd mono"><code><span class="tok-dim">$</span> gravityport backup \
-    --to ~/gp-backup
-<span class="tok-dim">$</span> gravityport backup-verify \
-    --from ~/gp-backup
-<span class="tok-dim">$</span> gravityport restore \
-    --from ~/gp-backup \
-    --to ~/gp-restored</code></pre>
-                <p data-i18n="local.backup.body">备份会校验完整性，可以恢复到一个新的空文件夹。</p>
-              </section>
             </div>
             <p class="disclosure" data-print>
               <strong data-i18n="local.signal.title">桌面版自动联网只做两件事：</strong>

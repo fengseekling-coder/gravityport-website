@@ -20,7 +20,7 @@ UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
 DISPLAY_KEYS = {
     "context.honestyTitle", "footer.line", "local.folder.title", "local.trash.title",
-    "local.backup.title", "download.ext.title", "download.first.title",
+    "download.ext.title", "download.first.title",
 }
 HAND_KEYS = {"hero.note", "versions.note"}
 # Work entries whose recorded instruction is set in the hand (the key round in the versions demo).
