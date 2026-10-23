@@ -18,7 +18,7 @@ mosa-website/
 ├── browser-extension/                 当前扩展版本的源码快照和说明（不发布到网站）
 │   └── MOSA-Web-Capture-0.15.3/
 └── downloads/                         会发布到官网的安装包和扩展包
-    └── GravityPort-Web-Capture-0.15.37.zip
+    └── GravityPort-Web-Capture-0.15.38.zip
 ```
 
 公开下载地址统一使用：
@@ -212,7 +212,7 @@ git push origin main
 建议使用带版本号的稳定文件名：
 
 ```text
-downloads/GravityPort-Web-Capture-0.15.37.zip
+downloads/GravityPort-Web-Capture-0.15.38.zip
 downloads/GravityPort-darwin-arm64-0.3.3.dmg
 downloads/GravityPort-win32-x64-0.3.3.zip
 downloads/GravityPort-win32-x64-0.3.3.exe

@@ -23,8 +23,8 @@ window.MOSA_SITE_CONFIG = Object.freeze({
     label: "下载 Windows 包",
   },
   extension: {
-    version: "v0.15.37",
-    url: "./downloads/GravityPort-Web-Capture-0.15.37.zip",
+    version: "v0.15.38",
+    url: "./downloads/GravityPort-Web-Capture-0.15.38.zip",
     label: "浏览器包下载",
   },
 });
