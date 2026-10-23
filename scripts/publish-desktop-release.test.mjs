@@ -98,6 +98,8 @@ function safeEnv({ sourceDir, stateFile, previousManifest = "", dryRunOutput = "
     MOSA_RELEASE_PREVIOUS_MANIFEST: previousManifest,
     MOSA_RELEASE_DRY_RUN_OUTPUT: dryRunOutput,
     MOSA_RELEASE_PUBLISHED_AT: "2026-09-19T01:00:00Z",
+    // These fixtures are MOSA-named packages; the script now defaults to GravityPort.
+    MOSA_RELEASE_PRODUCT: "MOSA",
     // Empty by default: every test decides explicitly whether release notes
     // are configured. An empty string behaves like an unset variable.
     MOSA_RELEASE_NOTES_ZH: notesZh,

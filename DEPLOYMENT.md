@@ -336,15 +336,15 @@ sudo systemctl reload nginx
 
 ## 11. 两种产品、两条更新源
 
-桌面 App 正在从 MOSA 改名为 GravityPort。过渡期里官网发布链路同时认两种产品，由环境变量 `MOSA_RELEASE_PRODUCT` 一次指定，**每次发布只能是一种产品**（不设该变量等价于 `MOSA`，行为与历史版本完全一致；设成其他值脚本直接报错退出）：
+桌面 App 正在从 MOSA 改名为 GravityPort。过渡期里官网发布链路同时认两种产品，由环境变量 `MOSA_RELEASE_PRODUCT` 一次指定，**每次发布只能是一种产品**（10-23 起不设该变量等价于 `GravityPort`；旧源 MOSA 已冻结，要发只能显式写 `MOSA_RELEASE_PRODUCT=MOSA`；设成其他值脚本直接报错退出）：
 
 ```bash
-# MOSA（默认；旧源，过渡版发布后冻结）
-./scripts/publish-desktop-release.sh --dry-run
-
-# GravityPort（新源）
+# GravityPort（默认；新源）
 MOSA_RELEASE_PRODUCT=GravityPort MOSA_RELEASE_NOTES_ZH=… MOSA_RELEASE_NOTES_EN=… \
   ./scripts/publish-desktop-release.sh
+
+# MOSA（旧源，已冻结）
+MOSA_RELEASE_PRODUCT=MOSA ./scripts/publish-desktop-release.sh --dry-run
 ```
 
 两种产品各自读写的文件：

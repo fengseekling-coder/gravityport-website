@@ -14,7 +14,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    # The release-publisher tests build real DMGs with hdiutil, so they need macOS.
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out website
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run website tests
+        run: node --test scripts/*.test.mjs
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
