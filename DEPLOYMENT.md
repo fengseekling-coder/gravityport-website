@@ -55,7 +55,7 @@ sudo certbot certonly --webroot -w /var/www/letsencrypt \
 cd <官网仓库>
 git diff --check
 git add -A
-git commit -m "Update MOSA website"
+git commit -m "Update GravityPort website"
 git push origin main
 ```
 

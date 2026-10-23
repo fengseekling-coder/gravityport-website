@@ -1,4 +1,4 @@
-# MOSA Website
+# GravityPort Website
 
 这是一个和主项目 `mosa/` 完全分离的静态官网目录，不依赖主项目运行时，也不引用主项目内部文件。
 
@@ -93,7 +93,7 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 ```bash
 git add -A
-git commit -m "Update MOSA website"
+git commit -m "Update GravityPort website"
 git push origin main
 ```
 
