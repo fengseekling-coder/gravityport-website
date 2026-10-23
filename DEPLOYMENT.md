@@ -171,15 +171,15 @@ git push origin main
 当前标准桌面发布会自动把 macOS DMG 与 Windows ZIP 成对上传，并更新 `releases/gravityport/latest.json`；不需要再手动修改 `site-config.js`。若只拿到一个独立的 macOS `.dmg`，才使用下面的单包发布方式：
 
 ```text
-downloads/GravityPort-darwin-arm64-0.3.4.dmg
+downloads/GravityPort-darwin-arm64-0.3.5.dmg
 ```
 
 然后在 `site-config.js` 填写真实版本和地址：
 
 ```js
 mac: {
-  version: "v0.3.4",
-  url: "./downloads/GravityPort-darwin-arm64-0.3.4.dmg",
+  version: "v0.3.5",
+  url: "./downloads/GravityPort-darwin-arm64-0.3.5.dmg",
   label: "下载 macOS 包",
 },
 ```
@@ -188,17 +188,17 @@ mac: {
 
 ```bash
 git add -A
-git commit -m "Publish GravityPort macOS 0.3.4"
+git commit -m "Publish GravityPort macOS 0.3.5"
 git push origin main
 ```
 
 没有正式安装包时，保持 `mac.version` 和 `mac.url` 为空，官网会继续显示“即将上线”，不要创建占位文件或假下载链接。超大的安装包不要强行提交 Git；可以放到 GitHub Release、对象存储或 CDN，并把完整 URL 写进 `site-config.js`。
 
-只有安装包已经真实可下载时才提升 `releases/gravityport/latest.json` 的版本号，避免客户端提示一个尚未提供下载的新版本。例如发布 `0.3.4`：
+只有安装包已经真实可下载时才提升 `releases/gravityport/latest.json` 的版本号，避免客户端提示一个尚未提供下载的新版本。例如发布 `0.3.5`：
 
 ```json
 {
-  "version": "0.3.4",
+  "version": "0.3.5",
   "publishedAt": "2026-10-24T10:00:00Z",
   "notes": {
     "zh": "修复素材收录稳定性并优化性能。",
@@ -213,9 +213,9 @@ git push origin main
 
 ```text
 downloads/GravityPort-Web-Capture-0.15.38.zip
-downloads/GravityPort-darwin-arm64-0.3.4.dmg
-downloads/GravityPort-win32-x64-0.3.4.zip
-downloads/GravityPort-win32-x64-0.3.4.exe
+downloads/GravityPort-darwin-arm64-0.3.5.dmg
+downloads/GravityPort-win32-x64-0.3.5.zip
+downloads/GravityPort-win32-x64-0.3.5.exe
 ```
 
 不要覆盖旧版本文件。服务器保留最新四组完整桌面包，便于回滚；桌面当前版本和官网下载地址都只由 `releases/gravityport/latest.json` 驱动。清单暂时不可用时，官网不会回退到旧包，而是提示稍后重试。
@@ -226,8 +226,8 @@ downloads/GravityPort-win32-x64-0.3.4.exe
 
 ```bash
 curl -fI https://gravityport.azhuilab.com/
-curl -fI https://gravityport.azhuilab.com/downloads/GravityPort-darwin-arm64-0.3.4.dmg
-curl -fI https://gravityport.azhuilab.com/downloads/GravityPort-win32-x64-0.3.4.zip
+curl -fI https://gravityport.azhuilab.com/downloads/GravityPort-darwin-arm64-0.3.5.dmg
+curl -fI https://gravityport.azhuilab.com/downloads/GravityPort-win32-x64-0.3.5.zip
 curl -fsS https://mosa.azhuilab.com/ | rg 'gravityport.azhuilab.com'
 ```
 
