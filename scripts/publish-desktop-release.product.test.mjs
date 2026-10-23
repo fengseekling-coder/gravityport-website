@@ -95,7 +95,7 @@ function safeEnv({ sourceDir, stateFile, previousManifest = "", dryRunOutput = "
     MOSA_RELEASE_REMOTE_DIR: "/var/www/mosa-website",
   };
   // Only set the variable when the test asks for it: an absent variable is
-  // the "product unset" mode the script must keep byte-compatible.
+  // the "product unset" mode, which must behave exactly like GravityPort.
   if (product !== undefined) env.MOSA_RELEASE_PRODUCT = product;
   return env;
 }
@@ -172,8 +172,8 @@ test("GravityPort dry-run consumes a previous manifest staged from the new sourc
   assert.equal(manifest.notes.zh, NOTES_ZH, "previous notes must never be inherited silently");
 });
 
-test("product unset and product=MOSA produce byte-identical dry-run manifests", () => {
-  const { root } = makeSourceTree({ product: "MOSA", macVersion: "0.2.1-rc.35" });
+test("product unset and product=GravityPort produce byte-identical dry-run manifests", () => {
+  const { root } = makeSourceTree({ product: "GravityPort", macVersion: "0.3.0" });
   const stateFile = path.join(makeTempDir("mosa-state."), "state");
 
   const runOnce = (product) => {
@@ -186,13 +186,13 @@ test("product unset and product=MOSA produce byte-identical dry-run manifests", 
     return fs.readFileSync(outputPath);
   };
   const unsetBytes = runOnce(undefined);
-  const explicitBytes = runOnce("MOSA");
+  const explicitBytes = runOnce("GravityPort");
 
-  assert.equal(Buffer.compare(unsetBytes, explicitBytes), 0, "unset product must reproduce the MOSA manifest byte for byte");
+  assert.equal(Buffer.compare(unsetBytes, explicitBytes), 0, "unset product must reproduce the GravityPort manifest byte for byte");
   const manifest = JSON.parse(unsetBytes.toString("utf8"));
-  assert.equal(manifest.version, "0.2.1-rc.35");
-  assert.equal(manifest.platforms.macos.file, "MOSA-darwin-arm64-0.2.1-rc.35.zip");
-  assert.equal(manifest.platforms.macos.appName, "MOSA.app");
+  assert.equal(manifest.version, "0.3.0");
+  assert.equal(manifest.platforms.macos.file, "GravityPort-darwin-arm64-0.3.0.zip");
+  assert.equal(manifest.platforms.macos.appName, "GravityPort.app");
 });
 
 test("an unsupported MOSA_RELEASE_PRODUCT value fails before anything else", () => {
@@ -214,7 +214,7 @@ test("a GravityPort run pointed at MOSA-only sources fails with a clear product 
 test("a MOSA run pointed at GravityPort-only sources fails with a clear product mismatch", () => {
   const { root } = makeSourceTree({ product: "GravityPort", macVersion: "0.3.0" });
   const stateFile = path.join(makeTempDir("mosa-state."), "state");
-  const error = runScriptExpectFailure({ sourceDir: root, stateFile });
+  const error = runScriptExpectFailure({ sourceDir: root, stateFile, product: "MOSA" });
   assert.match(String(error.stderr), /只发现 GravityPort 的 macOS 更新包/);
   assert.match(String(error.stderr), /MOSA_RELEASE_PRODUCT=MOSA/);
 });
@@ -319,7 +319,7 @@ test("an explicitly configured DMG must carry the release product and version in
   let caught = null;
   try {
     execFileSync("bash", [scriptPath, "--dry-run"], {
-      env: { ...safeEnv({ sourceDir: root, stateFile, dryRunOutput: outputPath }), MOSA_RELEASE_MAC_DMG: dmgPath },
+      env: { ...safeEnv({ sourceDir: root, stateFile, dryRunOutput: outputPath, product: "MOSA" }), MOSA_RELEASE_MAC_DMG: dmgPath },
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -337,7 +337,7 @@ test("optional signing metadata env vars reach the canonical writer", () => {
   const outputPath = path.join(outputDir, "staged-latest.json");
   execFileSync("bash", [scriptPath, "--dry-run"], {
     env: {
-      ...safeEnv({ sourceDir: root, stateFile, dryRunOutput: outputPath }),
+      ...safeEnv({ sourceDir: root, stateFile, dryRunOutput: outputPath, product: "MOSA" }),
       MOSA_RELEASE_MAC_TEAM_IDENTIFIER: "ABCDE12345",
       MOSA_RELEASE_WINDOWS_SIGNER_THUMBPRINT: "0123456789abcdef0123456789abcdef01234567",
     },
@@ -351,7 +351,7 @@ test("optional signing metadata env vars reach the canonical writer", () => {
 test("unset signing metadata env vars stay out of the manifest", () => {
   const { root } = makeSourceTree({ product: "MOSA", macVersion: "0.2.1-rc.35", windowsVersion: "0.2.1-rc.35" });
   const stateFile = path.join(makeTempDir("mosa-state."), "state");
-  const manifest = runDryRun({ sourceDir: root, stateFile });
+  const manifest = runDryRun({ sourceDir: root, stateFile, product: "MOSA" });
   assert.equal("teamIdentifier" in manifest.platforms.macos, false);
   assert.equal("signerThumbprint" in manifest.platforms.windows, false);
 });
@@ -375,7 +375,7 @@ test("a state file left by the other product would skip the release as a downgra
   fs.writeFileSync(stateFile, `0.3.0|${"a".repeat(64)}|none\n`);
   const outputPath = path.join(makeTempDir("mosa-release-run."), "staged-latest.json");
   const stdout = execFileSync("bash", [scriptPath, "--dry-run"], {
-    env: safeEnv({ sourceDir: root, stateFile, dryRunOutput: outputPath }),
+    env: safeEnv({ sourceDir: root, stateFile, dryRunOutput: outputPath, product: "MOSA" }),
     encoding: "utf8",
   });
   assert.match(stdout, /跳过降级/);

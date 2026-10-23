@@ -71,12 +71,12 @@ if [[ "${1:-}" == "--dry-run" ]]; then
 fi
 [[ "$#" -eq 0 ]] || die "usage: publish-desktop-release.sh [--dry-run]"
 
-# The publisher ships exactly one product per run: MOSA (default, frozen old
-# update source) or GravityPort (new update source). Everything below —
+# The publisher ships exactly one product per run: GravityPort (default, the
+# live update source) or MOSA (frozen old update source). Everything below —
 # artifact prefixes, package payload checks, writer arguments, manifest and
 # history paths, retention — derives from this single switch, so a mixed
 # MOSA/GravityPort release can never happen by accident.
-release_product="${MOSA_RELEASE_PRODUCT:-MOSA}"
+release_product="${MOSA_RELEASE_PRODUCT:-GravityPort}"
 case "$release_product" in
   MOSA)
     mac_app_name="MOSA"
