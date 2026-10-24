@@ -1,0 +1,28 @@
+# GravityPort
+
+> GravityPort is a free, local library for AI images and video. It brings what you make in ChatGPT, Gemini, Flow, Google AI Studio, Codex and more back to your computer, with the Prompt, the source and every round of changes. No account, no uploads.
+
+GravityPort doesn't generate images. It collects them, automatically, from the tools you already use, and runs on Macs with Apple silicon and on Windows 10/11.
+
+## What it does
+
+- Collects from where you made it: ChatGPT, Gemini, Flow and Google AI Studio through the browser extension; Codex and Grok Build CLI read directly by the desktop app; Cowart canvas snapshots archived when you approve them.
+- Keeps the context with the image: the Prompt, the instruction, the source and reference images.
+- Version tree: images from one ChatGPT conversation line up round by round. Compare any two side by side and see which line changed it.
+- Sorting: every image is grouped by source on arrival, and images from one conversation, Flow project or Codex task stack into a single card.
+- Organizing: drop a card on a group to file it, or on another card to stack them. Images you already have can be dragged into the window.
+- Built-in MCP server: agents such as Codex can search your local library, read Prompts, and check versions and generation history.
+
+## Privacy
+
+- No account, no cloud, no sync, no uploads. Originals, Prompts and sources live in a folder you choose.
+- The extension sends images and their source details only to GravityPort on your computer.
+- The desktop app only goes online on its own to check for updates and send an anonymous activity signal at most once a day, neither with assets, Prompts, file names or paths.
+
+## Pages
+
+- [Home (English)](https://gravityport.azhuilab.com/en/): features, downloads for macOS and Windows, browser extension setup, FAQ
+- [首页（中文）](https://gravityport.azhuilab.com/): the same page in Chinese
+- [Privacy (English)](https://gravityport.azhuilab.com/en/privacy/): what the desktop app and the extension read, store and send, and how to turn things off
+- [隐私政策（中文）](https://gravityport.azhuilab.com/privacy/)
+- [Source code on GitHub](https://github.com/fengseekling-coder/gravityport)
