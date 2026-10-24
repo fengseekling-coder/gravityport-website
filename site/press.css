@@ -169,7 +169,7 @@ html { scrollbar-color: var(--ink) var(--stock-2); }
 .masthead__nav a { text-decoration: none; padding: 6px 0; background: linear-gradient(var(--ink), var(--ink)) 0 100% / 0 1px no-repeat; transition: background-size 400ms var(--ease); }
 .masthead__nav a:hover, .masthead__nav a[aria-current="true"] { background-size: 100% 1px; }
 .masthead__tools { display: flex; align-items: center; gap: 14px; }
-.lang { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 12px; padding: 6px 2px; color: var(--muted); }
+.lang { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 12px; padding: 6px 2px; color: var(--muted); text-decoration: none; }
 .lang i { font-style: normal; opacity: 0.5; }
 :root[data-lang="zh"] .lang [data-lang-option="zh"],
 :root[data-lang="en"] .lang [data-lang-option="en"] { color: var(--ink); font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; text-decoration-color: var(--fluo); }
