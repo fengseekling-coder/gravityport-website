@@ -53,11 +53,21 @@
     document.dispatchEvent(new CustomEvent("gp:lang", { detail: { lang } }));
   }
 
-  // Pages with a language of their own (the home pages) go to the other page; the rest switch in place.
-  $$("[data-lang-toggle]").forEach((btn) => btn.addEventListener("click", () => {
+  // The toggle is a real link to the same page in the other language; the click handler keeps
+  // working when JS is on: store the choice first, then go. The home pages keep their query and
+  // hash; the privacy pages follow their link (query dropped, so a stale ?lang= cannot undo the
+  // switch) or switch in place when the link already points at the language being left.
+  $$("[data-lang-toggle]").forEach((el) => el.addEventListener("click", (event) => {
+    event.preventDefault();
     const next = lang === "zh" ? "en" : "zh";
-    if (pageLang !== "zh" && pageLang !== "en") { applyLang(next, true); return; }
     try { localStorage.setItem("gp-lang", next); } catch (e) { /* storage may be blocked */ }
+    if (pageLang !== "zh" && pageLang !== "en") {
+      const href = el.getAttribute("href") || "";
+      const hrefLang = /^\/en(?:\/|$)/.test(href) ? "en" : "zh";
+      if (hrefLang === next) { location.href = href + location.hash; return; }
+      applyLang(next, true);
+      return;
+    }
     const params = new URLSearchParams(location.search);
     params.delete("lang");
     const query = params.toString();

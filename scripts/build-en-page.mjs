@@ -26,13 +26,14 @@ const escapeText = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
 const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 function replaceOnce(html, pattern, replacement, label) {
-  let hits = 0;
-  const out = html.replace(pattern, (...args) => {
-    hits += 1;
-    return typeof replacement === "function" ? replacement(...args) : replacement;
-  });
-  if (hits !== 1) throw new Error(`expected exactly one ${label} in index.html, found ${hits}`);
-  return out;
+  return replaceCount(html, pattern, replacement, label, 1);
+}
+
+function replaceCount(html, pattern, replacement, label, expected) {
+  const global = new RegExp(pattern.source, pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`);
+  const hits = (html.match(global) || []).length;
+  if (hits !== expected) throw new Error(`expected exactly ${expected} ${label}, found ${hits}`);
+  return html.replace(pattern, replacement);
 }
 
 /* --- Build-time translation, mirroring applyLang in site/press.js ---
@@ -130,6 +131,71 @@ export function applyStaticI18n(html, strings) {
   return out;
 }
 
+/* --- Structured data ---
+   The Chinese page carries a literal JSON-LD block; the English page swaps it for this one.
+   The @ids are shared across both pages (same entities); the descriptions come from the same
+   strings the meta tags use, so they cannot drift. No softwareVersion, rating, review, FAQPage,
+   HowTo or SearchAction: none of that exists on the page, and a stale version would be worse. */
+function englishJsonLd(en) {
+  const image = `${SITE}/assets/og/gravityport-og-1200x630.jpg`;
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${SITE}/#organization`,
+        "name": "azhuilab",
+        "url": `${SITE}/`
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${SITE}/#website`,
+        "url": `${SITE}/`,
+        "name": "GravityPort",
+        "inLanguage": ["en", "zh-CN"],
+        "publisher": { "@id": `${SITE}/#organization` }
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${SITE}/en/#webpage`,
+        "url": `${SITE}/en/`,
+        "name": en["meta.title"],
+        "description": en["meta.description"],
+        "inLanguage": "en",
+        "isPartOf": { "@id": `${SITE}/#website` },
+        "about": { "@id": `${SITE}/#app` },
+        "primaryImageOfPage": {
+          "@type": "ImageObject",
+          "url": image,
+          "width": 1200,
+          "height": 630
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${SITE}/#app`,
+        "name": "GravityPort",
+        "url": `${SITE}/en/`,
+        "description": en["meta.description"],
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "macOS (Apple silicon), Windows 10, Windows 11",
+        "inLanguage": ["en", "zh-CN"],
+        "image": image,
+        "downloadUrl": `${SITE}/en/#download`,
+        "sameAs": ["https://github.com/fengseekling-coder/gravityport"],
+        "author": { "@id": `${SITE}/#organization` },
+        "publisher": { "@id": `${SITE}/#organization` },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    ]
+  }, null, 2);
+}
+
 export function buildEnglishPage(indexHtml, strings) {
   const en = strings.en;
   for (const key of ["meta.title", "meta.description", "meta.ogImageAlt"]) {
@@ -152,13 +218,62 @@ export function buildEnglishPage(indexHtml, strings) {
   setContent('property="og:image:alt"', en["meta.ogImageAlt"], "og:image:alt");
   html = replaceOnce(html, /<link rel="canonical" href="[^"]*" \/>/,
     `<link rel="canonical" href="${SITE}/en/" />`, "canonical link");
+  // The privacy pages get their own English twins (/en/privacy/), so these links stay inside
+  // /en/ instead of being rewritten to the Chinese page one level up.
+  html = replaceCount(html, /(\shref=")\.\/privacy\//g, "$1privacy/", "privacy links", 2);
   // en/ sits one level down.
   html = html.replace(/(\s(?:href|src)=")\.\//g, "$1../");
   html = html.replace(/(\ssrcset=")([^"]*)(")/g, (_, a, list, b) => `${a}${list.replace(/(^|,\s*)\.\//g, "$1../")}${b}`);
+  // The language toggle is a real link to the other language: on this page, the Chinese home.
+  html = replaceOnce(html, /(\shref=")\/en\/(" data-lang-toggle)/, "$1/$2", "language toggle link");
+  // Structured data: swap the Chinese JSON-LD block for the English one.
+  html = replaceOnce(html, /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
+    `<script type="application/ld+json">\n${englishJsonLd(en).replace(/^/gm, "    ")}\n    </script>`, "JSON-LD block");
   // Translate the copy the way applyLang would, so the page is English before any script runs.
   html = applyStaticI18n(html, strings);
   html = replaceOnce(html, /^<!doctype html>\n/i,
     "<!doctype html>\n<!-- Generated by scripts/build-en-page.mjs from index.html and site/strings.js. Do not edit; run node scripts/build-en-page.mjs. -->\n",
+    "doctype");
+  return html;
+}
+
+export function loadPrivacyStrings(source, strings) {
+  const merged = { zh: { ...strings.zh }, en: { ...strings.en } };
+  const sandbox = { window: { GP_STRINGS: merged } };
+  vm.runInNewContext(source, sandbox, { filename: "site/privacy-strings.js" });
+  return merged;
+}
+
+/* --- English privacy page (/en/privacy/) ---
+   The Chinese privacy page switches language in place; the English twin is the same page with
+   the English copy baked in. It keeps no data-page-lang of its own, so boot.js still only
+   switches in place and never auto-redirects. The page sits one level deeper than /privacy/,
+   so site files go two levels up while links to the home page point at /en/. */
+export function buildEnglishPrivacyPage(privacyHtml, strings) {
+  const en = strings.en;
+  for (const key of ["pp.meta.title", "pp.meta.description"]) {
+    if (!en[key]) throw new Error(`GP_STRINGS.en is missing ${key}`);
+  }
+  let html = privacyHtml;
+  html = replaceOnce(html, /<html lang="zh-CN"([^>]*)>/,
+    (_, rest) => `<html lang="en"${rest}>`, "<html> tag");
+  html = replaceOnce(html, /<title data-i18n="pp\.meta\.title">[^<]*<\/title>/,
+    `<title data-i18n="pp.meta.title">${escapeText(en["pp.meta.title"])}</title>`, "<title>");
+  html = replaceOnce(html, /(<meta name="description"[^>]* content=")[^"]*(")/,
+    (_, a, b) => `${a}${escapeAttr(en["pp.meta.description"])}${b}`, "meta description");
+  html = replaceOnce(html, /<link rel="canonical" href="[^"]*" \/>/,
+    `<link rel="canonical" href="${SITE}/en/privacy/" />`, "canonical link");
+  // The toggle links to the Chinese privacy page.
+  html = replaceOnce(html, /(\shref=")\/en\/privacy\/(" data-lang-toggle)/, "$1/privacy/$2", "language toggle link");
+  // Links to the home page go to the English home; everything else at ../ is a site file,
+  // which sits one level further up from /en/privacy/ than from /privacy/.
+  html = replaceCount(html, /(\shref=")\.\.\/(")/g, "$1/en/$2", "home links", 2);
+  html = replaceCount(html, /(\shref=")\.\.\/(#)/g, "$1/en/$2", "home anchor links", 7);
+  html = html.replace(/(\s(?:href|src)=")\.\.\//g, "$1../../");
+  // Translate the copy the way applyLang would, so the page is English before any script runs.
+  html = applyStaticI18n(html, strings);
+  html = replaceOnce(html, /^<!doctype html>\n/i,
+    "<!doctype html>\n<!-- Generated by scripts/build-en-page.mjs from privacy/index.html and site/privacy-strings.js. Do not edit; run node scripts/build-en-page.mjs. -->\n",
     "doctype");
   return html;
 }
@@ -169,4 +284,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   mkdirSync(join(repoRoot, "en"), { recursive: true });
   writeFileSync(join(repoRoot, "en/index.html"), buildEnglishPage(indexHtml, strings));
   console.log("wrote en/index.html");
+  const privacyHtml = readFileSync(join(repoRoot, "privacy/index.html"), "utf8");
+  const privacyStrings = loadPrivacyStrings(readFileSync(join(repoRoot, "site/privacy-strings.js"), "utf8"), strings);
+  mkdirSync(join(repoRoot, "en/privacy"), { recursive: true });
+  writeFileSync(join(repoRoot, "en/privacy/index.html"), buildEnglishPrivacyPage(privacyHtml, privacyStrings));
+  console.log("wrote en/privacy/index.html");
 }
