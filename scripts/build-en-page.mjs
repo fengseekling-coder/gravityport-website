@@ -145,12 +145,12 @@ function englishJsonLd(en) {
         "@type": "Organization",
         "@id": `${SITE}/#organization`,
         "name": "azhuilab",
-        "url": `${SITE}/en/`
+        "url": `${SITE}/`
       },
       {
         "@type": "WebSite",
         "@id": `${SITE}/#website`,
-        "url": `${SITE}/en/`,
+        "url": `${SITE}/`,
         "name": "GravityPort",
         "inLanguage": ["en", "zh-CN"],
         "publisher": { "@id": `${SITE}/#organization` }

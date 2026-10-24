@@ -61,6 +61,11 @@ test("the JSON-LD graphs describe the same entities in each page's language", ()
   for (const type of ["Organization", "WebSite", "SoftwareApplication"]) {
     assert.equal(graphNode(zh, type)["@id"], graphNode(en, type)["@id"], `${type} @id is shared`);
   }
+  // Site-wide entities name the site root on both pages, so one @id never carries two urls.
+  for (const type of ["Organization", "WebSite"]) {
+    assert.equal(graphNode(zh, type).url, `${SITE}/`, `${type} url on the Chinese page`);
+    assert.equal(graphNode(en, type).url, `${SITE}/`, `${type} url on the English page`);
+  }
   assert.equal(graphNode(zh, "WebPage")["@id"], `${SITE}/#webpage`);
   assert.equal(graphNode(en, "WebPage")["@id"], `${SITE}/en/#webpage`);
   // Descriptions come from the same strings as the meta tags, so they cannot drift.
