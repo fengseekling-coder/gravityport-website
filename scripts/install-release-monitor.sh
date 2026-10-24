@@ -9,7 +9,7 @@ die() {
 website_dir="$(cd -- "$(dirname -- "$0")/.." && pwd)"
 label="com.azhuilab.mosa.desktop-release-monitor"
 user_home="$HOME"
-mosa_dir="$(cd -- "$website_dir/.." && pwd)/mosa"
+mosa_dir="$(cd -- "$website_dir/.." && pwd)/gravityport"
 agent_dir="$user_home/Library/LaunchAgents"
 agent_path="$agent_dir/$label.plist"
 plist_source="$website_dir/ops/$label.plist"

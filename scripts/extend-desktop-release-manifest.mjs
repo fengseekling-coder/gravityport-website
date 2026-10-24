@@ -5,8 +5,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-// The app repository is checked out next to this one (../mosa).
-const SOURCE_ROOT = process.env.MOSA_SOURCE_ROOT || fileURLToPath(new URL("../../mosa", import.meta.url));
+// The app repository is checked out next to this one (../gravityport).
+const SOURCE_ROOT = process.env.MOSA_SOURCE_ROOT || fileURLToPath(new URL("../../gravityport", import.meta.url));
 const canonicalWriterUrl = pathToFileURL(join(SOURCE_ROOT, "scripts/prepare-desktop-release-manifest.mjs")).href;
 const signatureUrl = pathToFileURL(join(SOURCE_ROOT, "lib/release-manifest-signature.mjs")).href;
 const updateServiceUrl = pathToFileURL(join(SOURCE_ROOT, "desktop/update-service.mjs")).href;

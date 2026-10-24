@@ -30,8 +30,8 @@ log() {
 }
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-# The app repository is checked out next to this one (../mosa).
-app_repo_dir="$(cd -- "$script_dir/../.." && pwd)/mosa"
+# The app repository is checked out next to this one (../gravityport).
+app_repo_dir="$(cd -- "$script_dir/../.." && pwd)/gravityport"
 
 # Machine-specific settings — the deploy host and user above all — live in a
 # local file outside the repository, one KEY=value per line. Variables already

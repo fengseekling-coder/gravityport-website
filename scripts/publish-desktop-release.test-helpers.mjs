@@ -1,7 +1,7 @@
 // Test-only harness for the desktop release publisher tests.
 //
 // The canonical manifest writer lives in the MOSA repository; the read-only
-// snapshot in ../mosa-writer-snapshot (next to this repository) is the current
+// snapshot in ../gravityport-writer-snapshot (next to this repository) is the current
 // source of truth and the only writer the tests exercise. Its CLI resolves the
 // packaged build identity (web/app/build-identity.json) from the repository it
 // sits in, and that file is frozen inside the snapshot, so the CLI form can
@@ -21,7 +21,7 @@ import { pathToFileURL } from "node:url";
 // The canonical writer the wrapper delegates to. Overridable for local runs.
 export const CANONICAL_WRITER_PATH =
   process.env.MOSA_RELEASE_CANONICAL_WRITER ||
-  new URL("../../mosa-writer-snapshot/scripts/prepare-desktop-release-manifest.mjs", import.meta.url).pathname;
+  new URL("../../gravityport-writer-snapshot/scripts/prepare-desktop-release-manifest.mjs", import.meta.url).pathname;
 
 // Stands in for the packaged app's build identity in tests. The wrapper
 // overrides productVersion with the --version argument of each invocation.
