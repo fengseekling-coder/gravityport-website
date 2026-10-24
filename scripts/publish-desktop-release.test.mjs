@@ -19,7 +19,7 @@ const scriptPath = new URL("./publish-desktop-release.sh", import.meta.url).path
 const writerHarness = await createWriterHarness();
 const writerPath = writerHarness.writerPath;
 const versionHelperPath = new URL("./release-version.mjs", import.meta.url).pathname;
-const realMacZipPath = new URL("../../mosa/out/make/update/darwin/arm64/MOSA-darwin-arm64-0.2.1-rc.15.zip", import.meta.url).pathname;
+const realMacZipPath = new URL("../../gravityport/out/make/update/darwin/arm64/MOSA-darwin-arm64-0.2.1-rc.15.zip", import.meta.url).pathname;
 
 // The live 0.2.1-rc.15 manifest at publication time of this protocol change.
 const LIVE_RC15_MANIFEST = {

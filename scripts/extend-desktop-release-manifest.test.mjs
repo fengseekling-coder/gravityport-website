@@ -6,12 +6,12 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-const sourceRoot = new URL("../../mosa", import.meta.url).pathname;
+const sourceRoot = new URL("../../gravityport", import.meta.url).pathname;
 // The writer snapshot's update-service parser knows the GravityPort artifact
 // names; the checked-out app repository may still hold the MOSA-only parser.
-const writerSnapshotRoot = new URL("../../mosa-writer-snapshot", import.meta.url).pathname;
+const writerSnapshotRoot = new URL("../../gravityport-writer-snapshot", import.meta.url).pathname;
 const extensionPath = new URL("./extend-desktop-release-manifest.mjs", import.meta.url).pathname;
-const signatureModule = await import(new URL("../../mosa/lib/release-manifest-signature.mjs", import.meta.url));
+const signatureModule = await import(new URL("../../gravityport/lib/release-manifest-signature.mjs", import.meta.url));
 
 test("resigns the manifest after adding the DMG Git SHA", (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "mosa-release-extension."));

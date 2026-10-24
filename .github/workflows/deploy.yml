@@ -27,7 +27,7 @@ jobs:
           node-version: 22
 
       # The release-publisher tests need the App checkout next to this one
-      # (../mosa, ../mosa-writer-snapshot) and macOS hdiutil; they run locally
+      # (../gravityport, ../gravityport-writer-snapshot) and macOS hdiutil; they run locally
       # at release time instead.
       - name: Run website tests
         shell: bash
