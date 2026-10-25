@@ -203,7 +203,7 @@ test("canonical writer itself rejects cross-version --windows input", () => {
   assert.equal(fs.existsSync(output), false, "no manifest may be written on failure");
 });
 
-test("previous manifest visualPacks are preserved verbatim and legacy artifacts.* are dropped", () => {
+test("previous manifest visualPacks and legacy artifacts.* are dropped (local visual search removed in App #284)", () => {
   const { root } = makeSourceTree({ macVersion: "0.2.1-rc.16" });
   const stateFile = path.join(makeTempDir("mosa-state."), "state");
   const previous = {
@@ -226,7 +226,7 @@ test("previous manifest visualPacks are preserved verbatim and legacy artifacts.
 
   const { manifest } = runDryRun({ sourceDir: root, stateFile, previousManifest: previousPath });
   assert.equal("artifacts" in manifest, false, "legacy artifacts.* must be dropped");
-  assert.deepEqual(manifest.visualPacks, previous.visualPacks, "visualPacks must be preserved verbatim");
+  assert.equal("visualPacks" in manifest, false, "visualPacks are no longer carried over: the app no longer installs visual packs");
   assert.equal(manifest.notes.zh, FIXTURE_NOTES_ZH, "explicit notes override previous notes");
   assert.equal(manifest.notes.en, FIXTURE_NOTES_EN);
 });
