@@ -8,7 +8,7 @@ web
 
 ## Users
 
-- People who make a lot of AI images and video across several tools — ChatGPT, Gemini, Flow and Google AI Studio in the browser, Codex Desktop, Grok Build CLI, Cowart — and then lose track of what they made: the image survives, but the Prompt sits in another conversation, the tool is forgotten, and the version they wanted is buried among near-duplicates.
+- People who make a lot of AI images and video across several tools — ChatGPT, Gemini, Flow, Google AI Studio and Jimeng in the browser, Codex Desktop, Grok Build CLI — and then lose track of what they made: the image survives, but the Prompt sits in another conversation, the tool is forgotten, and the version they wanted is buried among near-duplicates.
 - Chinese-speaking and English-speaking visitors are served equally (confirmed 2026-10-19). Both languages get first-class copy; the page follows the browser language and can be switched by hand.
 
 ## Product Purpose
@@ -35,7 +35,7 @@ The website exists to make a first-time visitor understand that in seconds, see 
 ## Capabilities and Constraints
 
 Confirmed capabilities a visitor can be told about:
-- Capture from ChatGPT, Gemini, Flow, Google AI Studio (extension), Codex Desktop, Grok Build CLI, Cowart.
+- Capture from ChatGPT, Gemini, Flow, Google AI Studio, Jimeng (extension), Codex Desktop, Grok Build CLI. Cowart and Midjourney are not advertised on the site.
 - One gallery: adjustable columns, marquee and multi-select, search, smart groups by source, own groups, favourites.
 - Drag to organize: drag cards onto a sidebar group, onto another card to create or join a stack, reorder inside a stack, drag out of the window to hand files to other apps; recent drag-made stacks can be undone for a few seconds.
 - Inspector: Prompt, user instruction, reference images, colour palette, size and ratio, source and date.
@@ -88,5 +88,6 @@ Decided by the owner on 2026-10-22; these override anything above.
 - Say what GravityPort does for the visitor. One word beats a sentence; one sentence beats two.
 - No limitations, caveats, certification or signing notes, "preview" labels, former names, or internal principles (how missing Prompts are labelled and the like). A good app doesn't need them.
 - Exception: the download area keeps the one-line first-open steps for macOS (Open Anyway) and Windows (Run anyway), and the extension steps say to tick auto-capture. These are steps, not caveats; without them new users cannot open the app or get automatic capture (owner, 10-22).
-- Positioning in one line: 纯本地 AI 素材管理工具 / a fully local AI asset manager.
+- Positioning in one line: AI 素材管理工具 / AI asset manager.
+- Core feature copy (owner, 2026-10-25) is the reference for feature names, the source list and claims: GravityPort｜AI 素材管理工具 (ChatGPT · Gemini · Flow · Google AI Studio · Codex · Grok · 即梦); 100% Local｜纯本地存储; Auto-Capture｜自动收录; Prompts & Context｜完整创作溯源; Version Tree｜多轮版本树; Smart Stacks｜自动分组; Built-in MCP｜内置 MCP (Claude, Codex); Free Download｜免费下载 (macOS · Windows). Copy that conflicts with it is changed to match.
 - Don't say "open source"; "source on GitHub" is fine. Don't say "free for personal use".

@@ -1,17 +1,19 @@
 # GravityPort
 
-> GravityPort is a free, local library for AI images and video. It brings what you make in ChatGPT, Gemini, Flow, Google AI Studio, Codex and more back to your computer, with the Prompt, the source and every round of changes. No account, no uploads.
+> GravityPort is a free AI asset manager for ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng. Images and videos land in a library on your own computer as they're generated, with their prompts, reference images and sources.
 
 GravityPort doesn't generate images. It collects them, automatically, from the tools you already use, and runs on Macs with Apple silicon and on Windows 10/11.
 
 ## What it does
 
-- Collects from where you made it: ChatGPT, Gemini, Flow and Google AI Studio through the browser extension; Codex and Grok Build CLI read directly by the desktop app; Cowart canvas snapshots archived when you approve them.
-- Keeps the context with the image: the Prompt, the instruction, the source and reference images.
-- Version tree: images from one ChatGPT conversation line up round by round. Compare any two side by side and see which line changed it.
-- Sorting: every image is grouped by source on arrival, and images from one conversation, Flow project or Codex task stack into a single card.
+- 100% Local: nothing goes to the cloud; every asset stays on your computer.
+- Auto-Capture: images and videos are saved as they're generated. ChatGPT, Gemini, Flow, Google AI Studio and Jimeng through the browser extension; Codex and Grok read directly by the desktop app.
+- Prompts & Context: the prompt, the instruction, reference images and the source are kept with every asset.
+- Version Tree: images from one ChatGPT conversation line up round by round. Compare any two side by side and see which line changed it.
+- Smart Stacks: every asset is grouped by source on arrival, and images from one conversation, Flow project or Codex task stack into a single card.
 - Organizing: drop a card on a group to file it, or on another card to stack them. Images you already have can be dragged into the window.
-- Built-in MCP server: agents such as Codex can search your local library, read Prompts, and check versions and generation history.
+- Built-in MCP: connect Claude or Codex to search and use your local library directly: assets, prompts, versions and generation history.
+- Free Download: macOS (Apple silicon) and Windows 10/11.
 
 ## Privacy
 

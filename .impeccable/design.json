@@ -246,7 +246,7 @@
       },
       "src-grok": {
         "role": "tertiary",
-        "displayName": "Source: Grok Build CLI",
+        "displayName": "Source: Grok",
         "canonical": "oklch(58.8% 0.166 148.9)",
         "tonalRamp": [
           "oklch(15% 0.166 148.9)",
@@ -259,19 +259,19 @@
           "oklch(95% 0.166 148.9)"
         ]
       },
-      "src-cowart": {
+      "src-jimeng": {
         "role": "tertiary",
-        "displayName": "Source: Cowart",
-        "canonical": "oklch(69.0% 0.007 115.8)",
+        "displayName": "Source: Jimeng",
+        "canonical": "oklch(71.6% 0.171 58.1)",
         "tonalRamp": [
-          "oklch(15% 0.007 115.8)",
-          "oklch(25% 0.007 115.8)",
-          "oklch(35% 0.007 115.8)",
-          "oklch(50% 0.007 115.8)",
-          "oklch(65% 0.007 115.8)",
-          "oklch(78% 0.007 115.8)",
-          "oklch(88% 0.007 115.8)",
-          "oklch(95% 0.007 115.8)"
+          "oklch(15% 0.171 58.1)",
+          "oklch(25% 0.171 58.1)",
+          "oklch(35% 0.171 58.1)",
+          "oklch(50% 0.171 58.1)",
+          "oklch(65% 0.171 58.1)",
+          "oklch(78% 0.171 58.1)",
+          "oklch(88% 0.171 58.1)",
+          "oklch(95% 0.171 58.1)"
         ]
       },
       "app-window": {
