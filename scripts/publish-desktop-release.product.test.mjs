@@ -168,7 +168,7 @@ test("GravityPort dry-run consumes a previous manifest staged from the new sourc
   fs.writeFileSync(previousPath, JSON.stringify(previous, null, 2));
 
   const manifest = runDryRun({ sourceDir: root, stateFile, previousManifest: previousPath, product: "GravityPort" });
-  assert.deepEqual(manifest.visualPacks, previous.visualPacks, "visualPacks must be inherited from the previous new-source manifest");
+  assert.equal("visualPacks" in manifest, false, "visualPacks are no longer inherited: the app no longer installs visual packs");
   assert.equal(manifest.notes.zh, NOTES_ZH, "previous notes must never be inherited silently");
 });
 
