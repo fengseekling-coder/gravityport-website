@@ -7,7 +7,7 @@ related_targets: []
 
 Scope: GravityPort website homepage (index.html), first surface of the rebuilt site; later pages (guide, privacy, release notes, demo) inherit this world.
 Visitor mode: Persuade.
-Audience and job: people who generate many AI images across ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok, Cowart, in Chinese or English, deciding whether to install a free local library.
+Audience and job: people who generate many AI images across ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok, Jimeng, in Chinese or English, deciding whether to install a free local library.
 Action: download the macOS app (Windows preview and the Chrome extension secondary), straight from the first viewport, with version and size from the release feed.
 Proof and content: the real interface and the user's own approved work; honest provenance labels; no testimonials, counts or benchmarks exist and none may be invented. Demo data is labelled as demo.
 Constraints: static HTML/CSS/JS, no build step; keep release-feed and download contracts; self-hosted fonts only; zh and en are equal.

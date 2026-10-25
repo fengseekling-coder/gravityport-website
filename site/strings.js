@@ -2,7 +2,7 @@
 window.GP_STRINGS = {
   zh: {
     "meta.title": "GravityPort — 每张 AI 图，都记得自己从哪来",
-    "meta.description": "GravityPort 是免费的本地 AI 素材库：把 ChatGPT、Gemini、Flow、Google AI Studio、Codex 等工具生成的图片和视频收回你的电脑，连同 Prompt、来源和每一轮修改。不用注册，不上传。",
+    "meta.description": "GravityPort 是 AI 素材管理工具，支持 ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、即梦：图片、视频生成即入库，提示词、参考图和来源一起保留，纯本地存储，免费下载。",
     "meta.ogLocale": "zh_CN",
     "meta.ogImageAlt": "GravityPort：那条提示词去哪了？",
 
@@ -21,7 +21,7 @@ window.GP_STRINGS = {
     "nav.menuClose": "关闭导航",
 
     "hero.title": "每张图，<br />都记得<br />自己<wbr />从哪来。",
-    "hero.lede": "GravityPort 把你在 ChatGPT、Gemini、Flow、Codex 里生成的图收回自己的电脑，Prompt、来源和每一轮修改都跟着图走。",
+    "hero.lede": "AI 素材管理工具，支持 ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、即梦。图片、视频生成即入库，提示词、参考图和来源跟着走。",
     "hero.cta": "下载 macOS 版",
     "hero.ctaMeta": "Apple 芯片 · 免费",
     "hero.windows": "Windows",
@@ -72,7 +72,8 @@ window.GP_STRINGS = {
 
     "sources.title": "在哪出的图，<br />就从哪<wbr />收回来。",
     "sources.lede": "GravityPort 不生成图，只把各个工具里生成的图自动收回来。",
-    "sources.note": "ChatGPT、Gemini、Flow、Google AI Studio 通过浏览器扩展收录；Codex 和 Grok Build CLI 由桌面版直接读取；Cowart 的画布快照在你批准后归档。",
+    "sources.jimeng": "即梦",
+    "sources.note": "ChatGPT、Gemini、Flow、Google AI Studio、即梦通过浏览器扩展收录；Codex 和 Grok 由桌面版直接读取。",
     "sources.demoNote": "演示：四个来源轮流出图，用的是作者的真实作品和原话。",
     "sources.footnote": "扩展只把图片和来源信息发给你电脑上的 GravityPort，不经过任何服务器。",
 
@@ -104,17 +105,17 @@ window.GP_STRINGS = {
     "versions.pick": "选为对比",
 
     "sort.title": "不用动手，<br />自己就分好。",
-    "sort.lede": "图一进库就按来源归类；同一段对话里出的图自动叠成一摞，在画廊里只占一格。",
-    "sort.n1.title": "智能分组",
-    "sort.n1.body": "按来源自动归类：ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、Cowart，有图的来源才会显示。",
-    "sort.n2.title": "自动堆叠",
-    "sort.n2.body": "同一段对话、同一个 Flow 项目或同一个 Codex 任务的图自动叠成一摞。你拆出或解散过的不会再被叠回，起过名的摞保留名字。",
+    "sort.lede": "自动分组：图一进库就按来源归类，同一个对话窗口里出的图自动叠成一组，在画廊里只占一格。",
+    "sort.n1.title": "按来源",
+    "sort.n1.body": "ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、即梦各成一组，有图的来源才会显示。",
+    "sort.n2.title": "按对话窗口",
+    "sort.n2.body": "同一个对话窗口、同一个 Flow 项目或同一个 Codex 任务的图自动叠成一组。你拆出或解散过的不会再被叠回，起过名的组保留名字。",
     "sort.demo": "演示：作者的两段 ChatGPT 对话，5 张同系列海报和改了 4 轮的灯塔",
     "sort.replay": "再放一次",
     "sort.freed": "省出 {n} 格",
 
     "agents.title": "也让 AI&nbsp;代理<br />翻得到<wbr />你的图。",
-    "agents.lede": "GravityPort 内置 MCP 服务器。Codex 等 AI 代理可以直接在你的本地素材库里搜图、读 Prompt、查版本和生成记录。",
+    "agents.lede": "内置 MCP：连接 Claude、Codex，直接在你的本地素材库里检索和调用素材、提示词、版本和生成记录。",
     "agents.ask": "把 10 月 20 号做的那组茶主题系列海报都找出来。",
     "agents.count": "11 个结果 · 同一段 ChatGPT 对话 · 10-20",
     "agents.demo": "示意 · 工具名和参数与真实 MCP 服务器一致",
@@ -139,7 +140,7 @@ window.GP_STRINGS = {
     "local.signal.end": "。",
 
     "free.title": "免费。",
-    "free.body": "免费使用，GravityPort 纯本地 AI 素材管理工具。",
+    "free.body": "免费下载 · macOS · Windows",
     "free.github": "源码公开在 GitHub",
 
     "download.title": "装上它，<br />从下一张图<wbr />开始。",
@@ -218,7 +219,7 @@ window.GP_STRINGS = {
 
   en: {
     "meta.title": "GravityPort — Every AI image remembers where it came from",
-    "meta.description": "GravityPort is a free, local library for AI images and video. It brings what you make in ChatGPT, Gemini, Flow, Google AI Studio, Codex and more back to your computer, with the Prompt, the source and every round of changes. No account, no uploads.",
+    "meta.description": "Free AI asset manager for ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng. Images and videos saved on your computer with their prompts.",
     "meta.ogLocale": "en_US",
     "meta.ogImageAlt": "GravityPort: Where did that prompt go?",
 
@@ -237,7 +238,7 @@ window.GP_STRINGS = {
     "nav.menuClose": "Close menu",
 
     "hero.title": "Every image remembers where it came from.",
-    "hero.lede": "GravityPort brings the images you make in ChatGPT, Gemini, Flow and Codex back to your computer, with the Prompt, the source and every round of changes attached.",
+    "hero.lede": "An AI asset manager for ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng. Images and videos land in your library as they’re generated, with prompts, reference images and sources attached.",
     "hero.cta": "Download for Mac",
     "hero.ctaMeta": "Apple silicon · Free",
     "hero.windows": "Windows",
@@ -288,7 +289,8 @@ window.GP_STRINGS = {
 
     "sources.title": "Collected from wherever you made it.",
     "sources.lede": "GravityPort doesn’t generate images. It collects them, automatically, from the tools you already use.",
-    "sources.note": "ChatGPT, Gemini, Flow and Google AI Studio through the browser extension; Codex and Grok Build CLI read directly by the desktop app; Cowart canvas snapshots archived when you approve them.",
+    "sources.jimeng": "Jimeng",
+    "sources.note": "ChatGPT, Gemini, Flow, Google AI Studio and Jimeng through the browser extension; Codex and Grok read directly by the desktop app.",
     "sources.demoNote": "Demo: four sources take turns, with the author’s real work and words.",
     "sources.footnote": "The extension sends images and their source details only to GravityPort on your computer. No server in between.",
 
@@ -320,17 +322,17 @@ window.GP_STRINGS = {
     "versions.pick": "Compare",
 
     "sort.title": "It sorts itself.",
-    "sort.lede": "Every image is grouped by source on arrival, and one conversation’s images stack into a single card in the gallery.",
-    "sort.n1.title": "Smart groups",
-    "sort.n1.body": "Grouped by source: ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok, Cowart. A source appears once it has images.",
-    "sort.n2.title": "Auto-stacking",
+    "sort.lede": "Smart Stacks: every image is grouped by source on arrival, and one conversation’s images stack into a single card in the gallery.",
+    "sort.n1.title": "By source",
+    "sort.n1.body": "ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng each get a group, shown once it has images.",
+    "sort.n2.title": "By conversation",
     "sort.n2.body": "Images from one conversation, Flow project or Codex task stack themselves. What you pull out or unstack stays that way, and named stacks keep their names.",
     "sort.demo": "Demo: two of the author’s ChatGPT conversations, a five-poster series and a lighthouse revised over four rounds",
     "sort.replay": "Play again",
     "sort.freed": "{n} slots freed",
 
     "agents.title": "Let your AI agents look things up, too.",
-    "agents.lede": "GravityPort has a built-in MCP server. Agents such as Codex can search your local library, read Prompts, and check versions and generation history.",
+    "agents.lede": "Built-in MCP: connect Claude or Codex, and they search and use your local library directly: assets, prompts, versions and generation history.",
     "agents.ask": "Find that series of tea posters I made on October 20.",
     "agents.count": "11 results · one ChatGPT conversation · Oct 20",
     "agents.demo": "Illustration · the tool name and parameters match the real MCP server",
@@ -355,7 +357,7 @@ window.GP_STRINGS = {
     "local.signal.end": ".",
 
     "free.title": "Free.",
-    "free.body": "Free to use. GravityPort is a fully local AI asset manager.",
+    "free.body": "Free download · macOS · Windows",
     "free.github": "Source available on GitHub",
 
     "download.title": "Install it. Start with your next image.",

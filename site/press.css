@@ -68,7 +68,7 @@
   --src-studio: var(--yellow);
   --src-codex: #e30613;
   --src-grok: #00963f;
-  --src-cowart: #9b9c97;
+  --src-jimeng: #f08300;
 
   --margin: clamp(14px, 3.4vw, 56px);
   --pad-x: clamp(20px, 4.6vw, 84px);
@@ -283,10 +283,10 @@ p, li, dd { text-wrap: pretty; }
 [data-c="magenta"] { --c: var(--magenta); }
 [data-c="src-chatgpt"] { --c: var(--src-chatgpt); }
 [data-c="src-codex"] { --c: var(--src-codex); }
-[data-c="src-cowart"] { --c: var(--src-cowart); }
 [data-c="src-flow"] { --c: var(--src-flow); }
 [data-c="src-gemini"] { --c: var(--src-gemini); }
 [data-c="src-grok"] { --c: var(--src-grok); }
+[data-c="src-jimeng"] { --c: var(--src-jimeng); }
 [data-c="src-studio"] { --c: var(--src-studio); }
 [data-c="yellow"] { --c: var(--yellow); }
 [data-ar="1024x1536"] { --ar: 1024 / 1536; }

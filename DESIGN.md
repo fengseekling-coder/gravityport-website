@@ -19,7 +19,7 @@ colors:
   src-studio: "#FFE500"
   src-codex: "#E30613"
   src-grok: "#00963F"
-  src-cowart: "#9B9C97"
+  src-jimeng: "#F08300"
   app-window: "#242424"
   app-main: "#343434"
   app-text: "#F1F1F1"
@@ -205,7 +205,7 @@ A cool, slightly green-grey paper, a near-neutral key black, and one fluorescent
 - **Process Cyan, Process Magenta, Process Yellow** (process-cyan, process-magenta, process-yellow): only in the colour bar, the registration target and the hero plate separations. The plates themselves are pure screen separations (#00FFFF, #FF00FF, #FFFF00 multiplied over white); the registration target's yellow is darkened to #E3C800 so it reads on black.
 
 ### Tertiary (source units)
-- **Source inks** (src-chatgpt cyan, src-gemini blue #3A4BBD, src-flow magenta, src-studio yellow, src-codex red #E30613, src-grok green #00963F, src-cowart grey): one swatch per capture source, used as the 8×16px chip before each name in the sources list, the second half of the colour bar, and the browser-tab dot in the feed demo. They identify a source; they never colour text, buttons or backgrounds.
+- **Source inks** (src-chatgpt cyan, src-gemini blue #3A4BBD, src-flow magenta, src-studio yellow, src-codex red #E30613, src-grok green #00963F, src-jimeng orange #F08300): one swatch per capture source, used as the 8×16px chip before each name in the sources list, the second half of the colour bar, and the browser-tab dot in the feed demo. They identify a source; they never colour text, buttons or backgrounds.
 
 ### Neutral
 - **Uncoated Stock** (stock): page ground, margins, stock live areas, text on black.
@@ -267,7 +267,7 @@ A cool, slightly green-grey paper, a near-neutral key black, and one fluorescent
 
 **Registration target.** Four 26px rings with crosshairs (C, M, Y, K), multiplied. In the hero they start mis-registered and slide into register, then K appears; on later sheets they print already set. Hidden under 720px.
 
-**Colour bar.** A strip of 10×18px patches down the left margin: C, M, Y, K, a taller 30px fluo patch, then the seven source inks in fixed order (ChatGPT, Gemini, Flow, AI Studio, Codex, Grok, Cowart). It doubles as the source legend. Used on the hero, the sources sheet and the download sheet. Hidden under 960px.
+**Colour bar.** A strip of 10×18px patches down the left margin: C, M, Y, K, a taller 30px fluo patch, then the seven source inks in fixed order (ChatGPT, Gemini, Flow, AI Studio, Codex, Grok, Jimeng). It doubles as the source legend. Used on the hero, the sources sheet and the download sheet. Hidden under 960px.
 
 **Intro.** Every sheet opens the same way: the display line on the left, the lede on the right, bottom-aligned (7/5 split). Only the versions sheet stacks its lede under the heading, because its demo runs the full width below. There is no full-width "wide" intro.
 
