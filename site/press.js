@@ -1045,7 +1045,14 @@
   const knownSize = (kind, rawSize) => {
     if (typeof rawSize === "number" && rawSize > 0) return rawSize;
     const a = $(`[data-download="${kind}"]`);
-    return a ? sizeFromServer[new URL(a.href, document.baseURI).href] || 0 : 0;
+    const fromServer = a ? sizeFromServer[new URL(a.href, document.baseURI).href] || 0 : 0;
+    if (fromServer) return fromServer;
+    // A package hosted off-site (GitHub Release) cannot be HEAD-checked, so the config carries its size,
+    // shown only while the button still links that configured file.
+    const c = config[kind];
+    if (!c || typeof c.size !== "number" || c.size <= 0 || typeof c.url !== "string") return 0;
+    const configuredFile = decodeURIComponent(c.url.split(/[?#]/)[0].split("/").pop() || "");
+    return configuredFile && configuredFile === linkedFile(kind) ? c.size : 0;
   };
   ["mac", "windows", "extension"].forEach((kind) => setDownload(kind, config[kind] && config[kind].url));
   refreshDownloads();
