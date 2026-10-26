@@ -13,18 +13,18 @@ window.MOSA_SITE_CONFIG = Object.freeze({
   // 否则给 ZIP。从 0.3.4 起每个版本都带安装程序，下面填那个版本的 .exe，
   // 不要再填 ZIP。
   mac: {
-    version: "v0.3.6",
-    url: "./downloads/GravityPort-darwin-arm64-0.3.6.dmg",
+    version: "v0.3.7",
+    url: "./downloads/GravityPort-darwin-arm64-0.3.7.dmg",
     label: "下载 macOS 包",
   },
   windows: {
-    version: "v0.3.6",
-    url: "./downloads/GravityPort-win32-x64-0.3.6.exe",
+    version: "v0.3.7",
+    url: "./downloads/GravityPort-win32-x64-0.3.7.exe",
     label: "下载 Windows 包",
   },
   extension: {
-    version: "v0.15.41",
-    url: "./downloads/GravityPort-Web-Capture-0.15.41.zip",
+    version: "v0.15.43",
+    url: "./downloads/GravityPort-Web-Capture-0.15.43.zip",
     label: "浏览器包下载",
   },
 });
