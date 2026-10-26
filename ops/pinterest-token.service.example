@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=www-data
 Group=www-data
-ExecStart=__MOSA_NODE_BIN__ __MOSA_SITE_ROOT__/scripts/pinterest-token.mjs
+ExecStart=__MOSA_NODE_BIN__ __PINTEREST_RUNNER_DIR__/pinterest-token.mjs
 Environment=PINTEREST_CLIENT_ID=__PINTEREST_CLIENT_ID__
 Environment=PINTEREST_SECRET_FILE=/etc/gravityport/pinterest-app-secret
 Environment=PINTEREST_TOKEN_PORT=__PINTEREST_TOKEN_PORT__
