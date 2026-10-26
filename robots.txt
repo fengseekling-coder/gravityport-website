@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mosa.azhuilab.com/sitemap.xml
+Sitemap: https://gravityport.azhuilab.com/sitemap.xml

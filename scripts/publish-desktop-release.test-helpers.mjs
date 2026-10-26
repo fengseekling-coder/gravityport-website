@@ -1,7 +1,7 @@
 // Test-only harness for the desktop release publisher tests.
 //
 // The canonical manifest writer lives in the MOSA repository; the read-only
-// snapshot under /Users/azhuilab/codex_aigc/mosa-writer-snapshot is the current
+// snapshot in ../gravityport-writer-snapshot (next to this repository) is the current
 // source of truth and the only writer the tests exercise. Its CLI resolves the
 // packaged build identity (web/app/build-identity.json) from the repository it
 // sits in, and that file is frozen inside the snapshot, so the CLI form can
@@ -21,7 +21,7 @@ import { pathToFileURL } from "node:url";
 // The canonical writer the wrapper delegates to. Overridable for local runs.
 export const CANONICAL_WRITER_PATH =
   process.env.MOSA_RELEASE_CANONICAL_WRITER ||
-  "/Users/azhuilab/codex_aigc/mosa-writer-snapshot/scripts/prepare-desktop-release-manifest.mjs";
+  new URL("../../gravityport-writer-snapshot/scripts/prepare-desktop-release-manifest.mjs", import.meta.url).pathname;
 
 // Stands in for the packaged app's build identity in tests. The wrapper
 // overrides productVersion with the --version argument of each invocation.
@@ -55,7 +55,7 @@ function wrapperSource(writerUrl, signatureUrl) {
     ``,
     `const args = parseArgs(process.argv.slice(2));`,
     `if (!args.version || !args.output) {`,
-    `  throw new Error("Usage: test-manifest-writer.mjs --version <version> --output <latest.json> [--previous <latest.json>] [--mac <zip>] [--mac-app-name <name>] [--mac-team-identifier <id>] [--windows <zip>] [--windows-payload-exe-name <name>] [--windows-signer-thumbprint <id>] [--published-at <iso>] [--notes-zh <text>] [--notes-en <text>]");`,
+    `  throw new Error("Usage: test-manifest-writer.mjs --version <version> --output <latest.json> [--previous <latest.json>] [--mac <zip>] [--mac-app-name <name>] [--mac-team-identifier <id>] [--windows <zip>] [--windows-installer <exe>] [--windows-payload-exe-name <name>] [--windows-signer-thumbprint <id>] [--published-at <iso>] [--notes-zh <text>] [--notes-en <text>]");`,
     `}`,
     `const previousManifest = args.previous ? JSON.parse(await readFile(resolve(args.previous), "utf8")) : null;`,
     `const identityTemplate = JSON.parse(await readFile(process.env.MOSA_TEST_BUILD_IDENTITY_FILE, "utf8"));`,
@@ -65,6 +65,7 @@ function wrapperSource(writerUrl, signatureUrl) {
     `  macAppName: args["mac-app-name"] || "MOSA.app",`,
     `  macTeamIdentifier: args["mac-team-identifier"] || "",`,
     `  windowsArtifactPath: args.windows || "",`,
+    `  windowsInstallerPath: args["windows-installer"] || "",`,
     `  windowsPayloadExeName: args["windows-payload-exe-name"] || "MOSA.exe",`,
     `  windowsSignerThumbprint: args["windows-signer-thumbprint"] || "",`,
     `  buildIdentity: { ...identityTemplate, productVersion: args.version },`,

@@ -30,4 +30,4 @@ downloads/MOSA-Web-Capture-0.15.3.zip
 3. 在 `site-config.js` 更新 `extension.version` 和 `extension.url`。
 4. 提交并推送到 `main`，GitHub Actions 会自动同步官网和下载包到 DMIT。
 
-每个新包都保留在仓库中；服务器上的旧下载包不会被 Actions 自动删除，便于回滚。
+仓库只保留当前版本的源码快照和 ZIP，旧版本可在 Git 历史里找回；服务器上的旧下载包不会被 Actions 自动删除，便于回滚。发布新版本后，删掉上一版的快照目录和 ZIP。

@@ -34,13 +34,19 @@ const USAGE_EVENTS = new Set(["first_launch", "daily_active"]);
 const USAGE_PLATFORMS = new Set(["macos", "windows", "other"]);
 const ARCH_PATTERN = /^[0-9A-Za-z._-]{1,24}$/;
 const VERSION_PATTERN = /^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
-const DESKTOP_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z0-9._-]+\.zip$/;
-const EXTENSION_DOWNLOAD_PATTERN = /^MOSA-Web-Capture-[A-Za-z0-9._-]+\.zip$/;
+// Update ZIPs, the macOS DMG and the Windows installer.
+const DESKTOP_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z0-9._-]+\.(?:zip|dmg|exe)$/;
+const EXTENSION_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-Web-Capture-[A-Za-z0-9._-]+\.zip$/;
 const USAGE_REPORT_PATHS = new Set(["/releases/latest.json", "/releases/gravityport/latest.json"]);
 const HOME_PAGE_MIN_BYTES = 20_000;
+// Both home pages: "/" (Chinese) and "/en/" (English).
+const HOME_PAGE_PATHS = new Set(["/", "/en/"]);
 const PUBLIC_PAGE_PATHS = new Map([
   ["/", "/"],
   ["/index.html", "/"],
+  ["/en", "/en/"],
+  ["/en/", "/en/"],
+  ["/en/index.html", "/en/"],
   ["/guide", "/guide/"],
   ["/guide/", "/guide/"],
   ["/guide/index.html", "/guide/"],
@@ -111,7 +117,7 @@ function parseRequestLine(line) {
   const time = parseNginxTimestamp(timestamp);
   if (!Number.isFinite(time)) return null;
   let url;
-  try { url = new URL(requestMatch[2], "https://mosa.azhuilab.com"); } catch { return null; }
+  try { url = new URL(requestMatch[2], "https://gravityport.azhuilab.com"); } catch { return null; }
   const bytes = requestMatch[4] && requestMatch[4] !== "-" ? Number(requestMatch[4]) : 0;
   return { method: requestMatch[1], status: Number(requestMatch[3]), time, url, bytes: Number.isFinite(bytes) ? bytes : 0 };
 }
@@ -144,12 +150,18 @@ function setPairsToMap(value) {
 
 function hydrateAggregate(value) {
   if (!value || typeof value !== "object") return newAggregate();
+  const downloadCounts = pairsToMap(value.downloadCounts);
+  // The kinds are worked out again from the per-file counts, so files counted
+  // before the patterns knew them (macOS DMGs, the Windows installer) move
+  // out of "other".
+  const byKind = { desktop: new Map(), extension: new Map(), other: new Map() };
+  for (const [file, count] of downloadCounts) byKind[classifyDownload(file)].set(file, count);
   return {
     installs: pairsToMap(value.installs),
-    downloadCounts: pairsToMap(value.downloadCounts),
-    desktopDownloadCounts: pairsToMap(value.desktopDownloadCounts),
-    extensionDownloadCounts: pairsToMap(value.extensionDownloadCounts),
-    otherDownloadCounts: pairsToMap(value.otherDownloadCounts),
+    downloadCounts,
+    desktopDownloadCounts: byKind.desktop,
+    extensionDownloadCounts: byKind.extension,
+    otherDownloadCounts: byKind.other,
     refCounts: pairsToMap(value.refCounts),
     dailyDownloads: pairsToMap(value.dailyDownloads),
     dailyActiveSets: setPairsToMap(value.dailyActiveSets),
@@ -325,10 +337,11 @@ function countPageView(parsed, aggregate) {
   if (method !== "GET" || status < 200 || status >= 300) return;
   const path = normalizePublicPagePath(url.pathname);
   if (!path) return;
-  if (path === "/" && bytes < HOME_PAGE_MIN_BYTES) return;
+  const isHome = HOME_PAGE_PATHS.has(path);
+  if (isHome && bytes < HOME_PAGE_MIN_BYTES) return;
   increment(aggregate.pageViewCounts, path);
   increment(aggregate.dailyPageViews, analyticsDayKey(time));
-  if (path === "/") {
+  if (isHome) {
     aggregate.homePageViews = (Number(aggregate.homePageViews) || 0) + 1;
     increment(aggregate.dailyHomePageViews, analyticsDayKey(time));
   }

@@ -1,0 +1,33 @@
+# 域名切换片段：更新 /etc/nginx/sites-available/mosa.azhuilab.com.conf。
+# DNS 由 Cloudflare 管理，gravityport.azhuilab.com A 记录指向现有官网服务器 IPv4，状态为 DNS only。
+# HTTP 与 HTTPS 两个 server 块的 server_name 都加入 gravityport.azhuilab.com；
+# HTTPS 证书同时覆盖 mosa.azhuilab.com 和 gravityport.azhuilab.com。
+# 更新 /etc/nginx/stream-conf.d/tokenkey-sni.conf 的 SNI map，将 gravityport.azhuilab.com
+# 路由到现有官网 TLS 上游 127.0.0.1:9444。
+
+# 放在 HTTPS server {} 级别、所有 location 之前。
+# 旧域名将公开网页访问内部改写到迁移页；统计后台继续留在旧域名并保留登录保护。
+# GravityPort 官网域名不提供统计后台。
+if ($host = gravityport.azhuilab.com) {
+    rewrite ^/admin(?:/|$) /__gravityport_admin_not_found last;
+}
+
+location = /__gravityport_admin_not_found {
+    return 404;
+}
+
+if ($host = mosa.azhuilab.com) {
+    rewrite ^/(?!releases/|downloads/|api/|admin(?:/|$)|_mosa_admin_auth$|domain-changed\.html$|\.).* /domain-changed.html last;
+}
+
+# 迁移页使用内联样式，因此单独允许 inline style；不启用脚本或其他外部资源。
+location = /domain-changed.html {
+    try_files $uri =404;
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), browsing-topics=()" always;
+    add_header Content-Security-Policy "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" always;
+    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+    add_header X-Robots-Tag "noindex, follow" always;
+}

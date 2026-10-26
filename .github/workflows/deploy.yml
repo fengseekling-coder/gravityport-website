@@ -1,4 +1,4 @@
-name: Deploy MOSA website
+name: Deploy GravityPort website
 
 on:
   push:
@@ -14,7 +14,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out website
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The release-publisher tests need the App checkout next to this one
+      # (../gravityport, ../gravityport-writer-snapshot) and macOS hdiutil; they run locally
+      # at release time instead.
+      - name: Run website tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t tests < <(ls scripts/*.test.mjs | grep -v -e publish-desktop-release -e extend-desktop-release-manifest)
+          node --test "${tests[@]}"
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -75,6 +98,8 @@ jobs:
             --human-readable \
             --exclude='.*' \
             --exclude='/README.md' \
+            --exclude='/PRODUCT.md' \
+            --exclude='/DESIGN.md' \
             --exclude='/browser-extension/' \
             --exclude='/downloads/' \
             --exclude='/releases/' \
@@ -100,14 +125,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          site_url="https://mosa.azhuilab.com"
+          site_url="https://gravityport.azhuilab.com"
 
           index_status="$(curl --fail --silent --show-error --location --max-time 20 -o /tmp/mosa-index.html -w '%{http_code}' "$site_url/")"
           test "$index_status" = "200"
-          grep -q "MOSA" /tmp/mosa-index.html
+          grep -q "GravityPort" /tmp/mosa-index.html
 
-          css_status="$(curl --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/styles.css")"
-          js_status="$(curl --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/script.js")"
+          legacy_status="$(curl --fail --silent --show-error --location --max-time 20 -o /tmp/mosa-domain-changed.html -w '%{http_code}' https://mosa.azhuilab.com/)"
+          test "$legacy_status" = "200"
+          grep -q "https://gravityport.azhuilab.com" /tmp/mosa-domain-changed.html
+
+          legacy_guide_status="$(curl --fail --silent --show-error --location --max-time 20 -o /tmp/mosa-domain-changed-guide.html -w '%{http_code}' https://mosa.azhuilab.com/guide/)"
+          test "$legacy_guide_status" = "200"
+          grep -q "官网地址已更新" /tmp/mosa-domain-changed-guide.html
+
+          legacy_feed_status="$(curl --fail --silent --show-error --location --max-time 20 -o /tmp/mosa-legacy-latest.json -w '%{http_code}' https://mosa.azhuilab.com/releases/latest.json)"
+          test "$legacy_feed_status" = "200"
+          grep -q '"version"' /tmp/mosa-legacy-latest.json
+
+          css_status="$(curl --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/site/press.css")"
+          js_status="$(curl --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/site/press.js")"
           release_status="$(curl --fail --silent --show-error --location --max-time 20 -o /tmp/mosa-latest.json -w '%{http_code}' "$site_url/releases/latest.json")"
           config_headers="$(curl --fail --silent --show-error --head --max-time 20 "$site_url/site-config.js")"
           test "$css_status" = "200"
@@ -116,5 +153,14 @@ jobs:
           grep -q '"version"' /tmp/mosa-latest.json
           printf '%s\n' "$config_headers" | grep -Eiq '^cache-control: .*no-cache'
 
+          # scripts/ and ops/ are synced for server-side services but must not be public (ops/nginx-private-paths.conf.example).
+          for private_path in scripts/feedback-service.mjs ops/FEEDBACK.md DEPLOYMENT.md; do
+            private_status="$(curl --silent --show-error --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/$private_path")"
+            test "$private_status" = "404"
+          done
+
           redirect_location="$(curl --silent --show-error --head --max-time 20 http://mosa.azhuilab.com/ | awk 'BEGIN { IGNORECASE=1 } /^location:/ { sub(/^[^:]*:[[:space:]]*/, ""); print; exit }' | tr -d '\r')"
           test "$redirect_location" = "https://mosa.azhuilab.com/"
+
+          gravityport_redirect="$(curl --silent --show-error --head --max-time 20 http://gravityport.azhuilab.com/ | awk 'BEGIN { IGNORECASE=1 } /^location:/ { sub(/^[^:]*:[[:space:]]*/, ""); print; exit }' | tr -d '\r')"
+          test "$gravityport_redirect" = "https://gravityport.azhuilab.com/"

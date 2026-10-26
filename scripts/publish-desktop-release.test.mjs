@@ -19,7 +19,7 @@ const scriptPath = new URL("./publish-desktop-release.sh", import.meta.url).path
 const writerHarness = await createWriterHarness();
 const writerPath = writerHarness.writerPath;
 const versionHelperPath = new URL("./release-version.mjs", import.meta.url).pathname;
-const realMacZipPath = "/Users/azhuilab/codex_aigc/mosa/out/make/update/darwin/arm64/MOSA-darwin-arm64-0.2.1-rc.15.zip";
+const realMacZipPath = new URL("../../gravityport/out/make/update/darwin/arm64/MOSA-darwin-arm64-0.2.1-rc.15.zip", import.meta.url).pathname;
 
 // The live 0.2.1-rc.15 manifest at publication time of this protocol change.
 const LIVE_RC15_MANIFEST = {
@@ -98,6 +98,8 @@ function safeEnv({ sourceDir, stateFile, previousManifest = "", dryRunOutput = "
     MOSA_RELEASE_PREVIOUS_MANIFEST: previousManifest,
     MOSA_RELEASE_DRY_RUN_OUTPUT: dryRunOutput,
     MOSA_RELEASE_PUBLISHED_AT: "2026-09-19T01:00:00Z",
+    // These fixtures are MOSA-named packages; the script now defaults to GravityPort.
+    MOSA_RELEASE_PRODUCT: "MOSA",
     // Empty by default: every test decides explicitly whether release notes
     // are configured. An empty string behaves like an unset variable.
     MOSA_RELEASE_NOTES_ZH: notesZh,
@@ -201,7 +203,7 @@ test("canonical writer itself rejects cross-version --windows input", () => {
   assert.equal(fs.existsSync(output), false, "no manifest may be written on failure");
 });
 
-test("previous manifest visualPacks are preserved verbatim and legacy artifacts.* are dropped", () => {
+test("previous manifest visualPacks and legacy artifacts.* are dropped (local visual search removed in App #284)", () => {
   const { root } = makeSourceTree({ macVersion: "0.2.1-rc.16" });
   const stateFile = path.join(makeTempDir("mosa-state."), "state");
   const previous = {
@@ -224,7 +226,7 @@ test("previous manifest visualPacks are preserved verbatim and legacy artifacts.
 
   const { manifest } = runDryRun({ sourceDir: root, stateFile, previousManifest: previousPath });
   assert.equal("artifacts" in manifest, false, "legacy artifacts.* must be dropped");
-  assert.deepEqual(manifest.visualPacks, previous.visualPacks, "visualPacks must be preserved verbatim");
+  assert.equal("visualPacks" in manifest, false, "visualPacks are no longer carried over: the app no longer installs visual packs");
   assert.equal(manifest.notes.zh, FIXTURE_NOTES_ZH, "explicit notes override previous notes");
   assert.equal(manifest.notes.en, FIXTURE_NOTES_EN);
 });

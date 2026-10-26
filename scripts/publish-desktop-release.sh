@@ -29,23 +29,39 @@ log() {
   printf '[mosa-release] %s\n' "$1"
 }
 
-source_root="${MOSA_RELEASE_SOURCE_DIR:-/Users/azhuilab/codex_aigc/mosa/out/make}"
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# The app repository is checked out next to this one (../gravityport).
+app_repo_dir="$(cd -- "$script_dir/../.." && pwd)/gravityport"
+
+# Machine-specific settings — the deploy host and user above all — live in a
+# local file outside the repository, one KEY=value per line. Variables already
+# set in the environment always win, so tests and one-off runs are unaffected.
+release_config="${MOSA_RELEASE_CONFIG:-$HOME/.config/mosa/release.env}"
+if [[ -r "$release_config" ]]; then
+  while IFS='=' read -r config_key config_value || [[ -n "$config_key" ]]; do
+    [[ "$config_key" =~ ^MOSA_RELEASE_[A-Z0-9_]+$ ]] || continue
+    [[ -n "${!config_key:-}" ]] && continue
+    export "$config_key=$config_value"
+  done < "$release_config"
+fi
+
+source_root="${MOSA_RELEASE_SOURCE_DIR:-$app_repo_dir/out/make}"
 retention_selector="$script_dir/select-desktop-release-retention.mjs"
 version_helper="$script_dir/release-version.mjs"
-manifest_writer="${MOSA_RELEASE_MANIFEST_WRITER:-/Users/azhuilab/codex_aigc/mosa/scripts/prepare-desktop-release-manifest.mjs}"
+manifest_writer="${MOSA_RELEASE_MANIFEST_WRITER:-$app_repo_dir/scripts/prepare-desktop-release-manifest.mjs}"
 manifest_extension="$script_dir/extend-desktop-release-manifest.mjs"
 previous_override="${MOSA_RELEASE_PREVIOUS_MANIFEST:-}"
 dry_run_output="${MOSA_RELEASE_DRY_RUN_OUTPUT:-}"
 desktop_retention_count=4
-ssh_host="${MOSA_RELEASE_SSH_HOST:-179.253.232.244}"
-ssh_user="${MOSA_RELEASE_SSH_USER:-mosa-deploy}"
+ssh_host="${MOSA_RELEASE_SSH_HOST:-}"
+ssh_user="${MOSA_RELEASE_SSH_USER:-}"
 ssh_port="${MOSA_RELEASE_SSH_PORT:-22}"
-ssh_key="${MOSA_RELEASE_SSH_KEY:-/Users/azhuilab/.ssh/mosa_website_release_monitor}"
-known_hosts="${MOSA_RELEASE_KNOWN_HOSTS:-/Users/azhuilab/.ssh/known_hosts}"
+ssh_key="${MOSA_RELEASE_SSH_KEY:-$HOME/.ssh/mosa_website_release_monitor}"
+known_hosts="${MOSA_RELEASE_KNOWN_HOSTS:-$HOME/.ssh/known_hosts}"
 remote_dir="${MOSA_RELEASE_REMOTE_DIR:-/var/www/mosa-website}"
-state_file="${MOSA_RELEASE_STATE_FILE:-/Users/azhuilab/.config/mosa/desktop-release-monitor.state}"
+state_file="${MOSA_RELEASE_STATE_FILE:-$HOME/.config/mosa/desktop-release-monitor.state}"
 mac_dmg_package="${MOSA_RELEASE_MAC_DMG:-}"
+windows_installer_package="${MOSA_RELEASE_WINDOWS_INSTALLER:-}"
 release_git_sha="${MOSA_RELEASE_GIT_SHA:-}"
 dry_run=0
 
@@ -55,12 +71,12 @@ if [[ "${1:-}" == "--dry-run" ]]; then
 fi
 [[ "$#" -eq 0 ]] || die "usage: publish-desktop-release.sh [--dry-run]"
 
-# The publisher ships exactly one product per run: MOSA (default, frozen old
-# update source) or GravityPort (new update source). Everything below —
+# The publisher ships exactly one product per run: GravityPort (default, the
+# live update source) or MOSA (frozen old update source). Everything below —
 # artifact prefixes, package payload checks, writer arguments, manifest and
 # history paths, retention — derives from this single switch, so a mixed
 # MOSA/GravityPort release can never happen by accident.
-release_product="${MOSA_RELEASE_PRODUCT:-MOSA}"
+release_product="${MOSA_RELEASE_PRODUCT:-GravityPort}"
 case "$release_product" in
   MOSA)
     mac_app_name="MOSA"
@@ -85,9 +101,10 @@ esac
 # file would make a later MOSA run look like a downgrade next to a newer
 # GravityPort version and skip it silently. MOSA keeps the historical path.
 if [[ "$release_product" == "GravityPort" && -z "${MOSA_RELEASE_STATE_FILE:-}" ]]; then
-  state_file="/Users/azhuilab/.config/mosa/desktop-release-monitor.gravityport.state"
+  state_file="$HOME/.config/mosa/desktop-release-monitor.gravityport.state"
 fi
 
+[[ -n "$ssh_host" && -n "$ssh_user" ]] || die "MOSA_RELEASE_SSH_HOST and MOSA_RELEASE_SSH_USER must be set (put them in $release_config)"
 [[ -r "$manifest_writer" ]] || die "canonical manifest writer is missing: $manifest_writer"
 [[ -r "$manifest_extension" ]] || die "desktop release manifest extension is missing: $manifest_extension"
 [[ -r "$retention_selector" ]] || die "desktop retention selector is missing: $retention_selector"
@@ -223,6 +240,25 @@ if [[ -n "$mac_dmg_package" && ! -f "$mac_dmg_package" ]]; then
   die "macOS DMG release candidate is incomplete: $mac_dmg_package"
 fi
 
+# The Windows installer the website offers for first installs ships with the
+# update ZIP of the same version. The build writes it to installer/win32/x64;
+# an unpacked CI artifact may also leave it next to the ZIP.
+if [[ -z "$windows_installer_package" && -n "$windows_package" ]]; then
+  windows_installer_file="${release_product}-win32-x64-${release_version}.exe"
+  for windows_installer_candidate in \
+    "$source_root/installer/win32/x64/$windows_installer_file" \
+    "$(dirname "$windows_package")/$windows_installer_file"; do
+    if [[ -f "$windows_installer_candidate" ]]; then
+      windows_installer_package="$windows_installer_candidate"
+      break
+    fi
+  done
+fi
+if [[ -n "$windows_installer_package" ]]; then
+  [[ -n "$windows_package" ]] || die "a Windows installer ships with its update ZIP, and there is no ${release_product}-win32-x64-${release_version}.zip"
+  [[ -f "$windows_installer_package" ]] || die "Windows installer release candidate is incomplete: $windows_installer_package"
+fi
+
 if ! wait_for_stable_file "$mac_package"; then
   log "macOS 安装包仍在生成，下一次监控周期会重试。"
   exit 1
@@ -233,6 +269,10 @@ if [[ -n "$windows_package" ]] && ! wait_for_stable_file "$windows_package"; the
 fi
 if [[ -n "$mac_dmg_package" ]] && ! wait_for_stable_file "$mac_dmg_package"; then
   log "macOS DMG 仍在生成，下一次监控周期会重试。"
+  exit 1
+fi
+if [[ -n "$windows_installer_package" ]] && ! wait_for_stable_file "$windows_installer_package"; then
+  log "Windows 安装程序仍在生成，下一次监控周期会重试。"
   exit 1
 fi
 
@@ -247,12 +287,19 @@ if [[ -n "$windows_package" ]]; then
   unzip -Z1 "$windows_package" | grep -E "^(${windows_payload_exe_name}|${release_product}-win32-x64/${windows_payload_exe_name})$" >/dev/null \
     || die "Windows ZIP does not contain ${windows_payload_exe_name}"
 fi
+if [[ -n "$windows_installer_package" ]]; then
+  [[ "$(head -c 2 "$windows_installer_package")" == "MZ" ]] \
+    || die "Windows installer is not a Windows program: $windows_installer_package"
+fi
 if [[ -n "$mac_dmg_package" ]]; then
   command -v hdiutil >/dev/null 2>&1 || die "hdiutil is required for macOS DMG integrity checks"
   hdiutil verify "$mac_dmg_package" >/dev/null || die "macOS DMG integrity check failed: $mac_dmg_package"
   source_repo_root="$(cd -- "$source_root/../.." && pwd)"
-  identity_file="$source_repo_root/web/app/build-identity.json"
-  [[ -r "$identity_file" ]] || die "packaged build identity is missing: $identity_file"
+  # The shared UI build writes its identity next to the built bundle
+  # (web/gravityport/dist); web/app is the layout older app trees used.
+  identity_file="$source_repo_root/web/gravityport/dist/build-identity.json"
+  [[ -r "$identity_file" ]] || identity_file="$source_repo_root/web/app/build-identity.json"
+  [[ -r "$identity_file" ]] || die "packaged build identity is missing: $source_repo_root/web/gravityport/dist/build-identity.json"
   identity_pair="$(node -e '
     const identity = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));
     process.stdout.write(`${identity.productVersion}\t${identity.gitSha}`);
@@ -285,10 +332,23 @@ if [[ -n "$mac_dmg_package" ]]; then
   mac_dmg_size="$(file_size "$mac_dmg_package")" || die "could not read macOS DMG size"
   mac_dmg_sha256="$(shasum -a 256 "$mac_dmg_package" | awk '{print $1}')"
 fi
+windows_installer_name=""
+windows_installer_size=""
+windows_installer_sha256=""
+if [[ -n "$windows_installer_package" ]]; then
+  windows_installer_name="$(basename "$windows_installer_package")"
+  windows_installer_size="$(file_size "$windows_installer_package")" || die "could not read Windows installer size"
+  windows_installer_sha256="$(shasum -a 256 "$windows_installer_package" | awk '{print $1}')"
+fi
 if [[ -n "$mac_dmg_package" ]]; then
   release_signature="${release_version}|${mac_sha256}|${windows_sha256:-none}|${mac_dmg_sha256}|${release_git_sha}"
 else
   release_signature="${release_version}|${mac_sha256}|${windows_sha256:-none}"
+fi
+# Appended only when present, so the signature of a release without an
+# installer stays what earlier runs recorded.
+if [[ -n "$windows_installer_package" ]]; then
+  release_signature+="|installer:${windows_installer_sha256}"
 fi
 
 last_signature=""
@@ -381,6 +441,7 @@ fi
 
 writer_args=(--version "$release_version" --output "$manifest_file" --mac "$mac_package" --mac-app-name "$mac_app_bundle_name")
 [[ -n "$windows_package" ]] && writer_args+=(--windows "$windows_package" --windows-payload-exe-name "$windows_payload_exe_name")
+[[ -n "$windows_installer_package" ]] && writer_args+=(--windows-installer "$windows_installer_package")
 [[ -f "$previous_file" ]] && writer_args+=(--previous "$previous_file")
 writer_args+=(--published-at "$published_at" --notes-zh "$notes_zh" --notes-en "$notes_en")
 # Optional signing-metadata passthrough for the canonical writer. Unset
@@ -398,14 +459,18 @@ if [[ -n "$mac_dmg_package" ]]; then
 fi
 
 # Defense in depth: every platforms.* entry must describe the local artifact
-# that is about to be uploaded — right name, right size, right SHA-256.
+# that is about to be uploaded — right name, right size, right SHA-256. The
+# key may name a nested entry (windows.installer).
 verify_manifest_artifact() {
   local key="$1" local_file="$2" entry
   [[ -n "$local_file" ]] || return 0
   entry="$(node -e '
     const fs = require("node:fs");
     const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-    const artifact = (manifest.platforms || {})[process.argv[2]];
+    const artifact = process.argv[2].split(".").reduce(
+      (value, name) => (value && typeof value === "object" ? value[name] : undefined),
+      manifest.platforms || {},
+    );
     if (!artifact || typeof artifact !== "object") {
       console.error(`missing platforms.${process.argv[2]} entry in generated manifest`);
       process.exit(1);
@@ -420,6 +485,7 @@ verify_manifest_artifact() {
 }
 verify_manifest_artifact "macos" "$mac_package"
 verify_manifest_artifact "windows" "$windows_package"
+verify_manifest_artifact "windows.installer" "$windows_installer_package"
 if [[ -n "$mac_dmg_package" ]]; then
   : "DMG metadata was validated by the manifest extension and by the local/remote hash checks."
 fi
@@ -439,7 +505,7 @@ node -e '
   const baseKeys = ["arch", "file", "platform", "sha256", "size"];
   const allowedKeys = {
     macos: [...baseKeys, "appName", "teamIdentifier"],
-    windows: [...baseKeys, "payloadExeName", "signerThumbprint"],
+    windows: [...baseKeys, "payloadExeName", "signerThumbprint", "installer"],
   };
   for (const [name, artifact] of Object.entries(manifest.platforms || {})) {
     if (!artifact || typeof artifact !== "object" || Array.isArray(artifact)) {
@@ -461,6 +527,15 @@ node -e '
       }
     }
   }
+  // The Windows installer (first installs) names exactly one file.
+  const installer = (manifest.platforms || {}).windows?.installer;
+  if (installer !== undefined) {
+    const keys = installer && typeof installer === "object" && !Array.isArray(installer) ? Object.keys(installer).sort().join(",") : "";
+    if (keys !== "file,sha256,size") {
+      console.error(`platforms.windows.installer must carry exactly file, size and sha256 (got: ${keys || typeof installer})`);
+      process.exit(1);
+    }
+  }
 ' "$manifest_file" "$release_git_sha" || die "generated manifest schema or gitSha validation failed"
 
 # The generated manifest must never carry legacy artifacts.* data.
@@ -477,11 +552,12 @@ referenced_files="$(node -e '
   const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
   for (const artifact of Object.values(manifest.platforms || {})) {
     if (artifact && typeof artifact.file === "string") process.stdout.write(`${artifact.file}\n`);
+    if (artifact && artifact.installer && typeof artifact.installer.file === "string") process.stdout.write(`${artifact.installer.file}\n`);
   }
 ' "$manifest_file")"
 while IFS= read -r referenced_file; do
   [[ -n "$referenced_file" ]] || continue
-  [[ "$referenced_file" =~ ^${release_product}-(darwin-arm64|win32-x64)-[0-9A-Za-z.-]+\.zip$ ]] \
+  [[ "$referenced_file" =~ ^${release_product}-((darwin-arm64|win32-x64)-[0-9A-Za-z.-]+\.zip|win32-x64-[0-9A-Za-z.-]+\.exe)$ ]] \
     || die "manifest references an unexpected artifact name: $referenced_file"
 done <<< "$referenced_files"
 
@@ -520,6 +596,9 @@ rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=r
 [[ -n "$mac_dmg_package" ]] && rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
   -e "$rsync_ssh" \
   "$mac_dmg_package" "$ssh_target:$remote_tmp/$mac_dmg_name"
+[[ -n "$windows_installer_package" ]] && rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
+  -e "$rsync_ssh" \
+  "$windows_installer_package" "$ssh_target:$remote_tmp/$windows_installer_name"
 rsync --archive --compress --human-readable --chmod=Fu=rw,Fgo=r \
   -e "$rsync_ssh" \
   "$manifest_file" "$ssh_target:$remote_tmp/latest.json"
@@ -528,6 +607,7 @@ uploaded_names=("$mac_name")
 uploaded_shas=("$mac_sha256")
 [[ -n "$windows_package" ]] && uploaded_names+=("$windows_name") && uploaded_shas+=("$windows_sha256")
 [[ -n "$mac_dmg_package" ]] && uploaded_names+=("$mac_dmg_name") && uploaded_shas+=("$mac_dmg_sha256")
+[[ -n "$windows_installer_package" ]] && uploaded_names+=("$windows_installer_name") && uploaded_shas+=("$windows_installer_sha256")
 for index in "${!uploaded_names[@]}"; do
   remote_hash="$(ssh "${ssh_args[@]}" "$ssh_target" \
     "sha256sum '$remote_tmp/${uploaded_names[$index]}' | awk '{print \$1}'")"
@@ -545,7 +625,7 @@ done <<< "$referenced_files"
 [[ -n "$mac_dmg_name" ]] && remote_referenced+=" $mac_dmg_name"
 
 ssh "${ssh_args[@]}" "$ssh_target" \
-  "set -eu; install -d -m 0755 '$remote_dir/$remote_history_dir'; mv -f '$remote_tmp/$mac_name' '$remote_dir/downloads/$mac_name'; if [ -n '$windows_name' ]; then mv -f '$remote_tmp/$windows_name' '$remote_dir/downloads/$windows_name'; fi; if [ -n '$mac_dmg_name' ]; then mv -f '$remote_tmp/$mac_dmg_name' '$remote_dir/downloads/$mac_dmg_name'; fi; for referenced in$remote_referenced; do test -f \"$remote_dir/downloads/\$referenced\" || { echo \"missing artifact on server: \$referenced\" >&2; exit 1; }; done; if [ -f '$remote_dir/$remote_manifest_path' ]; then cp -f '$remote_dir/$remote_manifest_path' '$remote_dir/$remote_history_dir/latest-$upload_tag.json'; chmod 0644 '$remote_dir/$remote_history_dir/latest-$upload_tag.json'; fi; mv -f '$remote_tmp/latest.json' '$remote_dir/$remote_manifest_path'; chmod 0644 '$remote_dir/downloads/$mac_name' '$remote_dir/$remote_manifest_path'; if [ -n '$windows_name' ]; then chmod 0644 '$remote_dir/downloads/$windows_name'; fi; if [ -n '$mac_dmg_name' ]; then chmod 0644 '$remote_dir/downloads/$mac_dmg_name'; fi; rmdir '$remote_tmp' || true"
+  "set -eu; install -d -m 0755 '$remote_dir/$remote_history_dir'; mv -f '$remote_tmp/$mac_name' '$remote_dir/downloads/$mac_name'; if [ -n '$windows_name' ]; then mv -f '$remote_tmp/$windows_name' '$remote_dir/downloads/$windows_name'; fi; if [ -n '$mac_dmg_name' ]; then mv -f '$remote_tmp/$mac_dmg_name' '$remote_dir/downloads/$mac_dmg_name'; fi; if [ -n '$windows_installer_name' ]; then mv -f '$remote_tmp/$windows_installer_name' '$remote_dir/downloads/$windows_installer_name'; fi; for referenced in$remote_referenced; do test -f \"$remote_dir/downloads/\$referenced\" || { echo \"missing artifact on server: \$referenced\" >&2; exit 1; }; done; if [ -f '$remote_dir/$remote_manifest_path' ]; then cp -f '$remote_dir/$remote_manifest_path' '$remote_dir/$remote_history_dir/latest-$upload_tag.json'; chmod 0644 '$remote_dir/$remote_history_dir/latest-$upload_tag.json'; fi; mv -f '$remote_tmp/latest.json' '$remote_dir/$remote_manifest_path'; chmod 0644 '$remote_dir/downloads/$mac_name' '$remote_dir/$remote_manifest_path'; if [ -n '$windows_name' ]; then chmod 0644 '$remote_dir/downloads/$windows_name'; fi; if [ -n '$mac_dmg_name' ]; then chmod 0644 '$remote_dir/downloads/$mac_dmg_name'; fi; if [ -n '$windows_installer_name' ]; then chmod 0644 '$remote_dir/downloads/$windows_installer_name'; fi; rmdir '$remote_tmp' || true"
 published=1
 
 remote_desktop_files="$(ssh "${ssh_args[@]}" "$ssh_target" \
@@ -555,7 +635,7 @@ stale_desktop_pairs="$(printf '%s\n' "$remote_desktop_files" | node "$retention_
 
 if [[ -n "$stale_desktop_pairs" ]]; then
   removed_desktop_versions=0
-  while IFS=$'\t' read -r stale_mac_name stale_windows_name; do
+  while IFS=$'\t' read -r stale_mac_name stale_windows_name stale_windows_installer_name; do
     # The selector already filters by product; these product-pinned regexes are
     # the second line of defence so a retention run can never name (and never
     # delete) the other product's packages.
@@ -563,8 +643,14 @@ if [[ -n "$stale_desktop_pairs" ]]; then
       || die "invalid macOS retention filename: $stale_mac_name"
     [[ "$stale_windows_name" =~ ^${release_product}-win32-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
       || die "invalid Windows retention filename: $stale_windows_name"
+    stale_windows_installer_path=""
+    if [[ -n "$stale_windows_installer_name" ]]; then
+      [[ "$stale_windows_installer_name" == "${stale_windows_name%.zip}.exe" ]] \
+        || die "invalid Windows installer retention filename: $stale_windows_installer_name"
+      stale_windows_installer_path="$remote_dir/downloads/$stale_windows_installer_name"
+    fi
     ssh "${ssh_args[@]}" "$ssh_target" \
-      "rm -f -- '$remote_dir/downloads/$stale_mac_name' '$remote_dir/downloads/$stale_windows_name'"
+      "rm -f -- '$remote_dir/downloads/$stale_mac_name' '$remote_dir/downloads/$stale_windows_name'${stale_windows_installer_path:+ '$stale_windows_installer_path'}"
     ((removed_desktop_versions += 1))
   done <<< "$stale_desktop_pairs"
   log "已清理 $removed_desktop_versions 个超出保留上限的完整桌面版本。"
@@ -576,5 +662,5 @@ umask 077
 printf '%s\n' "$release_signature" > "$state_file"
 chmod 0600 "$state_file"
 
-log "已发布 ${release_product} ${release_version}：macOS update ${mac_size} bytes${mac_dmg_package:+，DMG ${mac_dmg_size} bytes}${windows_package:+，Windows ${windows_size} bytes}。"
+log "已发布 ${release_product} ${release_version}：macOS update ${mac_size} bytes${mac_dmg_package:+，DMG ${mac_dmg_size} bytes}${windows_package:+，Windows ${windows_size} bytes}${windows_installer_package:+，Windows 安装程序 ${windows_installer_size} bytes}。"
 log "SHA-256 已在本机与服务器两端核对；清单由 canonical writer 生成。"

@@ -4,19 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <title>MOSA Stats</title>
+  <title>GravityPort Stats</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <main class="dashboard-shell">
     <header class="dashboard-header">
       <div>
-        <p class="eyebrow">MOSA PRIVATE</p>
+        <p class="eyebrow">GravityPort PRIVATE</p>
         <h1>Usage Stats</h1>
         <p class="subtitle">安装实例、自然日活跃、官网页面访问、下载请求与渠道数据</p>
       </div>
       <div class="header-actions">
         <div class="updated" id="updatedAt">正在读取数据…</div>
+        <a class="logout-button" href="./feedback.html">反馈</a>
         <button class="refresh-button" id="refreshButton" type="button">刷新</button>
         <a class="logout-button" href="./logout">退出</a>
       </div>
@@ -31,7 +32,7 @@
       <article class="metric-card"><span>桌面下载请求</span><strong id="desktopDownloads">—</strong><small>成功 GET / Range 请求数</small></article>
       <article class="metric-card"><span>扩展下载请求</span><strong id="extensionDownloads">—</strong><small>成功 GET / Range 请求数</small></article>
       <article class="metric-card"><span>官网页面访问</span><strong id="pageViews">—</strong><small>公开页成功 GET，近似 PV</small></article>
-      <article class="metric-card"><span>首页访问</span><strong id="homePageViews">—</strong><small>MOSA 首页成功 GET，按体长过滤</small></article>
+      <article class="metric-card"><span>首页访问</span><strong id="homePageViews">—</strong><small>GravityPort 首页成功 GET，按体长过滤</small></article>
       <article class="metric-card"><span>首页→下载</span><strong id="homeToDownloadRate">—</strong><small>下载请求 / 首页访问，不是按钮点击率</small></article>
     </section>
 
@@ -62,7 +63,7 @@
         <div class="builder-field">
           <span>生成链接</span>
           <div class="builder-output-row">
-            <input id="campaignUrlOutput" type="text" readonly aria-label="生成的渠道链接" value="https://mosa.azhuilab.com/">
+            <input id="campaignUrlOutput" type="text" readonly aria-label="生成的渠道链接" value="https://gravityport.azhuilab.com/">
             <button class="copy-button" id="copyCampaignUrl" type="button">复制</button>
           </div>
           <small id="campaignCopyStatus" aria-live="polite">未填写渠道时为普通官网链接。</small>
@@ -102,7 +103,7 @@
     </section>
 
     <section class="notice" id="errorNotice" hidden></section>
-    <footer id="statsFooter">数据来自 MOSA 匿名使用统计与 Nginx 访问日志。页面仅供私有运维使用。</footer>
+    <footer id="statsFooter">数据来自 GravityPort 匿名使用统计与 Nginx 访问日志。页面仅供私有运维使用。</footer>
   </main>
   <script src="./app.js" defer></script>
 </body>

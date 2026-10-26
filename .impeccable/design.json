@@ -1,0 +1,639 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-21T12:33:46+00:00",
+  "title": "Design System: GravityPort",
+  "extensions": {
+    "colorMeta": {
+      "stock": {
+        "role": "neutral",
+        "displayName": "Uncoated Stock",
+        "canonical": "oklch(96.3% 0.004 121.6)",
+        "tonalRamp": [
+          "oklch(15% 0.004 121.6)",
+          "oklch(25% 0.004 121.6)",
+          "oklch(35% 0.004 121.6)",
+          "oklch(50% 0.004 121.6)",
+          "oklch(65% 0.004 121.6)",
+          "oklch(78% 0.004 121.6)",
+          "oklch(88% 0.004 121.6)",
+          "oklch(95% 0.004 121.6)"
+        ]
+      },
+      "stock-2": {
+        "role": "neutral",
+        "displayName": "Second Stock",
+        "canonical": "oklch(92.6% 0.007 115.7)",
+        "tonalRamp": [
+          "oklch(15% 0.007 115.7)",
+          "oklch(25% 0.007 115.7)",
+          "oklch(35% 0.007 115.7)",
+          "oklch(50% 0.007 115.7)",
+          "oklch(65% 0.007 115.7)",
+          "oklch(78% 0.007 115.7)",
+          "oklch(88% 0.007 115.7)",
+          "oklch(95% 0.007 115.7)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Key Black",
+        "canonical": "oklch(18.2% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0.000 89.9)",
+          "oklch(25% 0.000 89.9)",
+          "oklch(35% 0.000 89.9)",
+          "oklch(50% 0.000 89.9)",
+          "oklch(65% 0.000 89.9)",
+          "oklch(78% 0.000 89.9)",
+          "oklch(88% 0.000 89.9)",
+          "oklch(95% 0.000 89.9)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2 (console)",
+        "canonical": "oklch(22.2% 0.002 106.6)",
+        "tonalRamp": [
+          "oklch(15% 0.002 106.6)",
+          "oklch(25% 0.002 106.6)",
+          "oklch(35% 0.002 106.6)",
+          "oklch(50% 0.002 106.6)",
+          "oklch(65% 0.002 106.6)",
+          "oklch(78% 0.002 106.6)",
+          "oklch(88% 0.002 106.6)",
+          "oklch(95% 0.002 106.6)"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink 3 (image well)",
+        "canonical": "oklch(26.8% 0.002 106.5)",
+        "tonalRamp": [
+          "oklch(15% 0.002 106.5)",
+          "oklch(25% 0.002 106.5)",
+          "oklch(35% 0.002 106.5)",
+          "oklch(50% 0.002 106.5)",
+          "oklch(65% 0.002 106.5)",
+          "oklch(78% 0.002 106.5)",
+          "oklch(88% 0.002 106.5)",
+          "oklch(95% 0.002 106.5)"
+        ]
+      },
+      "fluo": {
+        "role": "primary",
+        "displayName": "802 Fluorescent Spot",
+        "canonical": "oklch(87.1% 0.286 141.5)",
+        "tonalRamp": [
+          "oklch(15% 0.200 141.5)",
+          "oklch(25% 0.286 141.5)",
+          "oklch(35% 0.286 141.5)",
+          "oklch(50% 0.286 141.5)",
+          "oklch(65% 0.286 141.5)",
+          "oklch(78% 0.286 141.5)",
+          "oklch(88% 0.286 141.5)",
+          "oklch(95% 0.200 141.5)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Grey Stock Text",
+        "canonical": "oklch(47.2% 0.008 115.9)",
+        "tonalRamp": [
+          "oklch(15% 0.008 115.9)",
+          "oklch(25% 0.008 115.9)",
+          "oklch(35% 0.008 115.9)",
+          "oklch(50% 0.008 115.9)",
+          "oklch(65% 0.008 115.9)",
+          "oklch(78% 0.008 115.9)",
+          "oklch(88% 0.008 115.9)",
+          "oklch(95% 0.008 115.9)"
+        ]
+      },
+      "muted-ink": {
+        "role": "neutral",
+        "displayName": "Grey Ink Text",
+        "canonical": "oklch(71.3% 0.009 114.3)",
+        "tonalRamp": [
+          "oklch(15% 0.009 114.3)",
+          "oklch(25% 0.009 114.3)",
+          "oklch(35% 0.009 114.3)",
+          "oklch(50% 0.009 114.3)",
+          "oklch(65% 0.009 114.3)",
+          "oklch(78% 0.009 114.3)",
+          "oklch(88% 0.009 114.3)",
+          "oklch(95% 0.009 114.3)"
+        ]
+      },
+      "process-cyan": {
+        "role": "secondary",
+        "displayName": "Process Cyan (furniture only)",
+        "canonical": "oklch(66.9% 0.147 237.2)",
+        "tonalRamp": [
+          "oklch(15% 0.147 237.2)",
+          "oklch(25% 0.147 237.2)",
+          "oklch(35% 0.147 237.2)",
+          "oklch(50% 0.147 237.2)",
+          "oklch(65% 0.147 237.2)",
+          "oklch(78% 0.147 237.2)",
+          "oklch(88% 0.147 237.2)",
+          "oklch(95% 0.147 237.2)"
+        ]
+      },
+      "process-magenta": {
+        "role": "secondary",
+        "displayName": "Process Magenta (furniture only)",
+        "canonical": "oklch(59.9% 0.244 358.4)",
+        "tonalRamp": [
+          "oklch(15% 0.200 358.4)",
+          "oklch(25% 0.244 358.4)",
+          "oklch(35% 0.244 358.4)",
+          "oklch(50% 0.244 358.4)",
+          "oklch(65% 0.244 358.4)",
+          "oklch(78% 0.244 358.4)",
+          "oklch(88% 0.244 358.4)",
+          "oklch(95% 0.200 358.4)"
+        ]
+      },
+      "process-yellow": {
+        "role": "secondary",
+        "displayName": "Process Yellow (furniture only)",
+        "canonical": "oklch(91.5% 0.191 101.0)",
+        "tonalRamp": [
+          "oklch(15% 0.191 101.0)",
+          "oklch(25% 0.191 101.0)",
+          "oklch(35% 0.191 101.0)",
+          "oklch(50% 0.191 101.0)",
+          "oklch(65% 0.191 101.0)",
+          "oklch(78% 0.191 101.0)",
+          "oklch(88% 0.191 101.0)",
+          "oklch(95% 0.191 101.0)"
+        ]
+      },
+      "src-chatgpt": {
+        "role": "tertiary",
+        "displayName": "Source: ChatGPT",
+        "canonical": "oklch(66.9% 0.147 237.2)",
+        "tonalRamp": [
+          "oklch(15% 0.147 237.2)",
+          "oklch(25% 0.147 237.2)",
+          "oklch(35% 0.147 237.2)",
+          "oklch(50% 0.147 237.2)",
+          "oklch(65% 0.147 237.2)",
+          "oklch(78% 0.147 237.2)",
+          "oklch(88% 0.147 237.2)",
+          "oklch(95% 0.147 237.2)"
+        ]
+      },
+      "src-gemini": {
+        "role": "tertiary",
+        "displayName": "Source: Gemini",
+        "canonical": "oklch(47.0% 0.179 271.3)",
+        "tonalRamp": [
+          "oklch(15% 0.179 271.3)",
+          "oklch(25% 0.179 271.3)",
+          "oklch(35% 0.179 271.3)",
+          "oklch(50% 0.179 271.3)",
+          "oklch(65% 0.179 271.3)",
+          "oklch(78% 0.179 271.3)",
+          "oklch(88% 0.179 271.3)",
+          "oklch(95% 0.179 271.3)"
+        ]
+      },
+      "src-flow": {
+        "role": "tertiary",
+        "displayName": "Source: Flow",
+        "canonical": "oklch(59.9% 0.244 358.4)",
+        "tonalRamp": [
+          "oklch(15% 0.200 358.4)",
+          "oklch(25% 0.244 358.4)",
+          "oklch(35% 0.244 358.4)",
+          "oklch(50% 0.244 358.4)",
+          "oklch(65% 0.244 358.4)",
+          "oklch(78% 0.244 358.4)",
+          "oklch(88% 0.244 358.4)",
+          "oklch(95% 0.200 358.4)"
+        ]
+      },
+      "src-studio": {
+        "role": "tertiary",
+        "displayName": "Source: Google AI Studio",
+        "canonical": "oklch(91.5% 0.191 101.0)",
+        "tonalRamp": [
+          "oklch(15% 0.191 101.0)",
+          "oklch(25% 0.191 101.0)",
+          "oklch(35% 0.191 101.0)",
+          "oklch(50% 0.191 101.0)",
+          "oklch(65% 0.191 101.0)",
+          "oklch(78% 0.191 101.0)",
+          "oklch(88% 0.191 101.0)",
+          "oklch(95% 0.191 101.0)"
+        ]
+      },
+      "src-codex": {
+        "role": "tertiary",
+        "displayName": "Source: Codex",
+        "canonical": "oklch(57.7% 0.234 28.0)",
+        "tonalRamp": [
+          "oklch(15% 0.200 28.0)",
+          "oklch(25% 0.234 28.0)",
+          "oklch(35% 0.234 28.0)",
+          "oklch(50% 0.234 28.0)",
+          "oklch(65% 0.234 28.0)",
+          "oklch(78% 0.234 28.0)",
+          "oklch(88% 0.234 28.0)",
+          "oklch(95% 0.200 28.0)"
+        ]
+      },
+      "src-grok": {
+        "role": "tertiary",
+        "displayName": "Source: Grok",
+        "canonical": "oklch(58.8% 0.166 148.9)",
+        "tonalRamp": [
+          "oklch(15% 0.166 148.9)",
+          "oklch(25% 0.166 148.9)",
+          "oklch(35% 0.166 148.9)",
+          "oklch(50% 0.166 148.9)",
+          "oklch(65% 0.166 148.9)",
+          "oklch(78% 0.166 148.9)",
+          "oklch(88% 0.166 148.9)",
+          "oklch(95% 0.166 148.9)"
+        ]
+      },
+      "src-jimeng": {
+        "role": "tertiary",
+        "displayName": "Source: Jimeng",
+        "canonical": "oklch(71.6% 0.171 58.1)",
+        "tonalRamp": [
+          "oklch(15% 0.171 58.1)",
+          "oklch(25% 0.171 58.1)",
+          "oklch(35% 0.171 58.1)",
+          "oklch(50% 0.171 58.1)",
+          "oklch(65% 0.171 58.1)",
+          "oklch(78% 0.171 58.1)",
+          "oklch(88% 0.171 58.1)",
+          "oklch(95% 0.171 58.1)"
+        ]
+      },
+      "app-window": {
+        "role": "neutral",
+        "displayName": "App Window (mock only)"
+      },
+      "app-main": {
+        "role": "neutral",
+        "displayName": "App Gallery (mock only)"
+      },
+      "app-text": {
+        "role": "neutral",
+        "displayName": "App Text (mock only)"
+      },
+      "mark-gold": {
+        "role": "neutral",
+        "displayName": "Mark Gold (logo only)",
+        "canonical": "oklch(73.7% 0.101 82.7)",
+        "tonalRamp": [
+          "oklch(15% 0.101 82.7)",
+          "oklch(25% 0.101 82.7)",
+          "oklch(35% 0.101 82.7)",
+          "oklch(50% 0.101 82.7)",
+          "oklch(65% 0.101 82.7)",
+          "oklch(78% 0.101 82.7)",
+          "oklch(88% 0.101 82.7)",
+          "oklch(95% 0.101 82.7)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "One per sheet: the section heading. Condensed black, balanced wrap, deliberate line breaks."
+      },
+      "display-en": {
+        "displayName": "Display En",
+        "purpose": "English size and leading override for display (:root[lang|=en])."
+      },
+      "display-hero": {
+        "displayName": "Display Hero",
+        "purpose": "The h1 only."
+      },
+      "display-flood": {
+        "displayName": "Display Flood",
+        "purpose": "A single word on the one fluo flood sheet."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Sub-heading inside a sheet; colophon line and dialog title at 70% width."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Column heads, platform names, first-run heading."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "One paragraph under a display line, max 34em zh / 30em en."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text; tables and notes step to 14.5-15.5px."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Primary button label; line buttons at 16px."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Data only: sheet numbers, ink specs, sizes, dates, slugs, hashes, commands, round tags. Uppercase in slugs."
+      },
+      "hand": {
+        "displayName": "Hand",
+        "purpose": "Proof notes in fluo on black, the key round's instruction, the OK stamp. Rotated -3deg."
+      },
+      "app-ui": {
+        "displayName": "App Ui",
+        "purpose": "Inside the app mock and feed demo only."
+      }
+    },
+    "shadows": [
+      {
+        "name": "app-window",
+        "value": "0 40px 80px -24px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07)",
+        "purpose": "The GravityPort window mock on black."
+      },
+      {
+        "name": "print-on-stock",
+        "value": "0 34px 60px -34px rgba(18,18,18,0.55), 0 2px 6px rgba(18,18,18,0.14)",
+        "purpose": "A single poster laid on stock."
+      },
+      {
+        "name": "toast",
+        "value": "0 16px 40px rgba(0,0,0,0.45)",
+        "purpose": "Undo toast inside the organize demo."
+      },
+      {
+        "name": "drag-ghost",
+        "value": "0 22px 44px rgba(0,0,0,0.55), 0 0 0 2px #39ff14",
+        "purpose": "Card being dragged in the organize demo."
+      },
+      {
+        "name": "slug-tooltip",
+        "value": "0 10px 30px rgba(0,0,0,0.3)",
+        "purpose": "Slug tooltip over images."
+      },
+      {
+        "name": "dialog",
+        "value": "0 30px 80px rgba(0,0,0,0.35)",
+        "purpose": "Community QR dialog."
+      },
+      {
+        "name": "selection-ring",
+        "value": "0 0 0 2px #39ff14",
+        "purpose": "Selected tile, card, proof, new feed item."
+      },
+      {
+        "name": "drop-target",
+        "value": "0 0 0 2px #39ff14, 0 0 0 6px rgba(57,255,20,0.25)",
+        "purpose": "Card that a drag will stack onto."
+      },
+      {
+        "name": "focus-on-stock",
+        "value": "outline: 2px solid #121212; outline-offset: 3px; box-shadow: 0 0 0 5px #39ff14",
+        "purpose": "Keyboard focus on stock sheets; on ink sheets a 2px fluo outline alone."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-press",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The one easing for prints, registration and state changes."
+      },
+      {
+        "name": "sheet",
+        "value": "900ms",
+        "purpose": "One sheet: clip-path print-in from the gripper edge (inset(0 0 100% 0) to 0)."
+      },
+      {
+        "name": "hero-window",
+        "value": "1100ms, delay 160ms",
+        "purpose": "Hero window prints in."
+      },
+      {
+        "name": "hero-plates",
+        "value": "1100ms transform, delay ~400ms per plate",
+        "purpose": "C, M, Y separations of the hero image slide and rotate into register (multiply)."
+      },
+      {
+        "name": "registration",
+        "value": "900ms, delay 1300ms; K ring fades in 300ms after",
+        "purpose": "Registration target closes."
+      },
+      {
+        "name": "fluo-plate",
+        "value": "ring 900ms @1700ms, arrow 800ms @2050ms, note 700ms @2350ms",
+        "purpose": "Spot plate prints selection ring, arrow and hand note."
+      },
+      {
+        "name": "slug-type",
+        "value": "1100ms steps(28, end), delay 2400ms",
+        "purpose": "Hero slug types out."
+      },
+      {
+        "name": "hit-stagger",
+        "value": "700ms, 60ms per item",
+        "purpose": "Search results print in."
+      },
+      {
+        "name": "state",
+        "value": "160-400ms",
+        "purpose": "Hover fills 250ms, nav underline 400ms, FAQ toggle 300ms."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "no .motion class; all durations 0",
+        "purpose": "Every element renders in its final printed state."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "hero-stack",
+        "value": "1180px"
+      },
+      {
+        "name": "nav-collapse",
+        "value": "960px"
+      },
+      {
+        "name": "phone",
+        "value": "720px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Fluo Download Button",
+      "kind": "button",
+      "refersTo": "button-fluo",
+      "description": "The one primary action per sheet; shown on an ink live area.",
+      "html": "<div class=\"ds-ink\"><a class=\"ds-btn-fluo\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 4v11M7 10l5 5 5-5M5 19h14\"/></svg><span>Download for macOS</span></a></div>",
+      "css": ":host{--stock:#f2f3f0;--stock-2:#e6e7e2;--ink:#121212;--fluo:#39ff14;--muted:#5b5c57;--muted-ink:#a2a39d;--ease:cubic-bezier(0.16,1,0.3,1);--font-display:'Archivo','GP Hei','PingFang SC',sans-serif;--font-mono:'Fragment Mono',ui-monospace,Menlo,monospace;--font-hand:'GP Hand','Kaiti SC',cursive;--font-ui:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;}.ds-ink{background:var(--ink);padding:32px;} .ds-btn-fluo{display:inline-flex;align-items:center;gap:12px;min-height:60px;padding:0 28px 0 24px;background:var(--fluo);color:var(--ink);font-family:'Archivo',sans-serif;font-weight:760;font-size:19px;letter-spacing:-0.005em;text-decoration:none;border-radius:0;transition:background-color 250ms var(--ease),color 250ms var(--ease),box-shadow 250ms var(--ease);} .ds-btn-fluo:hover{background:var(--stock);box-shadow:inset 0 0 0 2px var(--fluo);} .ds-btn-fluo:focus-visible{outline:2px solid var(--fluo);outline-offset:3px;}"
+    },
+    {
+      "name": "Line Button",
+      "kind": "button",
+      "refersTo": "button-line",
+      "description": "Secondary platforms and dialog close; 1.5px inset stroke, square.",
+      "html": "<div class=\"ds-ink\"><a class=\"ds-btn-line\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 4v11M7 10l5 5 5-5M5 19h14\"/></svg><span>Windows preview</span></a></div>",
+      "css": ":host{--stock:#f2f3f0;--stock-2:#e6e7e2;--ink:#121212;--fluo:#39ff14;--muted:#5b5c57;--muted-ink:#a2a39d;--ease:cubic-bezier(0.16,1,0.3,1);--font-display:'Archivo','GP Hei','PingFang SC',sans-serif;--font-mono:'Fragment Mono',ui-monospace,Menlo,monospace;--font-hand:'GP Hand','Kaiti SC',cursive;--font-ui:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;}.ds-ink{background:var(--ink);padding:32px;color:var(--stock);} .ds-btn-line{display:inline-flex;align-items:center;gap:12px;min-height:52px;padding:0 22px 0 18px;color:inherit;font-family:'Archivo',sans-serif;font-weight:760;font-size:16px;text-decoration:none;box-shadow:inset 0 0 0 1.5px currentColor;transition:background-color 250ms var(--ease),color 250ms var(--ease);} .ds-btn-line:hover{background:var(--stock);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--stock);} .ds-btn-line:focus-visible{outline:2px solid var(--fluo);outline-offset:3px;}"
+    },
+    {
+      "name": "Masthead",
+      "kind": "nav",
+      "refersTo": "masthead-cta",
+      "description": "Sticky 64px stock slug: mark, wordmark, nav, language switch, compact download.",
+      "html": "<header class=\"ds-mast\"><span class=\"ds-brand\"><i></i>GravityPort</span><nav><a href=\"#\" aria-current=\"true\">Sources</a><a href=\"#\">Organize</a><a href=\"#\">Versions</a></nav><span class=\"ds-lang\"><b>中</b> / EN</span><a class=\"ds-mcta\" href=\"#\">Download</a></header>",
+      "css": ":host{--stock:#f2f3f0;--stock-2:#e6e7e2;--ink:#121212;--fluo:#39ff14;--muted:#5b5c57;--muted-ink:#a2a39d;--ease:cubic-bezier(0.16,1,0.3,1);--font-display:'Archivo','GP Hei','PingFang SC',sans-serif;--font-mono:'Fragment Mono',ui-monospace,Menlo,monospace;--font-hand:'GP Hand','Kaiti SC',cursive;--font-ui:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;}.ds-mast{display:flex;align-items:center;gap:28px;height:64px;padding:0 24px;background:var(--stock);color:var(--ink);border-bottom:1px solid var(--ink);font-family:'Archivo',sans-serif;} .ds-brand{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:17px;} .ds-brand i{width:24px;height:24px;border-radius:50%;background:var(--ink);} .ds-mast nav{display:flex;gap:24px;margin-left:auto;font-size:14px;font-weight:520;} .ds-mast nav a{color:inherit;text-decoration:none;padding:6px 0;background:linear-gradient(var(--ink),var(--ink)) 0 100%/0 1px no-repeat;transition:background-size 400ms var(--ease);} .ds-mast nav a:hover,.ds-mast nav a[aria-current=true]{background-size:100% 1px;} .ds-lang{font-family:var(--font-mono);font-size:12px;color:var(--muted);} .ds-lang b{color:var(--ink);text-decoration:underline 2px var(--fluo);text-underline-offset:4px;} .ds-mcta{display:inline-flex;align-items:center;height:34px;padding:0 14px;background:var(--fluo);color:var(--ink);font-weight:720;font-size:14px;text-decoration:none;} .ds-mcta:hover{background:var(--ink);color:var(--fluo);} .ds-mast a:focus-visible{outline:2px solid var(--ink);outline-offset:3px;box-shadow:0 0 0 5px var(--fluo);}"
+    },
+    {
+      "name": "Sheet with Slug",
+      "kind": "custom",
+      "refersTo": "live-ink",
+      "description": "The sheet anatomy: stock margin, four crop marks, ink live area, mono slug with sheet number and ink spec.",
+      "html": "<section class=\"ds-sheet\"><div class=\"ds-trim\"><i class=\"ds-c tl\"></i><i class=\"ds-c tr\"></i><i class=\"ds-c bl\"></i><i class=\"ds-c br\"></i><div class=\"ds-live\"><h2>Every image remembers where it came from.</h2></div></div><p class=\"ds-slug\"><span>SHEET 03 / 11</span><span>K FLOOD + 4C + 802 FLUO</span><span>7 SOURCES</span></p></section>",
+      "css": ":host{--stock:#f2f3f0;--stock-2:#e6e7e2;--ink:#121212;--fluo:#39ff14;--muted:#5b5c57;--muted-ink:#a2a39d;--ease:cubic-bezier(0.16,1,0.3,1);--font-display:'Archivo','GP Hei','PingFang SC',sans-serif;--font-mono:'Fragment Mono',ui-monospace,Menlo,monospace;--font-hand:'GP Hand','Kaiti SC',cursive;--font-ui:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;}.ds-sheet{background:var(--stock);padding:28px 32px 34px;} .ds-trim{position:relative;} .ds-live{background:var(--ink);color:var(--stock);padding:48px 40px;} .ds-live h2{margin:0;font-family:var(--font-display);font-weight:860;font-stretch:68%;font-size:44px;line-height:0.93;letter-spacing:-0.012em;} .ds-c{position:absolute;width:0;height:0;} .ds-c::before,.ds-c::after{content:'';position:absolute;background:var(--ink);} .ds-c::before{height:1px;width:22px;top:0;} .ds-c::after{width:1px;height:22px;left:0;} .tl{left:0;top:0;} .tr{right:0;top:0;} .bl{left:0;bottom:0;} .br{right:0;bottom:0;} .tl::before,.bl::before{right:9px;} .tr::before,.br::before{left:9px;} .tl::after,.tr::after{bottom:9px;} .bl::after,.br::after{top:9px;} .ds-slug{display:flex;gap:6px 22px;margin:0;padding:14px 0 0 30px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.02em;text-transform:uppercase;color:var(--muted);} .ds-slug span:first-child{color:var(--ink);}"
+    },
+    {
+      "name": "Proof with Round Tag",
+      "kind": "card",
+      "refersTo": "proof-tag",
+      "description": "9:16 version proof on ink with a fluo mono round tag; pressed shows the fluo selection ring.",
+      "html": "<div class=\"ds-ink\"><button class=\"ds-proof\" aria-pressed=\"true\"><span class=\"ds-img\"><b>R5</b></span><span class=\"ds-meta\"><span>ROUND 5</span><span>10-14</span></span></button></div>",
+      "css": ":host{--stock:#f2f3f0;--stock-2:#e6e7e2;--ink:#121212;--fluo:#39ff14;--muted:#5b5c57;--muted-ink:#a2a39d;--ease:cubic-bezier(0.16,1,0.3,1);--font-display:'Archivo','GP Hei','PingFang SC',sans-serif;--font-mono:'Fragment Mono',ui-monospace,Menlo,monospace;--font-hand:'GP Hand','Kaiti SC',cursive;--font-ui:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;}.ds-ink{background:var(--ink);padding:24px;} .ds-proof{display:grid;gap:10px;width:140px;background:none;border:0;padding:0;cursor:pointer;text-align:left;} .ds-img{position:relative;display:block;aspect-ratio:9/16;background:#262625;box-shadow:0 0 0 1px rgba(242,243,240,0.16);transition:box-shadow 200ms linear,transform 400ms var(--ease);} .ds-img b{position:absolute;left:0;top:0;min-width:26px;height:26px;padding:0 7px;background:var(--fluo);color:var(--ink);font:700 13px/26px var(--font-mono);} .ds-proof[aria-pressed=true] .ds-img{box-shadow:0 0 0 2px var(--fluo);} .ds-proof:focus-visible{outline:2px solid var(--fluo);outline-offset:3px;} .ds-meta{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:12px;color:var(--stock);} .ds-meta span:last-child{color:var(--muted-ink);}"
+    },
+    {
+      "name": "Hand Proof Note",
+      "kind": "custom",
+      "refersTo": "live-ink",
+      "description": "Long Cang correction in fluo on ink, rotated -3deg, beside a marker ring.",
+      "html": "<div class=\"ds-ink\"><p class=\"ds-note\">too dark overall, remove the bats</p></div>",
+      "css": ":host{--stock:#f2f3f0;--stock-2:#e6e7e2;--ink:#121212;--fluo:#39ff14;--muted:#5b5c57;--muted-ink:#a2a39d;--ease:cubic-bezier(0.16,1,0.3,1);--font-display:'Archivo','GP Hei','PingFang SC',sans-serif;--font-mono:'Fragment Mono',ui-monospace,Menlo,monospace;--font-hand:'GP Hand','Kaiti SC',cursive;--font-ui:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;}.ds-ink{background:var(--ink);padding:32px;} .ds-note{margin:0;font-family:var(--font-hand);font-size:30px;line-height:1.1;color:var(--fluo);transform:rotate(-3deg);transform-origin:left bottom;}"
+    },
+    {
+      "name": "Stack Card",
+      "kind": "card",
+      "refersTo": "stack-badge",
+      "description": "A gallery card standing for an auto-made stack: cover, two offset ink outline sheets, fluo count badge, the app's stack name on an ink strip.",
+      "html": "<div class=\"ds-stack\"><div class=\"ds-stack__cover\"></div><b class=\"ds-stack__badge\">5</b><span class=\"ds-stack__label\">创建超现实海报</span></div>",
+      "css": ".ds-stack { position: relative; width: 160px; aspect-ratio: 3 / 4; background: #E6E7E2; margin: 12px 0 0 0; box-shadow: 5px -5px 0 -1px #F2F3F0, 5px -5px 0 0 #121212, 10px -10px 0 -1px #F2F3F0, 10px -10px 0 0 #121212; } .ds-stack__cover { position: absolute; inset: 0; background: linear-gradient(160deg, #3c6fb0, #e8a0a0); } .ds-stack__badge { position: absolute; top: 6px; right: 6px; min-width: 22px; height: 22px; padding: 0 6px; display: grid; place-items: center; background: #39FF14; color: #121212; font: 700 12px 'Fragment Mono', ui-monospace, monospace; } .ds-stack__label { position: absolute; left: 0; right: 0; bottom: 0; padding: 6px 8px; background: rgba(18,18,18,0.84); color: #F2F3F0; font: 12px/1.4 -apple-system, 'PingFang SC', sans-serif; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Press Run",
+    "overview": "The site is a run of press sheets for GravityPort's own job. Each section is one sheet: cool uncoated stock in the margin, crop marks at the trim, and inside the trim a live area flooded in key black, left as stock, or flooded in the fluorescent spot. Every image carries its slug (source, size, date, the user's instruction, and a rule whose stroke says how far that provenance can be trusted). The product's mechanism, context travelling with the image, is how the page is built, not a feature claim beside it.\n\nTwo inks and a spot do the work. Key black carries the dark product interface at near life size; stock carries reading and documentation; the fluorescent spot marks the one action, the selection, and the proof corrections a printer would scrawl. Process cyan, magenta and yellow appear only where a press sheet would show them: the colour bar, the registration target and the plate separations of the hero image. Motion is the press: things print in (a wipe from the gripper edge), plates come into register, slugs type out. Nothing fades and slides.\n\nDensity is a printer's density: condensed black display lines, mono data in the margins, ruled tables with heavy 3px head rules and 1px row rules, square corners everywhere outside the app mock. The anti-reference is the dark SaaS hero with a glowing tilted screenshot over a row of equal feature cards.",
+    "keyCharacteristics": [
+      "Every section is a sheet: margin, crop marks, live area, numbered slug with an ink spec.",
+      "Stock / key black / one fluorescent spot; CMY only as print furniture.",
+      "Condensed black display in Archivo and Noto Sans SC Black; Fragment Mono only for data and slugs; Long Cang only for hand proof notes.",
+      "The real GravityPort window, built in HTML with the owner's own images, is the hero and the demos.",
+      "One press cadence (900 ms, cubic-bezier(0.16, 1, 0.3, 1)); reduced motion shows every final state."
+    ],
+    "rules": [
+      {
+        "name": "The Two Inks and a Spot Rule",
+        "body": "A sheet is stock, key black, or fluo flood; text on it is the other of stock/ink. No other hue fills a surface or sets text outside the app mock.",
+        "section": "colors"
+      },
+      {
+        "name": "The Furniture Rule",
+        "body": "Cyan, magenta and yellow appear only as print furniture (colour bar, registration target, plate separations). If CMY shows up in copy, a button or a background, it is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Fluo On Black Rule",
+        "body": "Fluo as a text or stroke colour is used only on ink or inside the app mock. On stock, fluo is a fill with ink text on it (button, tag, flood), never a line of text.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mono Is Data Rule",
+        "body": "Fragment Mono sets only things a press slug or a machine would print: sheet numbers, ink specs, dimensions, dates, slugs, hashes, commands, round tags. It never sets a heading, a label above a heading, or prose.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Hand Rule",
+        "body": "Long Cang is a proofreader's correction: the recorded instruction beside a circled image, the key round's note, the OK stamp. Never a heading, never decoration, never on stock in fluo.",
+        "section": "typography"
+      },
+      {
+        "name": "The Phrase Break Rule",
+        "body": "A Chinese display line never breaks inside a phrase. When a line can be too long for its column, write a `<wbr />` at the phrase boundary in strings.js and in the HTML fallback (\"一张图<wbr />离开对话框，\"), and check the line at 360px, 1280px and 1440px.",
+        "section": "typography"
+      },
+      {
+        "name": "The Subset Rule",
+        "body": "Both CJK faces are subset to the exact characters the site sets in them. After changing any display line (any strings.js key ending in `.title`, or one listed in DISPLAY_KEYS), any hand note (HAND_KEYS, HAND_WORK), or adding a new page with its own display or hand strings, rerun `python3 -I scripts/fetch-site-fonts.py` and ship the regenerated `assets/fonts/noto-sans-sc-900.woff2` and `assets/fonts/long-cang.woff2` in the same change. A new page must register its display and hand keys in that script. A missing glyph silently falls back to a system face, which is a defect.",
+        "section": "typography"
+      },
+      {
+        "name": "The Crop In Rule",
+        "body": "Product UI stays legible or is cropped, never miniaturised below about 0.5 zoom. On desktop and tablet the hero window fits whole; only phones crop it to the inspector side.",
+        "section": "layout"
+      },
+      {
+        "name": "The Same Lines Rule",
+        "body": "Two columns side by side share their top and bottom lines, in Chinese and English, at every width where they sit side by side. Columns of a docket share their title, box and note lines (subgrid). Measure it after any copy change.",
+        "section": "layout"
+      },
+      {
+        "name": "The Numbered Run Rule",
+        "body": "Every sheet's slug numbers it within its page's run (`SHEET 03 / 12`). A new page is its own run with its own total; numbers stay sequential and the total is updated when sheets are added or removed.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Sheet Rule",
+        "body": "Nothing printed on the sheet (text, tables, buttons, rules, chips) carries a shadow. Borders are drawn as inset box-shadows or 1px / 3px ink rules.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Overprint Rule",
+        "body": "Where layers combine (plates, registration target), they multiply like ink, they do not stack with shadows.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Print, Never Fade Rule",
+        "body": "Reveals are prints (clip-path wipes), plates registering, or slugs typing out. No opacity fade-slide, no scale-up entrances, no bounce.",
+        "section": "components"
+      },
+      {
+        "name": "The Real Window Rule",
+        "body": "The product is shown as the HTML window with the owner's approved images and their real provenance. Demo data is labelled as demo.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** build every new page (privacy, release notes, online demo) as a run of sheets: margin, four crop marks, a live area that is ink, stock or fluo, and a mono slug with `SHEET NN / TT` and the ink spec that actually printed.",
+      "**Do** alternate ink and stock sheets; reserve the fluo flood for one sheet per page at most.",
+      "**Do** use fluo for exactly the primary action, selection and proof marks on any sheet.",
+      "**Do** set section headings in condensed black display (Archivo 820–900 at 62–78% width; GP Hei for Chinese) and size Chinese and English separately with the `:root[lang|=\"en\"]` overrides.",
+      "**Do** rerun `python3 -I scripts/fetch-site-fonts.py` after changing any display line or hand note, and register a new page's display and hand keys in that script.",
+      "**Do** use the owner's approved images from `assets/work/` with their recorded slug data; show the product with the HTML app mock.",
+      "**Do** print in with the 900ms clip-path wipe and give every animated element a final state that reduced motion shows directly.",
+      "**Do** wire image slugs to keyboard focus as well as pointer when adding slugged images.",
+      "**Do** keep two side-by-side columns on the same top and bottom lines, and recheck them in both languages after any copy change.",
+      "**Do** mark Chinese display break points with `<wbr />` and check display lines at 360px, 1280px and 1440px.",
+      "**Do** keep the extension install steps on the home page (the install sheet); `/guide/` only redirects there.",
+      "**Do** keep zh and en equal: both get their own line breaks, quotes (「」 vs “”) and line-heights (1.7 vs 1.6)."
+    ],
+    "donts": [
+      "**Don't** use the dark SaaS hero: a glowing tilted screenshot over a row of equal feature cards.",
+      "**Don't** use cyan, magenta or yellow outside the colour bar, registration target and plates; don't use source inks for anything but source identification.",
+      "**Don't** set fluo text on stock.",
+      "**Don't** put small labels or kickers above display headings; the slug in the margin is where data lives.",
+      "**Don't** use Fragment Mono for headings or prose, or Long Cang for anything but proof notes and the OK stamp.",
+      "**Don't** round site elements; radius belongs only to the app mock.",
+      "**Don't** add shadows to printed elements (text, buttons, tables, chips).",
+      "**Don't** reveal with fades, slides or scale-ups.",
+      "**Don't** invent counts, testimonials, benchmarks or Prompts, and never draw a solid rule over unrecorded provenance.",
+      "**Don't** show the owner's real group names in any mock; keep \"My groups\" collapsed.",
+      "**Don't** leave a lede stranded far from its heading to fill a column; restructure the sheet instead.",
+      "**Don't** load fonts from a CDN; all faces are self-hosted in `assets/fonts/`.",
+      "**Don't** copy design-direction or contract text into any browser-delivered file (HTML, CSS, JS, strings)."
+    ]
+  }
+}
