@@ -123,6 +123,18 @@ cd <官网仓库>
 
 ## 4. 发布浏览器扩展包
 
+### 扩展包挂在 GitHub Release（0.15.43 起）
+
+扩展包和桌面安装包一样，由 App 仓库的 GitHub Release 分发，不再放本站 `downloads/`：
+
+1. 在 App 仓库打包：`npm run pack:web-capture-store`，把 Local-Test 包改名为 `GravityPort-Web-Capture-<扩展版本>.zip`，用 `unzip -l` 核对包内文件。
+2. 随 App 一起发版时，发版工具会把它和安装包一起挂到 `v<App 版本>`。只发扩展、不发 App 时，挂到当前最新的 App Release 上：`gh release upload v<最新 App 版本> GravityPort-Web-Capture-<扩展版本>.zip --repo fengseekling-coder/gravityport`，再核对附件 digest。
+3. 在 `site-config.js` 里，把 `extension` 的 `version`、`url`（Release 附件的完整地址）和 `size`（字节数）都换掉。
+
+下面是旧做法（放本站 `downloads/`），只留作参考。
+
+### 旧做法：放本站 downloads/
+
 当前浏览器扩展源码快照在：
 
 ```text
@@ -193,7 +205,9 @@ windows: {
 
 页面只在 `site-config.js` 的版本号和清单相同时用这里的链接。如果清单先升了版本、`site-config.js` 还没改，按钮会暂时退回本站 `downloads/` 里的包，下载不会断。
 
-扩展 ZIP 仍放在本站 `downloads/`，按第 4 节发布。
+扩展 ZIP 也挂在 GitHub Release，按第 4 节发布。
+
+App 仓库的 272、273 号改动发布后（预计 0.3.8 起），软件内更新也改从 GitHub Release 取清单和更新包。到那时，这一节的第 1 步只在过渡版（0.3.8）还要做，见 App 仓库 `docs/releasing.md`。
 
 ### 单包发布（备用）
 

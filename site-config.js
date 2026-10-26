@@ -27,9 +27,12 @@ window.MOSA_SITE_CONFIG = Object.freeze({
     size: 112358039,
     label: "下载 Windows 包",
   },
+  // 扩展包从 0.15.43 起也挂在 GitHub Release（跟随当时最新的 App 版本），
+  // 同样填完整地址和字节数。
   extension: {
     version: "v0.15.43",
-    url: "./downloads/GravityPort-Web-Capture-0.15.43.zip",
+    url: "https://github.com/fengseekling-coder/gravityport/releases/download/v0.3.7/GravityPort-Web-Capture-0.15.43.zip",
+    size: 122351,
     label: "浏览器包下载",
   },
 });
