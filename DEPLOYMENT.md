@@ -123,18 +123,6 @@ cd <官网仓库>
 
 ## 4. 发布浏览器扩展包
 
-### 扩展包挂在 GitHub Release（0.15.43 起）
-
-扩展包和桌面安装包一样，由 App 仓库的 GitHub Release 分发，不再放本站 `downloads/`：
-
-1. 在 App 仓库打包：`npm run pack:web-capture-store`，把 Local-Test 包改名为 `GravityPort-Web-Capture-<扩展版本>.zip`，用 `unzip -l` 核对包内文件。
-2. 随 App 一起发版时，发版工具会把它和安装包一起挂到 `v<App 版本>`。只发扩展、不发 App 时，挂到当前最新的 App Release 上：`gh release upload v<最新 App 版本> GravityPort-Web-Capture-<扩展版本>.zip --repo fengseekling-coder/gravityport`，再核对附件 digest。
-3. 在 `site-config.js` 里，把 `extension` 的 `version`、`url`（Release 附件的完整地址）和 `size`（字节数）都换掉。
-
-下面是旧做法（放本站 `downloads/`），只留作参考。
-
-### 旧做法：放本站 downloads/
-
 当前浏览器扩展源码快照在：
 
 ```text
@@ -180,38 +168,7 @@ git push origin main
 
 ## 5. 发布 macOS 安装包
 
-### 官网下载走 GitHub Release（0.3.7 起）
-
-官网的 macOS / Windows 下载按钮指向 App 仓库的 GitHub Release 附件，软件内更新仍从本站 `downloads/` 下载。所以每次发桌面版两边都要有包：
-
-1. 标准桌面发布脚本照常把包上传到 DMIT 的 `downloads/`，并更新 `releases/gravityport/latest.json`（软件内更新用）。
-2. 建 GitHub Release `v<版本>` 时，挂上四个附件：macOS DMG、macOS 更新 ZIP、Windows ZIP、Windows 安装程序 `.exe`。可以用 App 仓库 `npm run release:github -- --version <版本> --asset <路径>`（`--asset` 可重复），已建好的 Release 用 `gh release upload v<版本> <文件…>`。上传后核对附件的 sha256 与清单一致。
-3. 在 `site-config.js` 里，把 `mac`、`windows` 的 `version` 换成新版本，`url` 换成 Release 附件的完整地址，`size` 填字节数。跨站链接查不到文件大小，`size` 不填，页面上就不显示大小：
-
-```js
-mac: {
-  version: "v0.3.7",
-  url: "https://github.com/fengseekling-coder/gravityport/releases/download/v0.3.7/GravityPort-darwin-arm64-0.3.7.dmg",
-  size: 146753491,
-  label: "下载 macOS 包",
-},
-windows: {
-  version: "v0.3.7",
-  url: "https://github.com/fengseekling-coder/gravityport/releases/download/v0.3.7/GravityPort-win32-x64-0.3.7.exe",
-  size: 112358039,
-  label: "下载 Windows 包",
-},
-```
-
-页面只在 `site-config.js` 的版本号和清单相同时用这里的链接。如果清单先升了版本、`site-config.js` 还没改，按钮会暂时退回本站 `downloads/` 里的包，下载不会断。
-
-扩展 ZIP 也挂在 GitHub Release，按第 4 节发布。
-
-App 仓库的 272、273 号改动发布后（预计 0.3.8 起），软件内更新也改从 GitHub Release 取清单和更新包。到那时，这一节的第 1 步只在过渡版（0.3.8）还要做，见 App 仓库 `docs/releasing.md`。
-
-### 单包发布（备用）
-
-若只拿到一个独立的 macOS `.dmg`，才使用下面的单包发布方式：
+当前标准桌面发布会自动把 macOS DMG 与 Windows ZIP 成对上传，并更新 `releases/gravityport/latest.json`；不需要再手动修改 `site-config.js`。若只拿到一个独立的 macOS `.dmg`，才使用下面的单包发布方式：
 
 ```text
 downloads/GravityPort-darwin-arm64-0.3.7.dmg
