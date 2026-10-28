@@ -261,6 +261,9 @@ test("packaged build identity is read from web/app/build-identity.json", (t) => 
     productVersion: version,
     gitSha: FIXTURE_GIT_SHA,
   }, null, 2)}\n`);
+  // The identity lives in the shared tmpdir parent; remove it so a later run
+  // of any suite cannot read this run's stale file.
+  t.after(() => fs.rmSync(path.join(root, "..", "..", "web"), { recursive: true, force: true }));
 
   const stateFile = path.join(makeTempDir("mosa-state."), "state");
   const manifest = runDryRun({ sourceDir: root, stateFile, product: "MOSA" });
@@ -289,6 +292,9 @@ test("packaged build identity is read from web/gravityport/dist/build-identity.j
     productVersion: version,
     gitSha: FIXTURE_GIT_SHA,
   }, null, 2)}\n`);
+  // The identity lives in the shared tmpdir parent; remove it so a later run
+  // of any suite cannot read this run's stale file.
+  t.after(() => fs.rmSync(path.join(root, "..", "..", "web"), { recursive: true, force: true }));
 
   const stateFile = path.join(makeTempDir("mosa-state."), "state");
   const manifest = runDryRun({ sourceDir: root, stateFile, product: "MOSA" });

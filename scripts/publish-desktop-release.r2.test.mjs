@@ -310,6 +310,9 @@ test("dual publish uploads four packages before the manifest, copies history, th
   const binDir = createShims({ callLog, remoteRoot });
 
   const { root } = makeSourceTree({ macVersion: "0.3.7", windowsVersion: "0.3.7", dmg: true, installer: true });
+  // The DMG fixture writes the build identity into the shared tmpdir parent;
+  // remove it afterwards so no later run of any suite reads this stale file.
+  t.after(() => fs.rmSync(path.join(root, "..", "..", "web"), { recursive: true, force: true }));
   const env = buildEnv({
     sourceDir: root,
     stateFile: path.join(work, "state"),
