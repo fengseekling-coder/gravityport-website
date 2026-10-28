@@ -1,0 +1,10 @@
+name = "gravityport-site"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+
+# Visit counting middleware (pages/functions/) writes here. The placeholder id
+# is replaced with the real database id once the Cloudflare account exists.
+[[d1_databases]]
+binding = "STATS"
+database_name = "gp-stats"
+database_id = "00000000-0000-0000-0000-000000000000"

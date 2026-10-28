@@ -5,12 +5,18 @@ on:
     branches:
       - main
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
 
 concurrency:
-  group: mosa-website-production
+  # Pull requests run in their own group so they can never cancel the
+  # production deployment; pushes to main keep the existing behaviour where a
+  # newer run cancels the previous one.
+  group: ${{ github.event_name == 'pull_request' && format('{0}-pull-request{1}', github.workflow, github.ref) || 'mosa-website-production' }}
   cancel-in-progress: true
 
 jobs:
@@ -36,8 +42,38 @@ jobs:
           mapfile -t tests < <(ls scripts/*.test.mjs | grep -v -e publish-desktop-release -e extend-desktop-release-manifest)
           node --test "${tests[@]}"
 
+      - name: Run Pages bundle tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --prefix pages
+          npm test --prefix pages
+
+      # Workers live in workers/<name>/ with their own package.json (workers/edge,
+      # workers/api). The directory is created by later tasks; absent is fine.
+      - name: Run worker tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -d workers ]; then
+            echo "No workers/ directory yet; nothing to test."
+            exit 0
+          fi
+          found=0
+          for worker_dir in workers/*/; do
+            [ -f "${worker_dir}package.json" ] || continue
+            found=1
+            echo "Testing ${worker_dir}"
+            npm ci --prefix "${worker_dir}"
+            npm test --prefix "${worker_dir}"
+          done
+          if [ "$found" = "0" ]; then
+            echo "No worker packages found; nothing to test."
+          fi
+
   deploy:
     needs: test
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -104,6 +140,8 @@ jobs:
             --exclude='/downloads/' \
             --exclude='/releases/' \
             --exclude='/admin/stats.json' \
+            --exclude='/pages/' \
+            --exclude='/workers/' \
             -e "ssh -i $HOME/.ssh/mosa_deploy_key -p $DEPLOY_PORT -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes" \
             ./ \
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_REMOTE_DIR/"
@@ -164,3 +202,87 @@ jobs:
 
           gravityport_redirect="$(curl --silent --show-error --head --max-time 20 http://gravityport.azhuilab.com/ | awk 'BEGIN { IGNORECASE=1 } /^location:/ { sub(/^[^:]*:[[:space:]]*/, ""); print; exit }' | tr -d '\r')"
           test "$gravityport_redirect" = "https://gravityport.azhuilab.com/"
+
+  # Static site on Cloudflare Pages, independent from the legacy deploy above:
+  # a failure here never blocks the old server. Until the Cloudflare secrets
+  # exist the whole job reports "skipped" and still succeeds.
+  deploy-pages:
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # The token may exist before the Pages project and D1 database do, so
+      # deployment is switched on separately with the repository variable
+      # CLOUDFLARE_PAGES_DEPLOY=enabled once that setup is finished.
+      PAGES_DEPLOY_SWITCH: ${{ vars.CLOUDFLARE_PAGES_DEPLOY }}
+    steps:
+      - name: Check out website
+        uses: actions/checkout@v4
+
+      - name: Check Cloudflare credentials
+        id: cloudflare
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "未配置 Cloudflare 令牌，跳过 Pages 部署"
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          elif [ "$PAGES_DEPLOY_SWITCH" != "enabled" ]; then
+            echo "仓库变量 CLOUDFLARE_PAGES_DEPLOY 未设为 enabled，跳过 Pages 部署"
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node.js
+        if: steps.cloudflare.outputs.configured == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Pages tooling
+        if: steps.cloudflare.outputs.configured == 'true'
+        run: npm ci --prefix pages
+
+      - name: Build Pages bundle
+        if: steps.cloudflare.outputs.configured == 'true'
+        run: npm run build --prefix pages
+
+      # Run from pages/ so wrangler picks up pages/wrangler.toml and the
+      # functions/ middleware that lives next to it.
+      - name: Deploy to Cloudflare Pages
+        if: steps.cloudflare.outputs.configured == 'true'
+        working-directory: pages
+        run: npx wrangler pages deploy dist --project-name gravityport-site --branch main
+
+      # Committed browser-extension packages ride along to R2; objects are only
+      # ever added there, never deleted.
+      - name: Sync extension packages to R2
+        if: steps.cloudflare.outputs.configured == 'true'
+        working-directory: pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for package in ../downloads/*.zip; do
+            name="$(basename "$package")"
+            echo "Uploading ${name}"
+            npx wrangler r2 object put "gravityport-releases/downloads/${name}" --file "$package" --remote
+          done
+
+      - name: Verify Pages deployment
+        if: steps.cloudflare.outputs.configured == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          pages_url="https://gravityport-site.pages.dev"
+
+          index_status="$(curl --fail --silent --show-error --max-time 20 -o /tmp/pages-index.html -w '%{http_code}' "$pages_url/")"
+          test "$index_status" = "200"
+
+          curl --fail --silent --show-error --head --max-time 20 "$pages_url/" | grep -Eiq '^content-security-policy:'
+
+          curl --fail --silent --show-error --head --max-time 20 "$pages_url/site-config.js" | grep -Eiq '^cache-control: .*no-cache'
