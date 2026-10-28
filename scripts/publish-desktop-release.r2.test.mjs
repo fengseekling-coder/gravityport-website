@@ -48,7 +48,11 @@ function makeZipFixture(rootDir, relativeEntries) {
 // hdiutil verify passes; the packaged build identity is written next to the
 // built UI bundle the way the script expects it.
 function makeSourceTree({ macVersion = "0.3.7", windowsVersion = null, dmg = false, installer = false } = {}) {
-  const root = makeTempDir("mosa-r2-src.");
+  // The script treats this directory as out/make and looks for the build
+  // identity two levels up, so give every tree its own private repository
+  // root; otherwise suites running in parallel share the tmpdir parent.
+  const root = path.join(makeTempDir("mosa-r2-repo."), "out", "make");
+  fs.mkdirSync(root, { recursive: true });
   const macZip = makeZipFixture(root, ["GravityPort.app/Contents/MacOS/GravityPort"]);
   const updateDir = path.join(root, "update", "darwin", "arm64");
   fs.mkdirSync(updateDir, { recursive: true });

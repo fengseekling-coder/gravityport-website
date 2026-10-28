@@ -319,6 +319,7 @@ test("an explicitly configured DMG must carry the release product and version in
     productVersion: version,
     gitSha: FIXTURE_GIT_SHA,
   }, null, 2)}\n`);
+  t.after(() => fs.rmSync(path.join(root, "..", "..", "web"), { recursive: true, force: true }));
 
   const stateFile = path.join(makeTempDir("mosa-state."), "state");
   const outputPath = path.join(makeTempDir("mosa-release-run."), "staged-latest.json");
