@@ -136,6 +136,27 @@
     host.append(svg);
   }
 
+  function renderSiteTraffic(data) {
+    const referrerRows = entries(data.pageViewsByReferrer);
+    const countryRows = entries(data.pageViewsByCountry);
+    const deviceRows = entries(data.pageViewsByDevice);
+    const grid = $("siteTrafficGrid");
+    if (grid) grid.hidden = !(referrerRows.length || countryRows.length || deviceRows.length);
+    renderRankList("referrerList", data.pageViewsByReferrer, { internal: "站内", direct: "直接" });
+    renderRankList("countryList", data.pageViewsByCountry);
+    renderRankList("deviceList", data.pageViewsByDevice, { desktop: "桌面", mobile: "手机", tablet: "平板" });
+    const botCard = $("botPageViewsCard");
+    const botCount = Number(data.botPageViews);
+    if (botCard) botCard.hidden = !(Number.isFinite(botCount) && botCount > 0);
+    if (botCard && !botCard.hidden) setMetric("botPageViews", data.botPageViews);
+    const note = $("metricsNote");
+    const noteText = typeof data.metricsNote === "string" ? data.metricsNote : "";
+    if (note) {
+      note.hidden = !noteText;
+      note.textContent = noteText;
+    }
+  }
+
   function render(data) {
     setMetric("anonymousInstalls", data.knownInstallationInstances);
     setMetric("firstLaunches", data.reportedFirstLaunches);
@@ -158,6 +179,7 @@
     const coverage = new Date(data.coverageStart);
     const coverageText = Number.isNaN(coverage.getTime()) ? "覆盖起点未知" : `趋势口径起点 ${dateTime.format(coverage)}`;
     footer.textContent = `统计日时区：${data.analyticsTimeZone || "unknown"} · ${coverageText} · 下载数字为 HTTP 请求数，不等同于独立下载人数。页面访问是 Nginx 日志近似 PV，不是按钮点击；首页按 GravityPort 页面体长过滤，首页→下载是下载请求除以首页访问。`;
+    renderSiteTraffic(data);
   }
 
   async function loadStats() {

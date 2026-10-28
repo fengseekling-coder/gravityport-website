@@ -34,6 +34,7 @@
       <article class="metric-card"><span>官网页面访问</span><strong id="pageViews">—</strong><small>公开页成功 GET，近似 PV</small></article>
       <article class="metric-card"><span>首页访问</span><strong id="homePageViews">—</strong><small>GravityPort 首页成功 GET，按体长过滤</small></article>
       <article class="metric-card"><span>首页→下载</span><strong id="homeToDownloadRate">—</strong><small>下载请求 / 首页访问，不是按钮点击率</small></article>
+      <article class="metric-card" id="botPageViewsCard" hidden><span>爬虫访问</span><strong id="botPageViews">—</strong><small>已识别为爬虫的页面请求，不计入访问量</small></article>
     </section>
 
     <section class="panel trend-panel">
@@ -102,7 +103,23 @@
       </article>
     </section>
 
+    <section class="detail-grid site-traffic-grid" id="siteTrafficGrid" hidden>
+      <article class="panel">
+        <div class="panel-heading"><div><p class="panel-kicker">REFERRER</p><h2>来源网站</h2></div></div>
+        <div class="rank-list" id="referrerList"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-heading"><div><p class="panel-kicker">COUNTRY</p><h2>国家 / 地区</h2></div></div>
+        <div class="rank-list" id="countryList"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-heading"><div><p class="panel-kicker">DEVICE</p><h2>设备类型</h2></div></div>
+        <div class="rank-list" id="deviceList"></div>
+      </article>
+    </section>
+
     <section class="notice" id="errorNotice" hidden></section>
+    <p class="metrics-note" id="metricsNote" hidden></p>
     <footer id="statsFooter">数据来自 GravityPort 匿名使用统计与 Nginx 访问日志。页面仅供私有运维使用。</footer>
   </main>
   <script src="./app.js" defer></script>
