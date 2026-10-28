@@ -7,7 +7,11 @@
 
 const JWKS_PATH = "/cdn-cgi/access/certs";
 
-/** @type {Map<string, Promise<{keys: unknown[]}>>} */
+// Access rotates its signing keys, so the cached set is refreshed after a
+// short while instead of living as long as the isolate does.
+const JWKS_TTL_MS = 10 * 60 * 1000;
+
+/** @type {Map<string, {fetchedAt: number, promise: Promise<{keys: unknown[]}>}>} */
 const jwksCache = new Map();
 
 /**
@@ -31,15 +35,14 @@ async function fetchJwks(teamDomain) {
  * @returns {Promise<{keys: unknown[]}>}
  */
 function getJwks(teamDomain) {
-  let cached = jwksCache.get(teamDomain);
-  if (!cached) {
-    cached = fetchJwks(teamDomain).catch((error) => {
-      jwksCache.delete(teamDomain);
-      throw error;
-    });
-    jwksCache.set(teamDomain, cached);
-  }
-  return cached;
+  const cached = jwksCache.get(teamDomain);
+  if (cached && Date.now() - cached.fetchedAt < JWKS_TTL_MS) return cached.promise;
+  const promise = fetchJwks(teamDomain).catch((error) => {
+    jwksCache.delete(teamDomain);
+    throw error;
+  });
+  jwksCache.set(teamDomain, { fetchedAt: Date.now(), promise });
+  return promise;
 }
 
 /**
