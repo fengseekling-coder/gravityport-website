@@ -1,0 +1,14 @@
+{
+  "name": "gp-api",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker handling feedback collection, the feedback admin API, and the Pinterest token relay.",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.23.0",
+    "vitest": "4.1.11",
+    "wrangler": "4.150.0"
+  }
+}
