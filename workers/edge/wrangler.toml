@@ -1,0 +1,37 @@
+name = "gp-edge"
+main = "src/index.js"
+compatibility_date = "2026-08-22"
+
+# Release packages and manifests. Real bucket is created outside this repository.
+[[r2_buckets]]
+binding = "RELEASES"
+bucket_name = "gravityport-releases"
+
+# Usage statistics (installs, daily activity, counters). database_id is a
+# placeholder that gets replaced at deploy time.
+[[d1_databases]]
+binding = "STATS"
+database_name = "gp-stats"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+# One maintenance run per day, 11:17 UTC (~4am Los Angeles).
+[triggers]
+crons = ["17 11 * * *"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+# Workers Logs would record full URLs, which carry the anonymous install_id,
+# so it must stay off.
+[observability]
+enabled = false
+
+# Cloudflare Access application protecting /admin/* on the legacy domain.
+# Both must be configured at deploy time; when either is empty every /admin/*
+# request is rejected (there is deliberately no "unconfigured" bypass).
+[vars]
+ACCESS_TEAM_DOMAIN = ""
+ACCESS_AUD = ""
