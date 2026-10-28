@@ -1,0 +1,46 @@
+name = "gp-api"
+main = "src/index.js"
+compatibility_date = "2026-08-22"
+
+# Feedback rows and one-time Pinterest session credentials (hashes only).
+# database_id is a placeholder that gets replaced at deploy time.
+[[d1_databases]]
+binding = "FEEDBACK"
+database_name = "gp-feedback"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+# Managed rate limiting. Counting is in-memory and keyed in code by
+# CF-Connecting-IP; the API only offers 10 and 60 second windows, so the old
+# feedback service's per-IP daily cap has no equivalent here.
+[[ratelimits]]
+name = "FEEDBACK_LIMITER"
+namespace_id = "1001"
+simple = { limit = 5, period = 60 }
+
+[[ratelimits]]
+name = "PINTEREST_LIMITER"
+namespace_id = "1002"
+simple = { limit = 10, period = 60 }
+
+[vars]
+PINTEREST_CLIENT_ID = "1628239"
+PINTEREST_ALLOWED_REDIRECTS = "http://localhost:43517/api/pinterest/callback"
+PINTEREST_TOKEN_ENDPOINT = "https://api.pinterest.com/v5/oauth/token"
+# "false" also accepts credential-less requests so App versions without
+# session support keep working; flip to "true" once every released App sends
+# the credential (see src/pinterest.js).
+PINTEREST_REQUIRE_SESSION = "false"
+FEEDBACK_MAX_ROWS = "10000"
+FEEDBACK_MAX_TOTAL_BYTES = "1073741824"
+# Cloudflare Access application protecting /admin/feedback*.json. Both must be
+# configured at deploy time; when either is empty every request is rejected
+# (there is deliberately no "unconfigured" bypass).
+ACCESS_TEAM_DOMAIN = ""
+ACCESS_AUD = ""
+
+# The Pinterest App Secret is a Worker secret, never a value in this
+# repository: set it once with `wrangler secret put PINTEREST_APP_SECRET`.
+
+[observability]
+enabled = false
