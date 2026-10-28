@@ -1,0 +1,12 @@
+{
+  "name": "gravityport-pages",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "wrangler": "4.150.0"
+  }
+}

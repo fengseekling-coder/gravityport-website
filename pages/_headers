@@ -1,0 +1,98 @@
+# Response headers for the Pages site, mirroring the nginx configuration that
+# served the site before the migration. Rules accumulate: /* applies to every
+# response, later matching rules add (or, with a ! prefix, remove) headers.
+# A header set by two matching rules would be concatenated, not overwritten.
+
+/*
+  Strict-Transport-Security: max-age=31536000
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), browsing-topics=()
+  Content-Security-Policy: default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'
+
+# The *.pages.dev copies duplicate the real site; keep them out of search.
+https://gravityport-site.pages.dev/*
+  X-Robots-Tag: noindex
+
+https://:version.gravityport-site.pages.dev/*
+  X-Robots-Tag: noindex
+
+# HTML pages are never cached. Both the directory URL and the underlying
+# index.html path are listed because the .html form redirects, and redirect
+# responses bypass _headers rules.
+/
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
+
+/en/
+  Cache-Control: no-cache
+
+/en/index.html
+  Cache-Control: no-cache
+
+/en/privacy/
+  Cache-Control: no-cache
+
+/en/privacy/index.html
+  Cache-Control: no-cache
+
+/privacy/
+  Cache-Control: no-cache
+
+/privacy/index.html
+  Cache-Control: no-cache
+
+/guide/
+  Cache-Control: no-cache
+
+/guide/index.html
+  Cache-Control: no-cache
+
+# The home page embeds /demo/ in an iframe, so it needs the same policy with
+# frame-ancestors 'self' instead of 'none'. The ! prefix drops the /* CSP so
+# the two policies are not concatenated.
+/demo/
+  Cache-Control: no-cache
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'
+
+/demo/index.html
+  Cache-Control: no-cache
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'
+
+/site-config.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+
+/desktop-release-feed.js
+  Cache-Control: max-age=3600
+
+/site/*.css
+  Cache-Control: max-age=3600
+
+/site/*.js
+  Cache-Control: max-age=3600
+
+# Images and fonts, wherever they appear in the whitelist. The splat in a
+# rule like /assets/*.jpg also matches subdirectories, so one rule per
+# extension is enough — a second matching rule would concatenate the values.
+/favicon.ico
+  Cache-Control: public, max-age=2592000
+
+/apple-touch-icon.png
+  Cache-Control: public, max-age=2592000
+
+/assets/*.svg
+  Cache-Control: public, max-age=2592000
+
+/assets/*.jpg
+  Cache-Control: public, max-age=2592000
+
+/assets/*.webp
+  Cache-Control: public, max-age=2592000
+
+/assets/fonts/*
+  Cache-Control: public, max-age=2592000
