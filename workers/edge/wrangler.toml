@@ -7,12 +7,12 @@ compatibility_date = "2026-08-22"
 binding = "RELEASES"
 bucket_name = "gravityport-releases"
 
-# Usage statistics (installs, daily activity, counters). database_id is a
-# placeholder that gets replaced at deploy time.
+# Usage statistics (installs, daily activity, counters). Shared with the
+# Pages visit counter (pages/wrangler.toml uses the same database id).
 [[d1_databases]]
 binding = "STATS"
 database_name = "gp-stats"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "cfc7991a-7941-4e21-8120-0b54c75f8ca4"
 migrations_dir = "migrations"
 
 # One maintenance run per day, 11:17 UTC (~4am Los Angeles).

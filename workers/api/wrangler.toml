@@ -3,11 +3,10 @@ main = "src/index.js"
 compatibility_date = "2026-08-22"
 
 # Feedback rows and one-time Pinterest session credentials (hashes only).
-# database_id is a placeholder that gets replaced at deploy time.
 [[d1_databases]]
 binding = "FEEDBACK"
 database_name = "gp-feedback"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "ecf4303e-a387-475d-ad2c-0cf55d9f90e6"
 migrations_dir = "migrations"
 
 # Managed rate limiting. Counting is in-memory and keyed in code by
