@@ -16,6 +16,12 @@ set -Eeuo pipefail
 #   4. back up the live latest.json into releases/history/
 #   5. atomically replace releases/latest.json (same-filesystem mv)
 #
+# MOSA_RELEASE_TARGETS selects where a run publishes. The default (旧服务器)
+# keeps exactly the legacy flow above. With the r2 target enabled, R2 is
+# published first (packages → size verification → history copy → manifest) and
+# the legacy flow runs afterwards unchanged, so an R2 failure never leaves the
+# legacy server half-published; retention runs once per target.
+#
 # Release notes are fail-closed: a genuinely new release publishes only when
 # MOSA_RELEASE_NOTES_ZH and MOSA_RELEASE_NOTES_EN are both set to non-blank
 # text. Same-version no-op and downgrade runs never require notes.
@@ -104,7 +110,57 @@ if [[ "$release_product" == "GravityPort" && -z "${MOSA_RELEASE_STATE_FILE:-}" ]
   state_file="$HOME/.config/mosa/desktop-release-monitor.gravityport.state"
 fi
 
-[[ -n "$ssh_host" && -n "$ssh_user" ]] || die "MOSA_RELEASE_SSH_HOST and MOSA_RELEASE_SSH_USER must be set (put them in $release_config)"
+# Publication targets. The default keeps the historical legacy-server flow
+# byte-for-byte untouched. "r2" publishes only to Cloudflare R2 (post-migration
+# mode C1); "旧服务器,r2" publishes to R2 first and only then starts the legacy
+# flow, so a failed R2 step leaves the legacy server completely untouched and
+# the run can simply be repeated.
+targets_r2_enabled=0
+targets_legacy_enabled=0
+IFS=',' read -r -a release_target_list <<< "${MOSA_RELEASE_TARGETS:-旧服务器}"
+for release_target in "${release_target_list[@]}"; do
+  release_target="${release_target//[[:space:]]/}"
+  [[ -n "$release_target" ]] || continue
+  case "$release_target" in
+    旧服务器) targets_legacy_enabled=1 ;;
+    r2|R2) targets_r2_enabled=1 ;;
+    *)
+      die "MOSA_RELEASE_TARGETS must be \"旧服务器\", \"r2\" or \"旧服务器,r2\" (got: ${MOSA_RELEASE_TARGETS:-})."
+      ;;
+  esac
+done
+[[ "$targets_legacy_enabled" -eq 1 || "$targets_r2_enabled" -eq 1 ]] \
+  || die "MOSA_RELEASE_TARGETS resolved to no publication target."
+
+r2_client="$script_dir/r2-client.mjs"
+r2_endpoint="${MOSA_RELEASE_R2_ENDPOINT:-}"
+r2_bucket="${MOSA_RELEASE_R2_BUCKET:-gravityport-releases}"
+r2_access_key_id="${MOSA_RELEASE_R2_ACCESS_KEY_ID:-}"
+r2_keychain_item="gravityport-r2-release"
+
+# Lists the names of the R2 settings that are missing, printing only names —
+# never values. The secret may live in the login keychain instead of the
+# environment, so its presence is probed without printing anything.
+r2_missing_config() {
+  local missing=""
+  [[ -n "$r2_endpoint" ]] || missing+=" MOSA_RELEASE_R2_ENDPOINT"
+  [[ -n "$r2_bucket" ]] || missing+=" MOSA_RELEASE_R2_BUCKET"
+  [[ -n "$r2_access_key_id" ]] || missing+=" MOSA_RELEASE_R2_ACCESS_KEY_ID"
+  if [[ -z "${MOSA_RELEASE_R2_SECRET_ACCESS_KEY:-}" ]]; then
+    security find-generic-password -s "$r2_keychain_item" -w >/dev/null 2>&1 \
+      || missing+=" MOSA_RELEASE_R2_SECRET_ACCESS_KEY(或钥匙串条目 $r2_keychain_item)"
+  fi
+  printf '%s' "$missing"
+}
+
+if [[ "$targets_r2_enabled" -eq 1 ]]; then
+  [[ -r "$r2_client" ]] || die "R2 client is missing: $r2_client"
+  r2_missing="$(r2_missing_config)"
+  [[ -z "$r2_missing" ]] || die "the r2 target is not configured, missing:${r2_missing}"
+fi
+
+[[ "$targets_legacy_enabled" -ne 1 || ( -n "$ssh_host" && -n "$ssh_user" ) ]] \
+  || die "MOSA_RELEASE_SSH_HOST and MOSA_RELEASE_SSH_USER must be set (put them in $release_config)"
 [[ -r "$manifest_writer" ]] || die "canonical manifest writer is missing: $manifest_writer"
 [[ -r "$manifest_extension" ]] || die "desktop release manifest extension is missing: $manifest_extension"
 [[ -r "$retention_selector" ]] || die "desktop retention selector is missing: $retention_selector"
@@ -113,8 +169,10 @@ command -v node >/dev/null 2>&1 || die "node is required"
 command -v unzip >/dev/null 2>&1 || die "unzip is required"
 command -v shasum >/dev/null 2>&1 || die "shasum is required"
 command -v stat >/dev/null 2>&1 || die "stat is required"
-command -v ssh >/dev/null 2>&1 || die "ssh is required"
-command -v rsync >/dev/null 2>&1 || die "rsync is required"
+if [[ "$targets_legacy_enabled" -eq 1 ]]; then
+  command -v ssh >/dev/null 2>&1 || die "ssh is required"
+  command -v rsync >/dev/null 2>&1 || die "rsync is required"
+fi
 
 # macOS update artifacts are the .zip update packages (the DMG is not part of
 # the update protocol). The canonical location is out/make/update/darwin/arm64;
@@ -392,9 +450,9 @@ previous_file="$temp_dir/previous-latest.json"
 remote_tmp=""
 published=0
 
-[[ "$remote_dir" == "/var/www/mosa-website" ]] || die "remote directory is fixed at /var/www/mosa-website"
-[[ "$ssh_port" =~ ^[0-9]+$ ]] || die "SSH port must be numeric"
-if [[ "$dry_run" -ne 1 ]]; then
+[[ "$targets_legacy_enabled" -ne 1 || "$remote_dir" == "/var/www/mosa-website" ]] || die "remote directory is fixed at /var/www/mosa-website"
+[[ "$targets_legacy_enabled" -ne 1 || "$ssh_port" =~ ^[0-9]+$ ]] || die "SSH port must be numeric"
+if [[ "$targets_legacy_enabled" -eq 1 && "$dry_run" -ne 1 ]]; then
   [[ -r "$ssh_key" ]] || die "SSH key is not readable: $ssh_key"
   [[ -r "$known_hosts" ]] || die "known_hosts is not readable: $known_hosts"
 fi
@@ -421,9 +479,37 @@ trap cleanup EXIT
 
 published_at="${MOSA_RELEASE_PUBLISHED_AT:-$(date -u '+%Y-%m-%dT%H:%M:%SZ')}"
 
+# r2 get wrapper: exits 0 with status 200, returns 1 for a 404 (object
+# absent), and dies on any transport or other HTTP failure.
+r2_get_to_file() {
+  local r2_get_json r2_get_status
+  r2_get_json="$(node "$r2_client" get "$1" "$2")" || die "R2 读取失败: $1"
+  r2_get_status="$(node -pe 'JSON.parse(process.argv[1]).status' "$r2_get_json")" \
+    || die "R2 get 输出无法解析: $1"
+  [[ "$r2_get_status" == "200" ]]
+}
+
+# r2 head wrapper: echoes "<status>\t<size>" (size empty when absent).
+r2_head_status_size() {
+  node "$r2_client" head "$1" | node -e '
+    const parsed = JSON.parse(require("node:fs").readFileSync(0, "utf8").trim());
+    process.stdout.write(`${parsed.status}\t${parsed.size === null ? "" : parsed.size}`);
+  '
+}
+
 if [[ -n "$previous_override" ]]; then
   [[ -r "$previous_override" ]] || die "previous manifest override is not readable: $previous_override"
   cp -f "$previous_override" "$previous_file"
+elif [[ "$targets_r2_enabled" -eq 1 && "$targets_legacy_enabled" -eq 0 && "$dry_run" -ne 1 ]]; then
+  # R2-only runs continue from the manifest on R2; a missing one is a first
+  # release. No SSH configuration is needed anywhere in this mode.
+  if r2_get_to_file "$remote_manifest_path" "$previous_file"; then
+    node -e 'JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));' "$previous_file" \
+      || die "current release manifest on R2 is not valid JSON"
+  else
+    rm -f "$previous_file"
+    log "R2 上暂无 latest.json，将生成全新清单。"
+  fi
 elif [[ "$dry_run" -ne 1 ]]; then
   if ssh "${ssh_args[@]}" "$ssh_target" \
     "if [ -f '$remote_dir/$remote_manifest_path' ]; then cat '$remote_dir/$remote_manifest_path'; fi" > "$previous_file"; then
@@ -562,6 +648,41 @@ while IFS= read -r referenced_file; do
 done <<< "$referenced_files"
 
 if [[ "$dry_run" -eq 1 ]]; then
+  if [[ "$targets_r2_enabled" -eq 1 ]]; then
+    log "R2 dry-run 检查（不发送任何写请求）："
+    r2_missing="$(r2_missing_config)"
+    if [[ -n "$r2_missing" ]]; then
+      log "R2 配置不完整，缺:${r2_missing}"
+    else
+      log "R2 配置齐。"
+      log "R2 待上传对象:"
+      log "  downloads/$mac_name"
+      [[ -n "$windows_name" ]] && log "  downloads/$windows_name"
+      [[ -n "$mac_dmg_name" ]] && log "  downloads/$mac_dmg_name"
+      [[ -n "$windows_installer_name" ]] && log "  downloads/$windows_installer_name"
+      log "  ${remote_manifest_path}（最后上传）"
+      # The retention preview is a read-only list; a failure here only skips
+      # the preview and never fails the dry-run.
+      if r2_downloads_files="$(node "$r2_client" list "downloads/" 2>/dev/null | node -e '
+        const lines = require("node:fs").readFileSync(0, "utf8").trim().split("\n").filter(Boolean);
+        for (const line of lines) process.stdout.write(`${JSON.parse(line).key.replace(/^downloads\//, "")}\n`);
+      ')"; then
+        r2_stale_preview="$(printf '%s\n' "$r2_downloads_files" | node "$retention_selector" "$desktop_retention_count" "$release_product" 2>/dev/null)" || r2_stale_preview=""
+        if [[ -n "$r2_stale_preview" ]]; then
+          log "R2 清理将删除（保留 ${desktop_retention_count} 版）："
+          while IFS=$'\t' read -r preview_mac preview_windows preview_installer; do
+            log "  downloads/$preview_mac"
+            log "  downloads/$preview_windows"
+            [[ -n "$preview_installer" ]] && log "  downloads/$preview_installer"
+          done <<< "$r2_stale_preview"
+        else
+          log "R2 无需清理。"
+        fi
+      else
+        log "R2 列举 downloads/ 失败，跳过清理预览。"
+      fi
+    fi
+  fi
   log "本地校验通过，待发布清单如下："
   cat "$manifest_file"
   if [[ -n "$dry_run_output" ]]; then
@@ -572,88 +693,172 @@ if [[ "$dry_run" -eq 1 ]]; then
   exit 0
 fi
 
-ssh "${ssh_args[@]}" "$ssh_target" \
-  "test -d '$remote_dir' && test -w '$remote_dir' && test -d '$remote_dir/downloads' && test -w '$remote_dir/downloads' && test -d '$remote_dir/releases' && test -w '$remote_dir/releases'" \
-  || die "remote MOSA website directories are not writable"
-
+# The two target runs share one timestamp label, so the history backups on the
+# legacy server and on R2 carry the same suffix.
 upload_tag="$(date -u '+%Y%m%dT%H%M%SZ')-$$"
-remote_tmp="$remote_dir/.mosa-release-$upload_tag"
-ssh "${ssh_args[@]}" "$ssh_target" \
-  "umask 022; install -d -m 0755 '$remote_tmp'"
 
-rsync_ssh="ssh"
-for ssh_arg in "${ssh_args[@]}"; do
-  printf -v quoted_ssh_arg '%q' "$ssh_arg"
-  rsync_ssh+=" $quoted_ssh_arg"
-done
+r2_upload_names=("$mac_name")
+r2_upload_files=("$mac_package")
+[[ -n "$windows_package" ]] && r2_upload_names+=("$windows_name") && r2_upload_files+=("$windows_package")
+[[ -n "$mac_dmg_package" ]] && r2_upload_names+=("$mac_dmg_name") && r2_upload_files+=("$mac_dmg_package")
+[[ -n "$windows_installer_package" ]] && r2_upload_names+=("$windows_installer_name") && r2_upload_files+=("$windows_installer_package")
 
-rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
-  -e "$rsync_ssh" \
-  "$mac_package" "$ssh_target:$remote_tmp/$mac_name"
-[[ -n "$windows_package" ]] && rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
-  -e "$rsync_ssh" \
-  "$windows_package" "$ssh_target:$remote_tmp/$windows_name"
-[[ -n "$mac_dmg_package" ]] && rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
-  -e "$rsync_ssh" \
-  "$mac_dmg_package" "$ssh_target:$remote_tmp/$mac_dmg_name"
-[[ -n "$windows_installer_package" ]] && rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
-  -e "$rsync_ssh" \
-  "$windows_installer_package" "$ssh_target:$remote_tmp/$windows_installer_name"
-rsync --archive --compress --human-readable --chmod=Fu=rw,Fgo=r \
-  -e "$rsync_ssh" \
-  "$manifest_file" "$ssh_target:$remote_tmp/latest.json"
+# --- R2 target -------------------------------------------------------------
+# Packages are uploaded and size-verified first, every manifest-referenced
+# artifact is asserted present, the previous manifest is copied into history,
+# and only then does the new manifest replace the old one. R2 object
+# replacement is atomic, so a reader never sees a manifest that points at a
+# package that is not there yet. Any failure here exits non-zero before the
+# legacy target below has touched anything, so the run can simply be repeated.
+if [[ "$targets_r2_enabled" -eq 1 ]]; then
+  log "开始发布到 R2。"
+  for index in "${!r2_upload_names[@]}"; do
+    r2_name="${r2_upload_names[$index]}"
+    r2_file="${r2_upload_files[$index]}"
+    node "$r2_client" put "$r2_file" "downloads/$r2_name" >/dev/null \
+      || die "R2 上传失败: downloads/$r2_name"
+    r2_pair="$(r2_head_status_size "downloads/$r2_name")" || die "R2 核对失败: downloads/$r2_name"
+    IFS=$'\t' read -r r2_status r2_size <<< "$r2_pair"
+    [[ "$r2_status" == "200" ]] || die "R2 缺少刚上传的包: downloads/$r2_name (HTTP $r2_status)"
+    [[ "$r2_size" == "$(file_size "$r2_file")" ]] || die "R2 上 downloads/$r2_name 的大小与本地不一致"
+    log "R2 已上传 downloads/${r2_name}（${r2_size} bytes）。"
+  done
 
-uploaded_names=("$mac_name")
-uploaded_shas=("$mac_sha256")
-[[ -n "$windows_package" ]] && uploaded_names+=("$windows_name") && uploaded_shas+=("$windows_sha256")
-[[ -n "$mac_dmg_package" ]] && uploaded_names+=("$mac_dmg_name") && uploaded_shas+=("$mac_dmg_sha256")
-[[ -n "$windows_installer_package" ]] && uploaded_names+=("$windows_installer_name") && uploaded_shas+=("$windows_installer_sha256")
-for index in "${!uploaded_names[@]}"; do
-  remote_hash="$(ssh "${ssh_args[@]}" "$ssh_target" \
-    "sha256sum '$remote_tmp/${uploaded_names[$index]}' | awk '{print \$1}'")"
-  [[ "$remote_hash" == "${uploaded_shas[$index]}" ]] \
-    || die "remote ${uploaded_names[$index]} hash mismatch: $remote_hash"
-done
+  while IFS= read -r r2_referenced; do
+    [[ -n "$r2_referenced" ]] || continue
+    r2_pair="$(r2_head_status_size "downloads/$r2_referenced")" || die "R2 核对失败: downloads/$r2_referenced"
+    IFS=$'\t' read -r r2_status r2_size <<< "$r2_pair"
+    [[ "$r2_status" == "200" ]] || die "R2 缺少清单引用的文件: downloads/$r2_referenced"
+  done <<< "$referenced_files"
+  if [[ -n "$mac_dmg_name" ]]; then
+    r2_pair="$(r2_head_status_size "downloads/$mac_dmg_name")" || die "R2 核对失败: downloads/$mac_dmg_name"
+    IFS=$'\t' read -r r2_status r2_size <<< "$r2_pair"
+    [[ "$r2_status" == "200" ]] || die "R2 缺少 DMG 包: downloads/$mac_dmg_name"
+  fi
 
-# referenced_files entries are strictly regex-validated above, so embedding
-# them in the remote command is safe.
-remote_referenced=""
-while IFS= read -r referenced_file; do
-  [[ -n "$referenced_file" ]] || continue
-  remote_referenced+=" $referenced_file"
-done <<< "$referenced_files"
-[[ -n "$mac_dmg_name" ]] && remote_referenced+=" $mac_dmg_name"
+  r2_pair="$(r2_head_status_size "$remote_manifest_path")" || die "R2 核对失败: $remote_manifest_path"
+  IFS=$'\t' read -r r2_status r2_size <<< "$r2_pair"
+  if [[ "$r2_status" == "200" ]]; then
+    node "$r2_client" copy "$remote_manifest_path" "$remote_history_dir/latest-$upload_tag.json" >/dev/null \
+      || die "R2 清单备份失败: $remote_history_dir/latest-$upload_tag.json"
+  else
+    log "R2 上暂无现有清单，跳过 history 备份。"
+  fi
+  node "$r2_client" put "$manifest_file" "$remote_manifest_path" >/dev/null \
+    || die "R2 清单上传失败: $remote_manifest_path"
+  log "R2 清单已更新: $remote_manifest_path"
 
-ssh "${ssh_args[@]}" "$ssh_target" \
-  "set -eu; install -d -m 0755 '$remote_dir/$remote_history_dir'; mv -f '$remote_tmp/$mac_name' '$remote_dir/downloads/$mac_name'; if [ -n '$windows_name' ]; then mv -f '$remote_tmp/$windows_name' '$remote_dir/downloads/$windows_name'; fi; if [ -n '$mac_dmg_name' ]; then mv -f '$remote_tmp/$mac_dmg_name' '$remote_dir/downloads/$mac_dmg_name'; fi; if [ -n '$windows_installer_name' ]; then mv -f '$remote_tmp/$windows_installer_name' '$remote_dir/downloads/$windows_installer_name'; fi; for referenced in$remote_referenced; do test -f \"$remote_dir/downloads/\$referenced\" || { echo \"missing artifact on server: \$referenced\" >&2; exit 1; }; done; if [ -f '$remote_dir/$remote_manifest_path' ]; then cp -f '$remote_dir/$remote_manifest_path' '$remote_dir/$remote_history_dir/latest-$upload_tag.json'; chmod 0644 '$remote_dir/$remote_history_dir/latest-$upload_tag.json'; fi; mv -f '$remote_tmp/latest.json' '$remote_dir/$remote_manifest_path'; chmod 0644 '$remote_dir/downloads/$mac_name' '$remote_dir/$remote_manifest_path'; if [ -n '$windows_name' ]; then chmod 0644 '$remote_dir/downloads/$windows_name'; fi; if [ -n '$mac_dmg_name' ]; then chmod 0644 '$remote_dir/downloads/$mac_dmg_name'; fi; if [ -n '$windows_installer_name' ]; then chmod 0644 '$remote_dir/downloads/$windows_installer_name'; fi; rmdir '$remote_tmp' || true"
-published=1
+  # R2 retention uses the same selector as the legacy server, so extension
+  # ZIPs, the other product's packages and unpaired files can never be named
+  # for deletion.
+  r2_downloads_files="$(node "$r2_client" list "downloads/" | node -e '
+    const lines = require("node:fs").readFileSync(0, "utf8").trim().split("\n").filter(Boolean);
+    for (const line of lines) process.stdout.write(`${JSON.parse(line).key.replace(/^downloads\//, "")}\n`);
+  ')" || die "R2 列举 downloads/ 失败"
+  r2_stale_pairs="$(printf '%s\n' "$r2_downloads_files" | node "$retention_selector" "$desktop_retention_count" "$release_product")" \
+    || die "could not select R2 retained desktop release pairs"
+  if [[ -n "$r2_stale_pairs" ]]; then
+    r2_removed_versions=0
+    while IFS=$'\t' read -r r2_stale_mac r2_stale_windows r2_stale_installer; do
+      [[ "$r2_stale_mac" =~ ^${release_product}-darwin-arm64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.(dmg|zip)$ ]] \
+        || die "invalid macOS R2 retention filename: $r2_stale_mac"
+      [[ "$r2_stale_windows" =~ ^${release_product}-win32-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
+        || die "invalid Windows R2 retention filename: $r2_stale_windows"
+      node "$r2_client" delete "downloads/$r2_stale_mac" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac"
+      node "$r2_client" delete "downloads/$r2_stale_windows" >/dev/null || die "R2 删除失败: downloads/$r2_stale_windows"
+      if [[ -n "$r2_stale_installer" ]]; then
+        node "$r2_client" delete "downloads/$r2_stale_installer" >/dev/null || die "R2 删除失败: downloads/$r2_stale_installer"
+      fi
+      r2_removed_versions=$((r2_removed_versions + 1))
+    done <<< "$r2_stale_pairs"
+    log "R2 已清理 $r2_removed_versions 个超出保留上限的完整桌面版本。"
+  fi
+fi
 
-remote_desktop_files="$(ssh "${ssh_args[@]}" "$ssh_target" \
-  "find '$remote_dir/downloads' -maxdepth 1 -type f -printf '%f\\n'")"
-stale_desktop_pairs="$(printf '%s\n' "$remote_desktop_files" | node "$retention_selector" "$desktop_retention_count" "$release_product")" \
-  || die "could not select retained desktop release pairs"
+# --- legacy server target (the historical flow, unchanged) -----------------
+if [[ "$targets_legacy_enabled" -eq 1 ]]; then
+  ssh "${ssh_args[@]}" "$ssh_target" \
+    "test -d '$remote_dir' && test -w '$remote_dir' && test -d '$remote_dir/downloads' && test -w '$remote_dir/downloads' && test -d '$remote_dir/releases' && test -w '$remote_dir/releases'" \
+    || die "remote MOSA website directories are not writable"
 
-if [[ -n "$stale_desktop_pairs" ]]; then
-  removed_desktop_versions=0
-  while IFS=$'\t' read -r stale_mac_name stale_windows_name stale_windows_installer_name; do
-    # The selector already filters by product; these product-pinned regexes are
-    # the second line of defence so a retention run can never name (and never
-    # delete) the other product's packages.
-    [[ "$stale_mac_name" =~ ^${release_product}-darwin-arm64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.(dmg|zip)$ ]] \
-      || die "invalid macOS retention filename: $stale_mac_name"
-    [[ "$stale_windows_name" =~ ^${release_product}-win32-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
-      || die "invalid Windows retention filename: $stale_windows_name"
-    stale_windows_installer_path=""
-    if [[ -n "$stale_windows_installer_name" ]]; then
-      [[ "$stale_windows_installer_name" == "${stale_windows_name%.zip}.exe" ]] \
-        || die "invalid Windows installer retention filename: $stale_windows_installer_name"
-      stale_windows_installer_path="$remote_dir/downloads/$stale_windows_installer_name"
-    fi
-    ssh "${ssh_args[@]}" "$ssh_target" \
-      "rm -f -- '$remote_dir/downloads/$stale_mac_name' '$remote_dir/downloads/$stale_windows_name'${stale_windows_installer_path:+ '$stale_windows_installer_path'}"
-    ((removed_desktop_versions += 1))
-  done <<< "$stale_desktop_pairs"
-  log "已清理 $removed_desktop_versions 个超出保留上限的完整桌面版本。"
+  remote_tmp="$remote_dir/.mosa-release-$upload_tag"
+  ssh "${ssh_args[@]}" "$ssh_target" \
+    "umask 022; install -d -m 0755 '$remote_tmp'"
+
+  rsync_ssh="ssh"
+  for ssh_arg in "${ssh_args[@]}"; do
+    printf -v quoted_ssh_arg '%q' "$ssh_arg"
+    rsync_ssh+=" $quoted_ssh_arg"
+  done
+
+  rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
+    -e "$rsync_ssh" \
+    "$mac_package" "$ssh_target:$remote_tmp/$mac_name"
+  [[ -n "$windows_package" ]] && rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
+    -e "$rsync_ssh" \
+    "$windows_package" "$ssh_target:$remote_tmp/$windows_name"
+  [[ -n "$mac_dmg_package" ]] && rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
+    -e "$rsync_ssh" \
+    "$mac_dmg_package" "$ssh_target:$remote_tmp/$mac_dmg_name"
+  [[ -n "$windows_installer_package" ]] && rsync --archive --compress --partial --human-readable --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
+    -e "$rsync_ssh" \
+    "$windows_installer_package" "$ssh_target:$remote_tmp/$windows_installer_name"
+  rsync --archive --compress --human-readable --chmod=Fu=rw,Fgo=r \
+    -e "$rsync_ssh" \
+    "$manifest_file" "$ssh_target:$remote_tmp/latest.json"
+
+  uploaded_names=("$mac_name")
+  uploaded_shas=("$mac_sha256")
+  [[ -n "$windows_package" ]] && uploaded_names+=("$windows_name") && uploaded_shas+=("$windows_sha256")
+  [[ -n "$mac_dmg_package" ]] && uploaded_names+=("$mac_dmg_name") && uploaded_shas+=("$mac_dmg_sha256")
+  [[ -n "$windows_installer_package" ]] && uploaded_names+=("$windows_installer_name") && uploaded_shas+=("$windows_installer_sha256")
+  for index in "${!uploaded_names[@]}"; do
+    remote_hash="$(ssh "${ssh_args[@]}" "$ssh_target" \
+      "sha256sum '$remote_tmp/${uploaded_names[$index]}' | awk '{print \$1}'")"
+    [[ "$remote_hash" == "${uploaded_shas[$index]}" ]] \
+      || die "remote ${uploaded_names[$index]} hash mismatch: $remote_hash"
+  done
+
+  # referenced_files entries are strictly regex-validated above, so embedding
+  # them in the remote command is safe.
+  remote_referenced=""
+  while IFS= read -r referenced_file; do
+    [[ -n "$referenced_file" ]] || continue
+    remote_referenced+=" $referenced_file"
+  done <<< "$referenced_files"
+  [[ -n "$mac_dmg_name" ]] && remote_referenced+=" $mac_dmg_name"
+
+  ssh "${ssh_args[@]}" "$ssh_target" \
+    "set -eu; install -d -m 0755 '$remote_dir/$remote_history_dir'; mv -f '$remote_tmp/$mac_name' '$remote_dir/downloads/$mac_name'; if [ -n '$windows_name' ]; then mv -f '$remote_tmp/$windows_name' '$remote_dir/downloads/$windows_name'; fi; if [ -n '$mac_dmg_name' ]; then mv -f '$remote_tmp/$mac_dmg_name' '$remote_dir/downloads/$mac_dmg_name'; fi; if [ -n '$windows_installer_name' ]; then mv -f '$remote_tmp/$windows_installer_name' '$remote_dir/downloads/$windows_installer_name'; fi; for referenced in$remote_referenced; do test -f \"$remote_dir/downloads/\$referenced\" || { echo \"missing artifact on server: \$referenced\" >&2; exit 1; }; done; if [ -f '$remote_dir/$remote_manifest_path' ]; then cp -f '$remote_dir/$remote_manifest_path' '$remote_dir/$remote_history_dir/latest-$upload_tag.json'; chmod 0644 '$remote_dir/$remote_history_dir/latest-$upload_tag.json'; fi; mv -f '$remote_tmp/latest.json' '$remote_dir/$remote_manifest_path'; chmod 0644 '$remote_dir/downloads/$mac_name' '$remote_dir/$remote_manifest_path'; if [ -n '$windows_name' ]; then chmod 0644 '$remote_dir/downloads/$windows_name'; fi; if [ -n '$mac_dmg_name' ]; then chmod 0644 '$remote_dir/downloads/$mac_dmg_name'; fi; if [ -n '$windows_installer_name' ]; then chmod 0644 '$remote_dir/downloads/$windows_installer_name'; fi; rmdir '$remote_tmp' || true"
+  published=1
+
+  remote_desktop_files="$(ssh "${ssh_args[@]}" "$ssh_target" \
+    "find '$remote_dir/downloads' -maxdepth 1 -type f -printf '%f\\n'")"
+  stale_desktop_pairs="$(printf '%s\n' "$remote_desktop_files" | node "$retention_selector" "$desktop_retention_count" "$release_product")" \
+    || die "could not select retained desktop release pairs"
+
+  if [[ -n "$stale_desktop_pairs" ]]; then
+    removed_desktop_versions=0
+    while IFS=$'\t' read -r stale_mac_name stale_windows_name stale_windows_installer_name; do
+      # The selector already filters by product; these product-pinned regexes are
+      # the second line of defence so a retention run can never name (and never
+      # delete) the other product's packages.
+      [[ "$stale_mac_name" =~ ^${release_product}-darwin-arm64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.(dmg|zip)$ ]] \
+        || die "invalid macOS retention filename: $stale_mac_name"
+      [[ "$stale_windows_name" =~ ^${release_product}-win32-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
+        || die "invalid Windows retention filename: $stale_windows_name"
+      stale_windows_installer_path=""
+      if [[ -n "$stale_windows_installer_name" ]]; then
+        [[ "$stale_windows_installer_name" == "${stale_windows_name%.zip}.exe" ]] \
+          || die "invalid Windows installer retention filename: $stale_windows_installer_name"
+        stale_windows_installer_path="$remote_dir/downloads/$stale_windows_installer_name"
+      fi
+      ssh "${ssh_args[@]}" "$ssh_target" \
+        "rm -f -- '$remote_dir/downloads/$stale_mac_name' '$remote_dir/downloads/$stale_windows_name'${stale_windows_installer_path:+ '$stale_windows_installer_path'}"
+      ((removed_desktop_versions += 1))
+    done <<< "$stale_desktop_pairs"
+    log "已清理 $removed_desktop_versions 个超出保留上限的完整桌面版本。"
+  fi
 fi
 
 state_dir="$(dirname "$state_file")"
