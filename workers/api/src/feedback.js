@@ -1,5 +1,5 @@
-// POST /api/feedback — feedback collection, ported from
-// scripts/feedback-service.mjs with two deliberate differences:
+// POST /api/feedback — feedback collection, ported from the legacy Node
+// service (removed in 279 C1) with two deliberate differences:
 //
 // 1. Abuse protection uses the managed FEEDBACK_LIMITER binding keyed by
 //    CF-Connecting-IP instead of the in-memory per-IP daily counter. The

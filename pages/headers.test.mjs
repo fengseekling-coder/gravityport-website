@@ -227,8 +227,8 @@ test('unpublished and private paths return the custom 404 page', async () => {
   const dist = tempDirs[0];
   const privatePaths = [
     '/does-not-exist',
-    '/scripts/feedback-service.mjs',
-    '/ops/FEEDBACK.md',
+    '/scripts/report-usage.mjs',
+    '/ops/com.azhuilab.mosa.desktop-release-monitor.plist',
     '/DEPLOYMENT.md',
     '/admin/',
     '/downloads/x.zip',

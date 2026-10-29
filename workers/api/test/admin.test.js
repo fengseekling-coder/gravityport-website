@@ -1,7 +1,8 @@
 // Admin feedback endpoints: every Cloudflare Access failure is a 403 (there
 // is deliberately no "unconfigured" bypass), and with a valid token the
 // params, pagination and response shapes match the old feedback service
-// (ported from scripts/feedback-service.test.mjs) so admin/feedback.js keeps
+// (behaviour owned by src/admin.js; the legacy Node suite was removed in 279 C1)
+// so admin/feedback.js keeps
 // working unchanged. The certs endpoint is stubbed by replacing the global
 // fetch (the new vitest-pool-workers API no longer ships fetchMock).
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";import {

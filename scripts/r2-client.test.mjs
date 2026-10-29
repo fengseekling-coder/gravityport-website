@@ -42,8 +42,8 @@ function xmlEscape(text) {
 //   rejectChecksumFor { [keyPrefix]: true } → PUT pretends the checksum was
 //                    wrong and replies 400 even if it matches
 //   orderLogFile     every handled request is appended here as one line, in
-//                    receive order, so tests can order R2 traffic against the
-//                    fake ssh/rsync stubs' log entries.
+//                    receive order, so tests can order R2 traffic against any
+//                    other entries the test writes to the same log.
 export function createFakeS3({ maxListKeys = 1000, failPutForKey = {}, rejectChecksumFor = {}, orderLogFile = "" } = {}) {
   const objects = new Map();
   const requests = [];

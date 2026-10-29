@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!-- Template: scripts/install-release-monitor.sh fills __HOME__, __WEBSITE_DIR__
-     and __MOSA_DIR__ for the current user. Deploy host and user come from
+     and __MOSA_DIR__ for the current user. R2 settings come from
      ~/.config/mosa/release.env (see DEPLOYMENT.md), never from this file. -->
 <plist version="1.0">
 <dict>
@@ -16,10 +16,6 @@
   <dict>
     <key>PATH</key>
     <string>/opt/homebrew/bin:/usr/local/bin:__HOME__/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
-    <key>MOSA_RELEASE_SSH_KEY</key>
-    <string>__HOME__/.ssh/mosa_website_release_monitor</string>
-    <key>MOSA_RELEASE_KNOWN_HOSTS</key>
-    <string>__HOME__/.ssh/known_hosts</string>
   </dict>
   <key>WatchPaths</key>
   <array>

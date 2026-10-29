@@ -1,7 +1,8 @@
-// Tests for the MOSA_RELEASE_TARGETS behaviour of publish-desktop-release.sh:
-// the legacy default, the 旧服务器,r2 dual publish, the r2-only mode, R2
-// retention, dry-run and the secret-leak guard — all against the in-process
-// fake S3 from r2-client.test.mjs and shell shims that stand in for ssh/rsync.
+// Tests for the R2 publication of publish-desktop-release.sh: the default
+// target, the r2-only mode, package-before-manifest ordering, R2 retention,
+// dry-run and the secret-leak guard — all against the in-process fake S3 from
+// r2-client.test.mjs. The old-server target was retired in 279 (C1) and is
+// refused up front.
 //
 // The fake S3 lives inside this test process, so every child that must talk to
 // it is spawned asynchronously; a synchronous wait would block the event loop
@@ -97,13 +98,6 @@ function makeSourceTree({ macVersion = "0.3.7", windowsVersion = null, dmg = fal
   return { root, macPath, windowsPath, dmgPath, installerPath };
 }
 
-function makeFakeRemoteRoot() {
-  const root = makeTempDir("mosa-r2-remote.");
-  fs.mkdirSync(path.join(root, "downloads"), { recursive: true });
-  fs.mkdirSync(path.join(root, "releases", "gravityport", "history"), { recursive: true });
-  return root;
-}
-
 function previousManifestJson(version) {
   return `${JSON.stringify({
     version,
@@ -113,56 +107,6 @@ function previousManifestJson(version) {
       macos: { platform: "macOS", arch: "arm64", appName: "GravityPort.app", file: `GravityPort-darwin-arm64-${version}.zip`, size: 1, sha256: "c".repeat(64) },
     },
   }, null, 2)}\n`;
-}
-
-// Generates the ssh/rsync shims into a PATH directory. Both append one line
-// per invocation to the shared call-order log; ssh remaps the fixed remote
-// directory onto a local root and executes the command with a tiny GNU→BSD
-// translation (sha256sum → shasum -a 256, find -printf → find -exec basename).
-function createShims({ callLog, remoteRoot }) {
-  const binDir = makeTempDir("mosa-r2-bin.");
-  const envPrefix = `FAKE_CALL_LOG=${JSON.stringify(callLog)} FAKE_REMOTE_ROOT=${JSON.stringify(remoteRoot)}`;
-  // The ssh shim remaps the fixed remote directory onto a local root and
-  // executes the command. sha256sum is translated to shasum -a 256; the one
-  // `find … -printf '%f\n'` call is served directly with ls (BSD find has no
-  // -printf, and pattern-substitution gymnastics would be fragile).
-  fs.writeFileSync(path.join(binDir, "ssh"), `#!/bin/bash
-${envPrefix}
-cmd="\${@: -1}"
-remote_root="/var/www/mosa-website"
-cmd="\${cmd//$remote_root/$FAKE_REMOTE_ROOT}"
-cmd="\${cmd//sha256sum/shasum -a 256}"
-case "$cmd" in
-  *"find "*"-printf"*)
-    dir="$(printf '%s' "$cmd" | sed -n "s/^find '\\([^']*\\)'.*/\\1/p")"
-    printf 'ssh: find %s\\n' "\${dir:0:80}" >> "$FAKE_CALL_LOG"
-    if [ -n "$dir" ]; then ( cd "$dir" && ls -1 ); fi
-    exit 0
-    ;;
-esac
-printf 'ssh: %s\\n' "\${cmd:0:100}" >> "$FAKE_CALL_LOG"
-exec bash -c "$cmd"
-`);
-  fs.writeFileSync(path.join(binDir, "rsync"), `#!/bin/bash
-${envPrefix}
-args=()
-skip_next=0
-for a in "$@"; do
-  if [[ $skip_next -eq 1 ]]; then skip_next=0; continue; fi
-  if [[ "$a" == "-e" || "$a" == --chmod=* ]]; then
-    if [[ "$a" == "-e" ]]; then skip_next=1; fi
-    continue
-  fi
-  if [[ "$a" == *"@"*":"* ]]; then a="\${a#*:}"; fi
-  a="\${a//\\/var\\/www\\/mosa-website/$FAKE_REMOTE_ROOT}"
-  args+=("$a")
-done
-printf 'rsync: %s\\n' "\${args[*]:0:100}" >> "$FAKE_CALL_LOG"
-exec /usr/bin/rsync "\${args[@]}"
-`);
-  fs.chmodSync(path.join(binDir, "ssh"), 0o755);
-  fs.chmodSync(path.join(binDir, "rsync"), 0o755);
-  return binDir;
 }
 
 const MANAGED_ENV_KEYS = [
@@ -175,12 +119,6 @@ const MANAGED_ENV_KEYS = [
   "MOSA_RELEASE_PRODUCT",
   "MOSA_RELEASE_NOTES_ZH",
   "MOSA_RELEASE_NOTES_EN",
-  "MOSA_RELEASE_SSH_HOST",
-  "MOSA_RELEASE_SSH_PORT",
-  "MOSA_RELEASE_SSH_USER",
-  "MOSA_RELEASE_SSH_KEY",
-  "MOSA_RELEASE_KNOWN_HOSTS",
-  "MOSA_RELEASE_REMOTE_DIR",
   "MOSA_RELEASE_TARGETS",
   "MOSA_RELEASE_R2_ENDPOINT",
   "MOSA_RELEASE_R2_BUCKET",
@@ -189,10 +127,10 @@ const MANAGED_ENV_KEYS = [
   "MOSA_RELEASE_CONFIG",
 ];
 
-// Builds the script environment. withR2/withLegacySsh control which halves are
-// configured; both may be on (dual publish) or either may be off. The R2
-// endpoint points at the given fake, the legacy path uses the ssh shims.
-function buildEnv({ sourceDir, stateFile, targets, withR2, withLegacySsh, r2Endpoint, binDir, sshKeyPath, knownHostsPath, extraEnv = {} }) {
+// Builds the script environment. `targets` is passed through as
+// MOSA_RELEASE_TARGETS when defined; `binDir` prepends a directory of shims
+// (curl stand-ins) to PATH.
+function buildEnv({ sourceDir, stateFile, targets, withR2 = true, r2Endpoint, binDir, extraEnv = {} }) {
   const env = { ...process.env };
   for (const key of MANAGED_ENV_KEYS) delete env[key];
   // Never read the developer's real release.env from tests.
@@ -211,15 +149,7 @@ function buildEnv({ sourceDir, stateFile, targets, withR2, withLegacySsh, r2Endp
     env.MOSA_RELEASE_R2_ACCESS_KEY_ID = TEST_ACCESS_KEY_ID;
     env.MOSA_RELEASE_R2_SECRET_ACCESS_KEY = TEST_SECRET_ACCESS_KEY;
   }
-  if (withLegacySsh) {
-    env.MOSA_RELEASE_SSH_HOST = "127.0.0.1";
-    env.MOSA_RELEASE_SSH_PORT = "22";
-    env.MOSA_RELEASE_SSH_USER = "mosa-r2-test";
-    env.MOSA_RELEASE_SSH_KEY = sshKeyPath;
-    env.MOSA_RELEASE_KNOWN_HOSTS = knownHostsPath;
-    env.MOSA_RELEASE_REMOTE_DIR = "/var/www/mosa-website";
-    env.PATH = `${binDir}:${process.env.PATH}`;
-  }
+  if (binDir) env.PATH = `${binDir}:${process.env.PATH}`;
   return { ...env, ...extraEnv };
 }
 
@@ -238,10 +168,6 @@ async function runScriptExpectFailure(env, args = []) {
   return caught;
 }
 
-function seedPreviousManifestOnRemote(remoteRoot, version = "0.3.6") {
-  fs.writeFileSync(path.join(remoteRoot, "releases", "gravityport", "latest.json"), previousManifestJson(version));
-}
-
 function seedPreviousManifestOnR2(fake, version = "0.3.6") {
   fake.putObject("releases/gravityport/latest.json", previousManifestJson(version));
 }
@@ -250,68 +176,41 @@ function callLogLines(callLog) {
   return fs.readFileSync(callLog, "utf8").split("\n").filter(Boolean);
 }
 
-test("default targets keep the legacy flow and never touch R2", async (t) => {
+test("an unset MOSA_RELEASE_TARGETS publishes to R2, the default target", async (t) => {
   const fake = createFakeS3();
   await fake.listen();
   t.after(() => fake.close());
   const work = makeTempDir("mosa-r2-run.");
   t.after(() => fs.rmSync(work, { recursive: true, force: true }));
-  const callLog = path.join(work, "call-order.log");
-  fs.writeFileSync(callLog, "");
-  const remoteRoot = makeFakeRemoteRoot();
-  t.after(() => fs.rmSync(remoteRoot, { recursive: true, force: true }));
-  seedPreviousManifestOnRemote(remoteRoot);
-  const sshKey = path.join(work, "ssh-key");
-  fs.writeFileSync(sshKey, "");
-  const knownHosts = path.join(work, "known-hosts");
-  fs.writeFileSync(knownHosts, "");
-  const binDir = createShims({ callLog, remoteRoot });
 
   const { root } = makeSourceTree({ macVersion: "0.3.7", windowsVersion: "0.3.7" });
   const env = buildEnv({
     sourceDir: root,
     stateFile: path.join(work, "state"),
-    targets: undefined, // the default: 旧服务器
-    withR2: true, // configured, but the default target must not use it
-    withLegacySsh: true,
+    targets: undefined,
     r2Endpoint: fake.endpoint,
-    binDir,
-    sshKeyPath: sshKey,
-    knownHostsPath: knownHosts,
   });
 
   await runScript(env);
 
-  assert.equal(fake.requests.length, 0, "the default target must not send any R2 request");
-  assert.ok(fs.existsSync(path.join(remoteRoot, "downloads", "GravityPort-darwin-arm64-0.3.7.zip")));
-  const manifest = JSON.parse(fs.readFileSync(path.join(remoteRoot, "releases", "gravityport", "latest.json"), "utf8"));
+  const manifest = JSON.parse(fake.objects.get("releases/gravityport/latest.json").body.toString("utf8"));
   assert.equal(manifest.version, "0.3.7");
-  assert.ok(fs.existsSync(path.join(work, "state")), "the state file is written after a successful legacy publish");
+  assert.ok(fake.objects.has("downloads/GravityPort-darwin-arm64-0.3.7.zip"), "the macOS package reached R2");
+  assert.ok(fs.existsSync(path.join(work, "state")), "the state file is written after a successful R2 publish");
 });
 
-test("dual publish uploads four packages before the manifest, copies history, then starts the legacy flow", async (t) => {
-  const fake = createFakeS3();
-  await fake.listen();
-  t.after(() => fake.close());
+test("R2 publish uploads packages before the manifest and copies history into R2", async (t) => {
   const work = makeTempDir("mosa-r2-run.");
   t.after(() => fs.rmSync(work, { recursive: true, force: true }));
   const callLog = path.join(work, "call-order.log");
   fs.writeFileSync(callLog, "");
-  // Order every R2 request in the same log the ssh/rsync shims write to.
-  const fakeWithLog = createFakeS3({ orderLogFile: callLog });
-  await fakeWithLog.listen();
-  t.after(() => fakeWithLog.close());
-  const remoteRoot = makeFakeRemoteRoot();
-  t.after(() => fs.rmSync(remoteRoot, { recursive: true, force: true }));
-  seedPreviousManifestOnRemote(remoteRoot);
-  // Dual publish assumes the A1 mirror has run, so R2 already holds the
-  // previous manifest that the history copy backs up.
-  seedPreviousManifestOnR2(fakeWithLog, "0.3.6");
-  const sshKey = path.join(work, "ssh-key");
-  fs.writeFileSync(sshKey, "");
-  const knownHosts = path.join(work, "known-hosts");
-  fs.writeFileSync(knownHosts, "");
-  const binDir = createShims({ callLog, remoteRoot });
+  // Order every R2 request in a log so the upload order can be asserted.
+  const fake = createFakeS3({ orderLogFile: callLog });
+  await fake.listen();
+  t.after(() => fake.close());
+  // Publishing assumes the previous manifest already sits on R2, so the
+  // history copy has something to back up.
+  seedPreviousManifestOnR2(fake, "0.3.6");
 
   const { root } = makeSourceTree({ macVersion: "0.3.7", windowsVersion: "0.3.7", dmg: true, installer: true });
   // The DMG fixture writes the build identity into the shared tmpdir parent;
@@ -320,13 +219,8 @@ test("dual publish uploads four packages before the manifest, copies history, th
   const env = buildEnv({
     sourceDir: root,
     stateFile: path.join(work, "state"),
-    targets: "旧服务器,r2",
-    withR2: true,
-    withLegacySsh: true,
-    r2Endpoint: fakeWithLog.endpoint,
-    binDir,
-    sshKeyPath: sshKey,
-    knownHostsPath: knownHosts,
+    targets: "r2",
+    r2Endpoint: fake.endpoint,
   });
 
   await runScript(env);
@@ -349,47 +243,24 @@ test("dual publish uploads four packages before the manifest, copies history, th
   assert.ok(historyCopy >= 0, "the previous manifest was copied into R2 history");
   assert.ok(historyCopy < manifestPut, "the history copy must happen before the manifest upload");
 
-  const firstRsync = lines.findIndex((line) => line.startsWith("rsync:"));
-  assert.ok(firstRsync >= 0, "the legacy upload started");
-  const lastR2 = Math.max(...lines.map((line, index) => (line.startsWith("r2 ") ? index : -1)));
-  assert.ok(lastR2 < firstRsync, "the whole R2 target must finish before the legacy upload starts");
-
-  // Both targets ended up with the same release.
-  const r2Manifest = JSON.parse(fakeWithLog.objects.get("releases/gravityport/latest.json").body.toString("utf8"));
+  const r2Manifest = JSON.parse(fake.objects.get("releases/gravityport/latest.json").body.toString("utf8"));
   assert.equal(r2Manifest.version, "0.3.7");
-  const remoteManifest = JSON.parse(fs.readFileSync(path.join(remoteRoot, "releases", "gravityport", "latest.json"), "utf8"));
-  assert.equal(remoteManifest.version, "0.3.7");
 });
 
-test("an R2 failure mid-run stops everything and leaves both manifests untouched", async (t) => {
+test("an R2 failure mid-run stops everything and leaves the manifest untouched", async (t) => {
   const fake = createFakeS3({ failPutForKey: { "downloads/GravityPort-win32-x64-0.3.7.zip": 500 } });
   await fake.listen();
   t.after(() => fake.close());
   const work = makeTempDir("mosa-r2-run.");
   t.after(() => fs.rmSync(work, { recursive: true, force: true }));
-  const callLog = path.join(work, "call-order.log");
-  fs.writeFileSync(callLog, "");
-  const remoteRoot = makeFakeRemoteRoot();
-  t.after(() => fs.rmSync(remoteRoot, { recursive: true, force: true }));
-  seedPreviousManifestOnRemote(remoteRoot);
-  const sshKey = path.join(work, "ssh-key");
-  fs.writeFileSync(sshKey, "");
-  const knownHosts = path.join(work, "known-hosts");
-  fs.writeFileSync(knownHosts, "");
-  const binDir = createShims({ callLog, remoteRoot });
 
   seedPreviousManifestOnR2(fake, "0.3.6");
   const { root } = makeSourceTree({ macVersion: "0.3.7", windowsVersion: "0.3.7" });
   const env = buildEnv({
     sourceDir: root,
     stateFile: path.join(work, "state"),
-    targets: "旧服务器,r2",
-    withR2: true,
-    withLegacySsh: true,
+    targets: "r2",
     r2Endpoint: fake.endpoint,
-    binDir,
-    sshKeyPath: sshKey,
-    knownHostsPath: knownHosts,
   });
 
   await runScriptExpectFailure(env);
@@ -398,12 +269,7 @@ test("an R2 failure mid-run stops everything and leaves both manifests untouched
     "the R2 manifest must be untouched");
   assert.equal([...fake.objects.keys()].some((key) => key.includes("/history/")), false,
     "no R2 history copy may happen on failure");
-  const remoteManifest = fs.readFileSync(path.join(remoteRoot, "releases", "gravityport", "latest.json"), "utf8");
-  assert.equal(remoteManifest, previousManifestJson("0.3.6"), "the legacy manifest must be untouched");
-  const lines = callLogLines(callLog);
-  assert.equal(lines.some((line) => line.startsWith("rsync:")), false, "the legacy upload must never start");
-  assert.equal(lines.some((line) => line.includes("install -d -m 0755 /")), false,
-    "no legacy staging directory may be created");
+  assert.equal(fs.existsSync(path.join(work, "state")), false, "the state file is not written on failure");
 });
 
 test("a checksum rejection on R2 aborts before the manifest is uploaded", async (t) => {
@@ -412,29 +278,14 @@ test("a checksum rejection on R2 aborts before the manifest is uploaded", async 
   t.after(() => fake.close());
   const work = makeTempDir("mosa-r2-run.");
   t.after(() => fs.rmSync(work, { recursive: true, force: true }));
-  const callLog = path.join(work, "call-order.log");
-  fs.writeFileSync(callLog, "");
-  const remoteRoot = makeFakeRemoteRoot();
-  t.after(() => fs.rmSync(remoteRoot, { recursive: true, force: true }));
-  seedPreviousManifestOnRemote(remoteRoot);
-  const sshKey = path.join(work, "ssh-key");
-  fs.writeFileSync(sshKey, "");
-  const knownHosts = path.join(work, "known-hosts");
-  fs.writeFileSync(knownHosts, "");
-  const binDir = createShims({ callLog, remoteRoot });
 
   seedPreviousManifestOnR2(fake, "0.3.6");
   const { root } = makeSourceTree({ macVersion: "0.3.7", windowsVersion: "0.3.7" });
   const env = buildEnv({
     sourceDir: root,
     stateFile: path.join(work, "state"),
-    targets: "旧服务器,r2",
-    withR2: true,
-    withLegacySsh: true,
+    targets: "r2",
     r2Endpoint: fake.endpoint,
-    binDir,
-    sshKeyPath: sshKey,
-    knownHostsPath: knownHosts,
   });
 
   const error = await runScriptExpectFailure(env);
@@ -442,7 +293,7 @@ test("a checksum rejection on R2 aborts before the manifest is uploaded", async 
   assert.equal(fake.objects.get("releases/gravityport/latest.json").body.toString("utf8"), previousManifestJson("0.3.6"));
 });
 
-test("r2-only mode reads the previous manifest from R2 and needs no SSH setup", async (t) => {
+test("r2 reads the previous manifest from R2 and backs it up into history", async (t) => {
   const fake = createFakeS3();
   await fake.listen();
   t.after(() => fake.close());
@@ -455,8 +306,6 @@ test("r2-only mode reads the previous manifest from R2 and needs no SSH setup", 
     sourceDir: root,
     stateFile: path.join(work, "state"),
     targets: "r2",
-    withR2: true,
-    withLegacySsh: false, // no SSH configuration at all
     r2Endpoint: fake.endpoint,
   });
 
@@ -470,7 +319,7 @@ test("r2-only mode reads the previous manifest from R2 and needs no SSH setup", 
   assert.equal(manifest.version, "0.3.7");
 });
 
-test("r2-only mode treats a bucket without a manifest as a first release", async (t) => {
+test("r2 treats a bucket without a manifest as a first release", async (t) => {
   const fake = createFakeS3();
   await fake.listen();
   t.after(() => fake.close());
@@ -482,8 +331,6 @@ test("r2-only mode treats a bucket without a manifest as a first release", async
     sourceDir: root,
     stateFile: path.join(work, "state"),
     targets: "r2",
-    withR2: true,
-    withLegacySsh: false,
     r2Endpoint: fake.endpoint,
   });
 
@@ -521,8 +368,6 @@ test("R2 retention deletes only the oldest complete desktop pairs", async (t) =>
     sourceDir: root,
     stateFile: path.join(work, "state"),
     targets: "r2",
-    withR2: true,
-    withLegacySsh: false,
     r2Endpoint: fake.endpoint,
   });
 
@@ -558,18 +403,10 @@ test("curl never receives the secret in its argv and the output never contains i
   t.after(() => fake.close());
   const work = makeTempDir("mosa-r2-run.");
   t.after(() => fs.rmSync(work, { recursive: true, force: true }));
-  const callLog = path.join(work, "call-order.log");
-  fs.writeFileSync(callLog, "");
-  const remoteRoot = makeFakeRemoteRoot();
-  t.after(() => fs.rmSync(remoteRoot, { recursive: true, force: true }));
-  seedPreviousManifestOnRemote(remoteRoot);
-  const sshKey = path.join(work, "ssh-key");
-  fs.writeFileSync(sshKey, "");
-  const knownHosts = path.join(work, "known-hosts");
-  fs.writeFileSync(knownHosts, "");
 
-  const binDir = createShims({ callLog, remoteRoot });
   // A curl stand-in that records its argv and hands over to the real curl.
+  const binDir = makeTempDir("mosa-r2-bin.");
+  t.after(() => fs.rmSync(binDir, { recursive: true, force: true }));
   const argvLog = path.join(work, "curl-argv.log");
   fs.writeFileSync(path.join(binDir, "curl"), `#!/bin/bash
 printf '%s\\0' "$@" >> ${JSON.stringify(argvLog)}
@@ -581,13 +418,9 @@ exec /usr/bin/curl "$@"
   const env = buildEnv({
     sourceDir: root,
     stateFile: path.join(work, "state"),
-    targets: "旧服务器,r2",
-    withR2: true,
-    withLegacySsh: true,
+    targets: "r2",
     r2Endpoint: fake.endpoint,
     binDir,
-    sshKeyPath: sshKey,
-    knownHostsPath: knownHosts,
   });
 
   const { stdout, stderr } = await runScript(env);
@@ -605,9 +438,6 @@ test("dry-run with the r2 target prints the plan and sends no write request", as
   t.after(() => fake.close());
   const work = makeTempDir("mosa-r2-run.");
   t.after(() => fs.rmSync(work, { recursive: true, force: true }));
-  const remoteRoot = makeFakeRemoteRoot();
-  t.after(() => fs.rmSync(remoteRoot, { recursive: true, force: true }));
-  const binDir = createShims({ callLog: path.join(work, "unused.log"), remoteRoot });
 
   for (let minor = 1; minor <= 6; minor += 1) {
     fake.putObject(`downloads/GravityPort-darwin-arm64-0.3.${minor}.zip`, `mac ${minor}`);
@@ -620,18 +450,9 @@ test("dry-run with the r2 target prints the plan and sends no write request", as
   const env = buildEnv({
     sourceDir: root,
     stateFile: path.join(work, "state"),
-    targets: "旧服务器,r2",
-    withR2: true,
-    // Dual publish requires the legacy configuration to be present even for a
-    // dry-run; the dry run itself never invokes it.
-    withLegacySsh: true,
+    targets: "r2",
     r2Endpoint: fake.endpoint,
-    binDir,
-    sshKeyPath: path.join(work, "ssh-key"),
-    knownHostsPath: path.join(work, "known-hosts"),
   });
-  fs.writeFileSync(path.join(work, "ssh-key"), "");
-  fs.writeFileSync(path.join(work, "known-hosts"), "");
 
   const { stdout } = await runScript(env, ["--dry-run"]);
 
@@ -648,20 +469,17 @@ test("dry-run with the r2 target prints the plan and sends no write request", as
   assert.equal(manifest.version, "0.3.6");
 });
 
-test("an unsupported MOSA_RELEASE_TARGETS value fails", async (t) => {
+test("the retired old-server target and any unknown MOSA_RELEASE_TARGETS value fail up front", async (t) => {
   const { root } = makeSourceTree({ macVersion: "0.3.7" });
-  const env = buildEnv({
-    sourceDir: root,
-    stateFile: path.join(makeTempDir("mosa-r2-run."), "state"),
-    targets: "foo",
-    withR2: false,
-    withLegacySsh: true,
-    r2Endpoint: "",
-    binDir: makeTempDir("mosa-r2-bin."),
-    sshKeyPath: path.join(os.tmpdir(), "mosa-r2-nonexistent-key"),
-    knownHostsPath: path.join(os.tmpdir(), "mosa-r2-nonexistent-known-hosts"),
-  });
+  for (const targets of ["旧服务器", "旧服务器,r2", "foo"]) {
+    const env = buildEnv({
+      sourceDir: root,
+      stateFile: path.join(makeTempDir("mosa-r2-run."), "state"),
+      targets,
+      withR2: false,
+    });
 
-  const error = await runScriptExpectFailure(env);
-  assert.match(String(error.stderr), /MOSA_RELEASE_TARGETS must be/);
+    const error = await runScriptExpectFailure(env);
+    assert.match(String(error.stderr), /旧服务器已停用，只支持 r2/, `MOSA_RELEASE_TARGETS=${targets} must be refused`);
+  }
 });

@@ -54,8 +54,8 @@ Pricing (as the site states it):
 - Site copy says "free" and links to the licence on GitHub; it never quotes or paraphrases the licence terms.
 
 Website constraints (technical):
-- Static site: plain HTML, CSS and JavaScript, no build step. Deployed by GitHub Actions `rsync` to `/var/www/mosa-website` on the DMIT server; merging to `main` publishes it.
-- Must keep working, unchanged in path and contract: `/releases/…` update manifests (served from the server, never committed), `/downloads/…` packages, `desktop-release-feed.js` + `site-config.js` (the download area reads versions, sizes and SHA-256 from the feed), the feedback service, `/privacy/` URL, `domain-changed.html` for the legacy domain, `admin/` (out of scope this round), `scripts/` and `ops/` (server-side, hidden by nginx).
+- Static site: plain HTML, CSS and JavaScript, no build step. Deployed by GitHub Actions to Cloudflare Pages (project `gravityport-site`); merging to `main` publishes it.
+- Must keep working, unchanged in path and contract: `/releases/…` update manifests (served from R2 by the `gp-edge` Worker, never committed), `/downloads/…` packages, `desktop-release-feed.js` + `site-config.js` (the download area reads versions, sizes and SHA-256 from the feed), the feedback service, `/privacy/` URL, `domain-changed.html` for the legacy domain, `admin/` (out of scope this round), `scripts/` and `ops/` (repository-only, never published).
 - The deploy check fetches `/site/press.css`, `/site/press.js`, `/site-config.js` and expects `GravityPort` in `/`; renaming those files means updating the workflow in the same change.
 
 ## Brand Commitments

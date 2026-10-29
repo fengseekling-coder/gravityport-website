@@ -1,4 +1,5 @@
-// Feedback endpoint contract, ported from scripts/feedback-service.test.mjs
+// Feedback endpoint contract for src/feedback.js (cases carried over from the
+// legacy Node suite, removed in 279 C1)
 // (the interface-behavior cases). Differences from the old suite, all of them
 // consequences of the deliberate rewrite choices:
 //   - storage assertions go against D1 rows instead of files on disk, so the
