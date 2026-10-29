@@ -88,12 +88,14 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 官网域名为 `https://gravityport.azhuilab.com/`。渠道链接可以使用 `?ref=`，例如 `https://gravityport.azhuilab.com/?ref=reddit_codex`。下载按钮会保留这个短标签到下载请求，便于在统计中区分渠道。旧域名 `mosa.azhuilab.com` 的首页显示域名迁移说明；为兼容已发布的桌面客户端，旧域名上的 `/releases/`、`/downloads/` 和 `/api/` 服务路径继续保留。
 
-更新官网的常用流程：
+更新官网的常用流程：`main` 有分支保护，必须走 PR（先同步 `main`，`test` 检查通过后才能合并，管理员也不例外），合并即上线。
 
 ```bash
+git checkout -b <分支名>
 git add -A
 git commit -m "Update GravityPort website"
-git push origin main
+git push origin <分支名>
+# 在 GitHub 上开 PR，等 test 检查通过后合并；合并即自动部署上线
 ```
 
 仓库 Actions 需要两个 Secrets：`CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID`。令牌只保存在 GitHub Secrets，不放入仓库。
