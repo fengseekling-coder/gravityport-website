@@ -38,5 +38,5 @@ enabled = false
 # Both must be configured at deploy time; when either is empty every /admin/*
 # request is rejected (there is deliberately no "unconfigured" bypass).
 [vars]
-ACCESS_TEAM_DOMAIN = ""
-ACCESS_AUD = ""
+ACCESS_TEAM_DOMAIN = "azhui.cloudflareaccess.com"
+ACCESS_AUD = "a493b069d961eda2bd033b73a41e0d70965085a809b790598b077aefcce005d8"

@@ -178,7 +178,7 @@
     const footer = $("statsFooter");
     const coverage = new Date(data.coverageStart);
     const coverageText = Number.isNaN(coverage.getTime()) ? "覆盖起点未知" : `趋势口径起点 ${dateTime.format(coverage)}`;
-    footer.textContent = `统计日时区：${data.analyticsTimeZone || "unknown"} · ${coverageText} · 下载数字为 HTTP 请求数，不等同于独立下载人数。页面访问是 Nginx 日志近似 PV，不是按钮点击；首页按 GravityPort 页面体长过滤，首页→下载是下载请求除以首页访问。`;
+    footer.textContent = `统计日时区：${data.analyticsTimeZone || "unknown"} · ${coverageText} · 2026-10-29 起统计改由 Cloudflare 记录，此前旧服务器上的累计数没有导入。下载数字为 HTTP 请求数（分段下载每段各计一次），不等同于独立下载人数。页面访问由官网边缘逐次记录，已排除爬虫，不是按钮点击；首页→下载是下载请求除以首页访问。`;
     renderSiteTraffic(data);
   }
 
