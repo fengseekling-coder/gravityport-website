@@ -17,7 +17,7 @@ const GOOGLEBOT_UA = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google
  * Build a fake Pages Functions context. When `stats` is a recording stub, the
  * batched counter rows are captured in `batches` as {day, kind, key} tuples.
  */
-function makePageContext(path, { method = "GET", userAgent = DESKTOP_UA, referer = null, country = null, status = 200, contentType = "text/html; charset=utf-8", stats } = {}) {
+function makePageContext(path, { base = BASE, method = "GET", userAgent = DESKTOP_UA, referer = null, country = null, status = 200, contentType = "text/html; charset=utf-8", stats } = {}) {
   const headers = new Headers({ "user-agent": userAgent });
   if (referer) headers.set("referer", referer);
   if (country) headers.set("cf-ipcountry", country);
@@ -36,7 +36,7 @@ function makePageContext(path, { method = "GET", userAgent = DESKTOP_UA, referer
     },
   };
   const context = {
-    request: new Request(`${BASE}${path}`, { method, headers }),
+    request: new Request(`${base}${path}`, { method, headers }),
     // stats: undefined -> recording stub; null -> no STATS binding at all;
     // anything else is used as the binding directly.
     env: stats === undefined ? { STATS: recordingDb } : stats === null ? {} : { STATS: stats },
@@ -72,6 +72,16 @@ describe("site page-view middleware", () => {
       expect.objectContaining({ kind: "page_country", key: "XX" }),
       expect.objectContaining({ kind: "page_device", key: "desktop" }),
     ]);
+  });
+
+  it("ignores the pages.dev copies of the site", async () => {
+    for (const base of ["https://gravityport-site.pages.dev", "https://b5f08398.gravityport-site.pages.dev"]) {
+      const { context, batches, collected } = makePageContext("/", { base });
+      const response = await onRequest(context);
+      expect(response.status).toBe(200);
+      await waitCollected(collected);
+      expect(flatRows(batches), base).toEqual([]);
+    }
   });
 
   it("classifies devices: mobile, tablet, desktop", async () => {

@@ -16,6 +16,10 @@ const ANALYTICS_TIME_ZONE = "America/Los_Angeles";
 // Both first-party hosts count as in-site referrers.
 const SITE_HOSTS = new Set(["gravityport.azhuilab.com", "mosa.azhuilab.com"]);
 
+// Only the production site is counted. The *.pages.dev copies (production and
+// preview deployments) serve the same pages but are not the real site.
+const COUNTED_HOST = "gravityport.azhuilab.com";
+
 // The public page paths worth counting; everything else buckets as "other".
 const PAGE_PATHS = new Set(["/", "/en/", "/privacy/", "/en/privacy/", "/guide/", "/demo/"]);
 
@@ -103,6 +107,7 @@ export async function onRequest(context) {
     if (!env || !env.STATS) return response;
 
     const url = new URL(request.url);
+    if (url.hostname !== COUNTED_HOST) return response;
     const pathKey = normalizePagePath(url.pathname);
     const device = classifyDevice(request.headers.get("user-agent"));
     const day = analyticsDayKey(Date.now());
