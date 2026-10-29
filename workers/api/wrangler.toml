@@ -2,6 +2,11 @@ name = "gp-api"
 main = "src/index.js"
 compatibility_date = "2026-08-22"
 
+# Only reachable through the zone routes, which the zone rate limit covers.
+# workers.dev and preview URLs bypass that limit, so they stay off (279 B5).
+workers_dev = false
+preview_urls = false
+
 # Feedback rows and one-time Pinterest session credentials (hashes only).
 [[d1_databases]]
 binding = "FEEDBACK"
