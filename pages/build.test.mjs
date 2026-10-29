@@ -47,6 +47,7 @@ function makeFixtureRoot(parent) {
   write('site/.DS_Store', 'junk\n');
   for (const [name, content] of [
     ['_headers', '/*\n  X-Test: fixture\n'],
+    ['_redirects', '/a.html /a 200\n'],
     ['404.html', '<!doctype html><title>404</title>\n'],
     ['_routes.json', '{"version":1,"include":["/"],"exclude":[]}\n'],
   ]) {
@@ -83,6 +84,7 @@ test('whitelisted files land in dist, excluded ones do not', () => {
     'assets/picture.webp',
     'assets/fonts/font.woff2',
     '_headers',
+    '_redirects',
     '404.html',
     '_routes.json',
   ]) {
@@ -177,6 +179,7 @@ test('the real repository builds without unclassified entries', () => {
     'apple-touch-icon.png',
     'google7924b9f0fcdd77fd.html',
     '_headers',
+    '_redirects',
     '404.html',
     '_routes.json',
   ]);

@@ -43,7 +43,7 @@ const DO_NOT_PUBLISH_ROOT_FILES = new Set([
 ]);
 
 // Pages consumes these from the dist root; they are configuration, not site content.
-const PAGES_BUNDLE_FILES = ['_headers', '404.html', '_routes.json'];
+const PAGES_BUNDLE_FILES = ['_headers', '_redirects', '404.html', '_routes.json'];
 
 function isHidden(name) {
   return name.startsWith('.');

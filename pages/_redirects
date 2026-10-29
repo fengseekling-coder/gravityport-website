@@ -1,0 +1,4 @@
+# Search Console fetches the HTML verification file at its .html URL. Pages
+# would 308 that to the extensionless URL; this rewrite serves the file there
+# with a 200 instead, so the verification never depends on a redirect.
+/google7924b9f0fcdd77fd.html /google7924b9f0fcdd77fd 200

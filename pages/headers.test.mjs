@@ -57,7 +57,7 @@ function expectedCacheControl(pathname) {
 // checked by dedicated tests.
 function urlForDistPath(relativePath) {
   if (relativePath === '404.html') return '/404';
-  if (relativePath === '_headers' || relativePath === '_routes.json') return null;
+  if (relativePath === '_headers' || relativePath === '_redirects' || relativePath === '_routes.json') return null;
   if (relativePath === 'index.html') return '/';
   if (relativePath.endsWith('/index.html')) return `/${relativePath.slice(0, -'index.html'.length)}`;
   if (relativePath.endsWith('.html')) return `/${relativePath.slice(0, -'.html'.length)}`;
@@ -190,7 +190,7 @@ test('every file in dist is served with the nginx header table', async () => {
   };
   walk(dist);
 
-  const skipped = ['_headers', '_routes.json'];
+  const skipped = ['_headers', '_redirects', '_routes.json'];
   assert.equal(files.includes('index.html'), true);
   assert.ok(files.length > 100, `unexpectedly few dist files: ${files.length}`);
 
@@ -258,7 +258,6 @@ test('index.html URLs redirect to their directory with the same headers', async 
     ['/guide/index.html', '/guide/'],
     ['/demo/index.html', '/demo/'],
     ['/404.html', '/404'],
-    ['/google7924b9f0fcdd77fd.html', '/google7924b9f0fcdd77fd'],
   ]);
   for (const [from, location] of redirects) {
     const response = await request(from);
@@ -270,13 +269,12 @@ test('index.html URLs redirect to their directory with the same headers', async 
   assert.deepEqual((await request('/privacy/index.html')).headers.get('cache-control'), ['no-cache']);
 });
 
-test('the Google verification file is reachable through the redirect', async () => {
+test('the Google verification file answers 200 at its .html URL, without a redirect', async () => {
   const dist = tempDirs[0];
-  const redirect = await request('/google7924b9f0fcdd77fd.html');
-  assert.equal(redirect.status, 308);
-  const final = await request(redirect.headers.get('location')[0]);
-  assert.equal(final.status, 200);
-  assert.deepEqual(final.body, readFileSync(path.join(dist, 'google7924b9f0fcdd77fd.html')));
+  const response = await request('/google7924b9f0fcdd77fd.html');
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body, readFileSync(path.join(dist, 'google7924b9f0fcdd77fd.html')));
+  assertSecurityHeaders(response.headers);
 });
 
 test('/404 serves the 404 page as a plain asset', async () => {
