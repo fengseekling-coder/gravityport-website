@@ -1,6 +1,7 @@
 -- Feedback: one row per submission, diagnostics in the same row. The fields
 -- match what the old feedback service stored as JSON files
--- (scripts/feedback-service.mjs). The connecting IP is deliberately not
+-- (the legacy Node service, removed in 279 C1; src/feedback.js owns it now).
+-- The connecting IP is deliberately not
 -- stored anywhere in this database.
 CREATE TABLE feedback (
     id TEXT PRIMARY KEY,

@@ -192,7 +192,7 @@ jobs:
           printf '%s\n' "$config_headers" | grep -Eiq '^cache-control: .*no-cache'
 
           # Repository-only files never ship in the Pages bundle (pages/build.mjs whitelist).
-          for private_path in scripts/feedback-service.mjs ops/FEEDBACK.md DEPLOYMENT.md; do
+          for private_path in scripts/report-usage.mjs ops/com.azhuilab.mosa.desktop-release-monitor.plist DEPLOYMENT.md; do
             private_status="$(curl --silent --show-error --max-time 20 -o /dev/null -w '%{http_code}' "$site_url/$private_path")"
             test "$private_status" = "404"
           done

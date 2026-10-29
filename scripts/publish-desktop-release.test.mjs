@@ -105,12 +105,11 @@ function safeEnv({ sourceDir, stateFile, previousManifest = "", dryRunOutput = "
     MOSA_RELEASE_NOTES_ZH: notesZh,
     MOSA_RELEASE_NOTES_EN: notesEn,
     // Never touch production infrastructure from tests: port 1 refuses instantly.
-    MOSA_RELEASE_SSH_HOST: "127.0.0.1",
-    MOSA_RELEASE_SSH_PORT: "1",
-    MOSA_RELEASE_SSH_USER: "mosa-test",
-    MOSA_RELEASE_SSH_KEY: path.join(os.tmpdir(), "mosa-test-nonexistent-key"),
-    MOSA_RELEASE_KNOWN_HOSTS: path.join(os.tmpdir(), "mosa-test-nonexistent-known-hosts"),
-    MOSA_RELEASE_REMOTE_DIR: "/var/www/mosa-website",
+    MOSA_RELEASE_TARGETS: "r2",
+    MOSA_RELEASE_R2_ENDPOINT: "http://127.0.0.1:1",
+    MOSA_RELEASE_R2_BUCKET: "mosa-test",
+    MOSA_RELEASE_R2_ACCESS_KEY_ID: "mosa-test-access-key-id",
+    MOSA_RELEASE_R2_SECRET_ACCESS_KEY: "mosa-test-secret",
   };
 }
 
@@ -337,11 +336,11 @@ test("Case 2: a new rc.16 release without any notes fails before any remote acti
   fs.writeFileSync(stateFile, "0.2.1-rc.15|aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|none\n");
 
   const error = runScriptExpectFailure({ sourceDir: root, stateFile, notesZh: "", notesEn: "" });
-  // The SSH config in the test env is unreachable (127.0.0.1:1). Failing with
-  // the notes error — and not an SSH error — proves the script stops before
+  // The R2 endpoint in the test env is unreachable (127.0.0.1:1). Failing with
+  // the notes error — and not an R2 error — proves the script stops before
   // any upload, state write, or manifest replacement.
   assert.match(String(error.stderr), /Release notes are required for a new desktop release/);
-  assert.doesNotMatch(String(error.stderr), /SSH|ssh/);
+  assert.doesNotMatch(String(error.stderr), /R2 上传|R2 清单|ECONNREFUSED/);
   assert.equal(
     fs.readFileSync(stateFile, "utf8"),
     "0.2.1-rc.15|aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|none\n",

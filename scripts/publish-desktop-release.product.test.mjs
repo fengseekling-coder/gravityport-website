@@ -87,12 +87,13 @@ function safeEnv({ sourceDir, stateFile, previousManifest = "", dryRunOutput = "
     MOSA_RELEASE_PUBLISHED_AT: "2026-10-10T01:00:00Z",
     MOSA_RELEASE_NOTES_ZH: NOTES_ZH,
     MOSA_RELEASE_NOTES_EN: NOTES_EN,
-    MOSA_RELEASE_SSH_HOST: "127.0.0.1",
-    MOSA_RELEASE_SSH_PORT: "1",
-    MOSA_RELEASE_SSH_USER: "mosa-test",
-    MOSA_RELEASE_SSH_KEY: path.join(os.tmpdir(), "mosa-test-nonexistent-key"),
-    MOSA_RELEASE_KNOWN_HOSTS: path.join(os.tmpdir(), "mosa-test-nonexistent-known-hosts"),
-    MOSA_RELEASE_REMOTE_DIR: "/var/www/mosa-website",
+    // Never touch production infrastructure from tests: the R2 endpoint is a
+    // closed local port, so any request that gets past the dry-run fails at once.
+    MOSA_RELEASE_TARGETS: "r2",
+    MOSA_RELEASE_R2_ENDPOINT: "http://127.0.0.1:1",
+    MOSA_RELEASE_R2_BUCKET: "mosa-test",
+    MOSA_RELEASE_R2_ACCESS_KEY_ID: "mosa-test-access-key-id",
+    MOSA_RELEASE_R2_SECRET_ACCESS_KEY: "mosa-test-secret",
   };
   // Only set the variable when the test asks for it: an absent variable is
   // the "product unset" mode, which must behave exactly like GravityPort.

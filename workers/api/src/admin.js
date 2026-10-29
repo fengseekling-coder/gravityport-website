@@ -3,7 +3,8 @@
 //   GET /admin/feedback-item.json  — one full record, diagnostics included
 //
 // Parameters, pagination, response shapes and error codes are ported from
-// scripts/feedback-service.mjs so admin/feedback.js keeps working unchanged.
+// the legacy Node service (removed in 279 C1) so admin/feedback.js keeps
+// working unchanged.
 // The old service sat behind nginx auth_request; here the caller must present
 // a valid Cloudflare Access JWT (see src/access.js).
 

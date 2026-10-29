@@ -60,13 +60,13 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 ## 发布
 
-官网主体是纯静态文件，可以直接部署到 Nginx、Cloudflare Pages、GitHub Pages、Vercel 静态托管或任意对象存储。私有统计页额外需要一个只监听服务器回环地址的轻量登录服务。
+官网由 Cloudflare Pages 托管；Worker、R2 和 D1 的结构与操作见 [`DEPLOYMENT.md`](./DEPLOYMENT.md)。
 
 ## 自动部署
 
-本仓库的 `main` 分支配置了 GitHub Actions。推送到 `main` 后，Actions 会通过专用 SSH 部署账号把网站和 `downloads/` 下载包同步到 DMIT 的 `/var/www/mosa-website/`，并执行 HTTPS 冒烟检查；`browser-extension/` 只放在仓库里，不发布到网站；不会启动 Node.js，也不会反向代理 MOSA 本地服务。
+本仓库的 `main` 分支配置了 GitHub Actions。推送到 `main` 后，Actions 把网站部署到 Cloudflare Pages，并把 `downloads/` 里的扩展包同步到 R2；`browser-extension/` 只放在仓库里，不发布到网站。Worker 不随 Actions 部署，需要手动执行 `wrangler deploy`。
 
-桌面包约 128–154 MB，超过 GitHub 单文件限制，不提交到 Git。macOS 本机的监控任务会观察 `<mosa 仓库>/out/make/dmg/darwin/arm64/` 与 `<mosa 仓库>/out/make/zip/win32/x64/`（Windows 安装程序在 `<mosa 仓库>/out/make/installer/win32/x64/`）：当 macOS arm64 DMG 和 Windows x64 ZIP 的同版本包都写完后，自动校验包、计算 SHA-256，通过受限的部署账号上传到网站，并原子更新 `releases/gravityport/latest.json`。服务器仅保留最新四个完整桌面版本（当前版本加三个历史版本）；扩展 ZIP 与不成对文件不会被这项清理触及。
+桌面包约 128–154 MB，超过 GitHub 单文件限制，不提交到 Git。macOS 本机的监控任务会观察 `<gravityport 仓库>/out/make/dmg/darwin/arm64/` 与 `<gravityport 仓库>/out/make/zip/win32/x64/`（Windows 安装程序在 `<gravityport 仓库>/out/make/installer/win32/x64/`）：当 macOS arm64 DMG 和 Windows x64 ZIP 的同版本包都写完后，自动校验包、计算 SHA-256，上传到 R2，并替换 `releases/gravityport/latest.json`。R2 上只保留最新四个完整桌面版本（当前版本加三个历史版本）；扩展 ZIP 与不成对文件不会被这项清理触及。
 
 首次启用监控：
 
@@ -84,10 +84,9 @@ window.MOSA_SITE_CONFIG = Object.freeze({
 
 完整的发布、更新、扩展包和 macOS 安装包操作说明见 [`DEPLOYMENT.md`](./DEPLOYMENT.md)。
 
-私有使用统计面板位于 `admin/`。生产环境由 Nginx `auth_request` 加只监听回环地址的 Node.js 登录服务保护 `/admin/`，首次登录后用安全 Cookie 保持 30 天会话；`scripts/install-private-stats.sh` 每 5 分钟增量读取当前及轮转后的 Nginx access log，并把私有累计状态保存在 Web 根目录之外的 `/var/lib/mosa-stats/usage-state.json`，再生成未提交到 Git 的 `admin/stats.json`。因此日志轮转不会让历史安装/下载总数回退，重复执行统计也不会重复累计同一批日志。安装和 Nginx 配置步骤见 `DEPLOYMENT.md` 的“私有统计面板”。
-页面访问同样来自这份 Nginx 日志：只统计 GravityPort 公开页的成功 GET，首页还按响应体长度过滤，避免把同机其他站点的 `GET /` 算进来。这是近似 PV，不是按钮点击事件，也不使用第三方 Analytics。
+私有使用统计面板位于 `admin/`，由 Cloudflare Access 保护，只允许开发者本人访问。安装、下载和访问计数存在 D1 `gp-stats` 里。页面访问是近似 PV，不是按钮点击事件，也不使用第三方 Analytics。统计和反馈的存放与后台入口见 `DEPLOYMENT.md`。
 
-官网域名为 `https://gravityport.azhuilab.com/`。渠道链接可以使用 `?ref=`，例如 `https://gravityport.azhuilab.com/?ref=reddit_codex`。下载按钮会保留这个短标签到下载请求，便于从 Nginx 日志区分渠道。旧域名 `mosa.azhuilab.com` 的首页显示域名迁移说明；为兼容已发布的桌面客户端，旧域名上的 `/releases/`、`/downloads/` 和 `/api/` 服务路径继续保留。
+官网域名为 `https://gravityport.azhuilab.com/`。渠道链接可以使用 `?ref=`，例如 `https://gravityport.azhuilab.com/?ref=reddit_codex`。下载按钮会保留这个短标签到下载请求，便于在统计中区分渠道。旧域名 `mosa.azhuilab.com` 的首页显示域名迁移说明；为兼容已发布的桌面客户端，旧域名上的 `/releases/`、`/downloads/` 和 `/api/` 服务路径继续保留。
 
 更新官网的常用流程：
 
@@ -97,6 +96,6 @@ git commit -m "Update GravityPort website"
 git push origin main
 ```
 
-仓库 Actions 需要以下 Secrets：`DEPLOY_HOST`、`DEPLOY_PORT`、`DEPLOY_USER`、`DEPLOY_REMOTE_DIR`、`DEPLOY_SSH_KEY` 和 `DEPLOY_KNOWN_HOSTS`。其中私钥只保存在 GitHub Secrets，不放入仓库。
+仓库 Actions 需要两个 Secrets：`CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID`。令牌只保存在 GitHub Secrets，不放入仓库。
 
-正式包按以下约定保存：`downloads/GravityPort-Web-Capture-版本.zip`、`downloads/GravityPort-darwin-arm64-版本.dmg`、`downloads/GravityPort-win32-x64-版本.zip`，带安装程序的版本还有 `downloads/GravityPort-win32-x64-版本.exe`。浏览器扩展 ZIP 可以提交并由 Actions 同步；桌面 DMG/ZIP 由本机监控程序直接发布。服务器只保留最新四组完整的桌面包，旧包不出现在官网页面。
+正式包按以下约定保存：`downloads/GravityPort-Web-Capture-版本.zip`、`downloads/GravityPort-darwin-arm64-版本.dmg`、`downloads/GravityPort-win32-x64-版本.zip`，带安装程序的版本还有 `downloads/GravityPort-win32-x64-版本.exe`。浏览器扩展 ZIP 可以提交并由 Actions 同步；桌面 DMG/ZIP 由本机监控程序直接发布。R2 上只保留最新四组完整的桌面包，旧包不出现在官网页面。

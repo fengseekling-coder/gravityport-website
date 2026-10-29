@@ -28,6 +28,6 @@ downloads/MOSA-Web-Capture-0.15.3.zip
 1. 在本目录新建版本文件夹，保持 `manifest.json` 的版本号与目录名一致。
 2. 将该版本文件夹内的扩展文件压缩到 `downloads/`，压缩包根目录应直接包含 `manifest.json`。
 3. 在 `site-config.js` 更新 `extension.version` 和 `extension.url`。
-4. 提交并推送到 `main`，GitHub Actions 会自动同步官网和下载包到 DMIT。
+4. 提交并推送到 `main`，GitHub Actions 会自动部署官网，并把扩展包同步到 R2。
 
 仓库只保留当前版本的源码快照和 ZIP，旧版本可在 Git 历史里找回；服务器上的旧下载包不会被 Actions 自动删除，便于回滚。发布新版本后，删掉上一版的快照目录和 ZIP。

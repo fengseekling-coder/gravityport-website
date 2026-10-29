@@ -17,7 +17,7 @@ log_dir="$user_home/Library/Logs/MOSA"
 
 [[ -f "$plist_source" ]] || die "missing launch agent template: $plist_source"
 [[ -x "$website_dir/scripts/publish-desktop-release.sh" ]] || die "publisher is not executable"
-[[ -r "$user_home/.config/mosa/release.env" ]] || die "missing $user_home/.config/mosa/release.env (deploy host and user, see DEPLOYMENT.md)"
+[[ -r "$user_home/.config/mosa/release.env" ]] || die "missing $user_home/.config/mosa/release.env (R2 settings, see DEPLOYMENT.md)"
 
 install -d -m 0700 "$agent_dir" "$log_dir"
 sed -e "s#__WEBSITE_DIR__#$website_dir#g" -e "s#__MOSA_DIR__#$mosa_dir#g" -e "s#__HOME__#$user_home#g" "$plist_source" > "$agent_path"
