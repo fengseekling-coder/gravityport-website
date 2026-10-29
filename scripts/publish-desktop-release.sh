@@ -709,4 +709,4 @@ printf '%s\n' "$release_signature" > "$state_file"
 chmod 0600 "$state_file"
 
 log "已发布 ${release_product} ${release_version}：macOS update ${mac_size} bytes${mac_dmg_package:+，DMG ${mac_dmg_size} bytes}${windows_package:+，Windows ${windows_size} bytes}${windows_installer_package:+，Windows 安装程序 ${windows_installer_size} bytes}。"
-log "SHA-256 已在本机与 R2 两端核对；清单由 canonical writer 生成。"
+log "SHA-256 已在本机核对，R2 上已核对每个包的大小；清单由 canonical writer 生成。"
