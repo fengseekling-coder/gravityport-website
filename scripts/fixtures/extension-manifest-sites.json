@@ -1,0 +1,19 @@
+{
+  "manifestVersion": "0.15.44",
+  "sites": [
+    "aistudio.google.com",
+    "chat.openai.com",
+    "chatgpt.com",
+    "flow.google.com",
+    "gemini.google.com",
+    "jimeng.jianying.com",
+    "labs.google",
+    "www.midjourney.com"
+  ],
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "alarms",
+    "unlimitedStorage"
+  ]
+}
