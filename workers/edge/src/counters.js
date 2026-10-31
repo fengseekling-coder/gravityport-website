@@ -27,16 +27,20 @@ export function counterUpsert(db, day, kind, key, amount) {
 }
 
 /**
- * Classify a download file name into desktop / extension / other. The two
- * patterns are the contract from scripts/report-usage.mjs and must stay in
- * sync with it.
+ * Classify a download file name into desktop / update / extension / other.
+ * "update" is the in-app update package (.zip) an installed App downloads by
+ * itself; "desktop" is what the website's download buttons serve (.dmg/.exe).
+ * The patterns are the contract from scripts/report-usage.mjs and must stay
+ * in sync with it.
  * @param {string} file
- * @returns {"desktop" | "extension" | "other"}
+ * @returns {"desktop" | "update" | "extension" | "other"}
  */
 export function classifyDownload(file) {
   const EXTENSION_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-Web-Capture-[A-Za-z0-9._-]+\.zip$/;
-  const DESKTOP_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z0-9._-]+\.(?:zip|dmg|exe)$/;
+  const UPDATE_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z0-9._-]+\.zip$/;
+  const DESKTOP_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z0-9._-]+\.(?:dmg|exe)$/;
   if (EXTENSION_DOWNLOAD_PATTERN.test(file)) return "extension";
+  if (UPDATE_DOWNLOAD_PATTERN.test(file)) return "update";
   if (DESKTOP_DOWNLOAD_PATTERN.test(file)) return "desktop";
   return "other";
 }

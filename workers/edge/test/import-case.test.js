@@ -21,6 +21,7 @@ const COMPARED_METRICS = [
   "downloadsByRef",
   "totalDownloadRequests",
   "totalDesktopDownloadRequests",
+  "totalUpdateDownloadRequests",
   "totalExtensionDownloadRequests",
   "totalOtherDownloadRequests",
   "pageViewsByPath",

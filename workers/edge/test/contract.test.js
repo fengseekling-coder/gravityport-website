@@ -36,9 +36,11 @@ const SHARED_METRICS = [
   "downloadsByFile",
   "downloadsByRef",
   "desktopDownloadsByFile",
+  "updateDownloadsByFile",
   "extensionDownloadsByFile",
   "totalDownloadRequests",
   "totalDesktopDownloadRequests",
+  "totalUpdateDownloadRequests",
   "totalExtensionDownloadRequests",
   "totalOtherDownloadRequests",
 ];

@@ -34,8 +34,11 @@ const USAGE_EVENTS = new Set(["first_launch", "daily_active"]);
 const USAGE_PLATFORMS = new Set(["macos", "windows", "other"]);
 const ARCH_PATTERN = /^[0-9A-Za-z._-]{1,24}$/;
 const VERSION_PATTERN = /^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
-// Update ZIPs, the macOS DMG and the Windows installer.
-const DESKTOP_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z0-9._-]+\.(?:zip|dmg|exe)$/;
+// The macOS DMG and the Windows installer, served by the website's download
+// buttons. Update ZIPs are what installed Apps download in-app and count as
+// their own kind.
+const DESKTOP_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z0-9._-]+\.(?:dmg|exe)$/;
+const UPDATE_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z0-9._-]+\.zip$/;
 const EXTENSION_DOWNLOAD_PATTERN = /^(?:MOSA|GravityPort)-Web-Capture-[A-Za-z0-9._-]+\.zip$/;
 const USAGE_REPORT_PATHS = new Set(["/releases/latest.json", "/releases/gravityport/latest.json"]);
 const HOME_PAGE_MIN_BYTES = 20_000;
@@ -127,6 +130,7 @@ function newAggregate() {
     installs: new Map(),
     downloadCounts: new Map(),
     desktopDownloadCounts: new Map(),
+    updateDownloadCounts: new Map(),
     extensionDownloadCounts: new Map(),
     otherDownloadCounts: new Map(),
     refCounts: new Map(),
@@ -152,14 +156,15 @@ function hydrateAggregate(value) {
   if (!value || typeof value !== "object") return newAggregate();
   const downloadCounts = pairsToMap(value.downloadCounts);
   // The kinds are worked out again from the per-file counts, so files counted
-  // before the patterns knew them (macOS DMGs, the Windows installer) move
-  // out of "other".
-  const byKind = { desktop: new Map(), extension: new Map(), other: new Map() };
+  // before the patterns knew them (macOS DMGs, the Windows installer, and
+  // update zips that used to count as desktop) move into their current kind.
+  const byKind = { desktop: new Map(), update: new Map(), extension: new Map(), other: new Map() };
   for (const [file, count] of downloadCounts) byKind[classifyDownload(file)].set(file, count);
   return {
     installs: pairsToMap(value.installs),
     downloadCounts,
     desktopDownloadCounts: byKind.desktop,
+    updateDownloadCounts: byKind.update,
     extensionDownloadCounts: byKind.extension,
     otherDownloadCounts: byKind.other,
     refCounts: pairsToMap(value.refCounts),
@@ -179,6 +184,7 @@ function serializeAggregate(aggregate) {
     installs: [...aggregate.installs.entries()],
     downloadCounts: [...aggregate.downloadCounts.entries()],
     desktopDownloadCounts: [...aggregate.desktopDownloadCounts.entries()],
+    updateDownloadCounts: [...aggregate.updateDownloadCounts.entries()],
     extensionDownloadCounts: [...aggregate.extensionDownloadCounts.entries()],
     otherDownloadCounts: [...aggregate.otherDownloadCounts.entries()],
     refCounts: [...aggregate.refCounts.entries()],
@@ -324,6 +330,7 @@ function completeByteLength(buffer, startOffset) {
 
 function classifyDownload(file) {
   if (EXTENSION_DOWNLOAD_PATTERN.test(file)) return "extension";
+  if (UPDATE_DOWNLOAD_PATTERN.test(file)) return "update";
   if (DESKTOP_DOWNLOAD_PATTERN.test(file)) return "desktop";
   return "other";
 }
@@ -418,6 +425,7 @@ function processLine(line, aggregate, options = {}) {
     increment(aggregate.refCounts, ref);
     increment(aggregate.dailyDownloads, analyticsDayKey(time));
     if (kind === "desktop") increment(aggregate.desktopDownloadCounts, file);
+    else if (kind === "update") increment(aggregate.updateDownloadCounts, file);
     else if (kind === "extension") increment(aggregate.extensionDownloadCounts, file);
     else increment(aggregate.otherDownloadCounts, file);
   }
@@ -538,13 +546,17 @@ const report = {
   downloadsByFile: mapToObject(state.aggregate.downloadCounts),
   downloadsByRef: mapToObject(state.aggregate.refCounts),
   desktopDownloadsByFile: mapToObject(state.aggregate.desktopDownloadCounts),
+  updateDownloadsByFile: mapToObject(state.aggregate.updateDownloadCounts),
   extensionDownloadsByFile: mapToObject(state.aggregate.extensionDownloadCounts),
   pageViewsByPath: mapToObject(state.aggregate.pageViewCounts),
   totalPageViews: sumMap(state.aggregate.pageViewCounts),
   totalHomePageViews,
-  homeToDownloadRate: totalHomePageViews > 0 ? totalDownloadRequests / totalHomePageViews : null,
+  homeToDownloadRate: totalHomePageViews > 0
+    ? (sumMap(state.aggregate.desktopDownloadCounts) + sumMap(state.aggregate.extensionDownloadCounts)) / totalHomePageViews
+    : null,
   totalDownloadRequests,
   totalDesktopDownloadRequests: sumMap(state.aggregate.desktopDownloadCounts),
+  totalUpdateDownloadRequests: sumMap(state.aggregate.updateDownloadCounts),
   totalExtensionDownloadRequests: sumMap(state.aggregate.extensionDownloadCounts),
   totalOtherDownloadRequests: sumMap(state.aggregate.otherDownloadCounts),
   daily,

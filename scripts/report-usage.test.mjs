@@ -72,7 +72,8 @@ test("persistent usage stats survive repeated runs, rotation, and gzip without d
   assert.equal(first.dailyActiveInstalls, 1);
   assert.equal(first.analyticsTimeZone, "America/Los_Angeles");
   assert.equal(first.totalDownloadRequests, 3);
-  assert.equal(first.totalDesktopDownloadRequests, 2);
+  assert.equal(first.totalDesktopDownloadRequests, 0, "update zips no longer count as desktop downloads");
+  assert.equal(first.totalUpdateDownloadRequests, 2);
   assert.equal(first.totalExtensionDownloadRequests, 1);
   assert.equal(first.downloadsByRef.reddit_codex, 2);
   assert.equal(first.downloadsByRef.xiaohongshu, 1);
@@ -94,7 +95,8 @@ test("persistent usage stats survive repeated runs, rotation, and gzip without d
   assert.equal(rotated.knownInstallationInstances, 2);
   assert.equal(rotated.reportedFirstLaunches, 2);
   assert.equal(rotated.totalDownloadRequests, 4);
-  assert.equal(rotated.totalDesktopDownloadRequests, 3);
+  assert.equal(rotated.totalDesktopDownloadRequests, 0);
+  assert.equal(rotated.totalUpdateDownloadRequests, 3);
   assert.equal(rotated.totalExtensionDownloadRequests, 1);
 
   const rotatedBytes = readFileSync(join(root, "access.log.1"));
@@ -105,7 +107,8 @@ test("persistent usage stats survive repeated runs, rotation, and gzip without d
   assert.equal(compressed.knownInstallationInstances, 2);
   assert.equal(compressed.reportedFirstLaunches, 2);
   assert.equal(compressed.totalDownloadRequests, 4, "compressing an already processed rotation must not count it twice");
-  assert.equal(compressed.totalDesktopDownloadRequests, 3);
+  assert.equal(compressed.totalDesktopDownloadRequests, 0);
+  assert.equal(compressed.totalUpdateDownloadRequests, 3);
   assert.equal(compressed.totalExtensionDownloadRequests, 1);
 });
 
@@ -119,7 +122,8 @@ test("copytruncate with the same inode starts a fresh cursor instead of reviving
   ].join(""));
   const first = runReport(root);
   assert.equal(first.knownInstallationInstances, 1);
-  assert.equal(first.totalDesktopDownloadRequests, 1);
+  assert.equal(first.totalDesktopDownloadRequests, 0);
+  assert.equal(first.totalUpdateDownloadRequests, 1);
 
   // writeFileSync truncates in place, preserving the inode on normal filesystems.
   writeFileSync(accessLog, [
@@ -129,11 +133,13 @@ test("copytruncate with the same inode starts a fresh cursor instead of reviving
   const afterTruncate = runReport(root);
   assert.equal(afterTruncate.knownInstallationInstances, 2);
   assert.equal(afterTruncate.reportedFirstLaunches, 2);
-  assert.equal(afterTruncate.totalDesktopDownloadRequests, 2);
+  assert.equal(afterTruncate.totalDesktopDownloadRequests, 0);
+  assert.equal(afterTruncate.totalUpdateDownloadRequests, 2);
 
   const repeated = runReport(root);
   assert.equal(repeated.knownInstallationInstances, 2);
-  assert.equal(repeated.totalDesktopDownloadRequests, 2, "the replacement log must also be idempotent");
+  assert.equal(repeated.totalDesktopDownloadRequests, 0, "the replacement log must also be idempotent");
+  assert.equal(repeated.totalUpdateDownloadRequests, 2);
 });
 
 function fingerprintBuffer(buffer, processedBytes) {
@@ -173,7 +179,8 @@ test("MOSA public page views count home, guide, and demo without treating other-
   assert.equal(first.pageViewsByPath["/demo/"], 1);
   assert.equal(first.pageViewsByPath["/privacy/"], 1);
   assert.equal(first.totalDownloadRequests, 2);
-  assert.equal(first.homeToDownloadRate, 1);
+  assert.equal(first.totalUpdateDownloadRequests, 2, "update zips are their own kind and stay out of the rate");
+  assert.equal(first.homeToDownloadRate, 0, "neither desktop nor extension downloads happened");
   const today = first.daily.at(-1);
   assert.equal(today.homePageViews, 2);
   assert.equal(today.pageViews, 5);
@@ -243,10 +250,11 @@ test("existing v2 state backfills page views from already processed bytes withou
 
   const report = runReport(root);
   assert.equal(report.totalDownloadRequests, 1, "backfill must not recount downloads");
-  assert.equal(report.totalDesktopDownloadRequests, 1);
+  assert.equal(report.totalDesktopDownloadRequests, 0, "the stored zip now classifies as an update");
+  assert.equal(report.totalUpdateDownloadRequests, 1);
   assert.equal(report.totalHomePageViews, 1);
   assert.equal(report.totalPageViews, 1);
-  assert.equal(report.homeToDownloadRate, 1);
+  assert.equal(report.homeToDownloadRate, 0);
 
   const repeated = runReport(root);
   assert.equal(repeated.totalDownloadRequests, 1);
@@ -284,11 +292,13 @@ test("downloads stored before the desktop pattern knew their file move out of ot
 
   const report = runReport(root);
   assert.equal(report.totalDownloadRequests, 9);
-  assert.equal(report.totalDesktopDownloadRequests, 6, "the DMG downloads now count as desktop downloads");
+  assert.equal(report.totalDesktopDownloadRequests, 5, "the DMG downloads now count as desktop downloads");
   assert.equal(report.desktopDownloadsByFile["GravityPort-darwin-arm64-0.3.3.dmg"], 5);
+  assert.equal(report.totalUpdateDownloadRequests, 1, "the stored zip moves out of desktop into update");
+  assert.equal(report.updateDownloadsByFile["GravityPort-darwin-arm64-0.3.3.zip"], 1);
   assert.equal(report.totalExtensionDownloadRequests, 2);
   assert.equal(report.totalOtherDownloadRequests, 1);
-  assert.equal(runReport(root).totalDesktopDownloadRequests, 6, "a later run keeps the same counts");
+  assert.equal(runReport(root).totalDesktopDownloadRequests, 5, "a later run keeps the same counts");
 });
 
 test("the same installation reporting on both update sources counts exactly once", () => {
@@ -327,7 +337,7 @@ test("installations reporting only on the GravityPort source are counted", () =>
   assert.equal(report.versionInstalls["0.3.0"], 1);
 });
 
-test("GravityPort desktop packages are counted as desktop downloads", () => {
+test("GravityPort packages split into update zips and desktop installers", () => {
   const root = mkdtempSync(join(tmpdir(), "mosa-stats-gp-download-"));
   const accessLog = join(root, "access.log");
 
@@ -341,13 +351,14 @@ test("GravityPort desktop packages are counted as desktop downloads", () => {
   ].join(""));
 
   const report = runReport(root);
-  assert.equal(report.totalDesktopDownloadRequests, 4);
-  assert.equal(report.desktopDownloadsByFile["GravityPort-darwin-arm64-0.3.0.zip"], 1);
-  assert.equal(report.desktopDownloadsByFile["GravityPort-win32-x64-0.3.0.zip"], 1);
+  assert.equal(report.totalDesktopDownloadRequests, 2);
   assert.equal(report.desktopDownloadsByFile["GravityPort-darwin-arm64-0.3.3.dmg"], 1, "the macOS DMG");
   assert.equal(report.desktopDownloadsByFile["GravityPort-win32-x64-0.3.4.exe"], 1, "the Windows installer");
+  assert.equal(report.totalUpdateDownloadRequests, 2, "the darwin/win32 zips are in-app update packages");
+  assert.equal(report.updateDownloadsByFile["GravityPort-darwin-arm64-0.3.0.zip"], 1);
+  assert.equal(report.updateDownloadsByFile["GravityPort-win32-x64-0.3.0.zip"], 1);
   assert.equal(report.totalExtensionDownloadRequests, 1, "the extension pattern is unchanged");
-  assert.equal(report.totalOtherDownloadRequests, 1, "only files outside the desktop and extension packages fall into other downloads");
+  assert.equal(report.totalOtherDownloadRequests, 1, "only files outside the package patterns fall into other downloads");
 });
 
 test("GravityPort and MOSA extension packages are both counted as extension downloads", () => {
@@ -383,7 +394,8 @@ test("logs with only the old source and MOSA packages keep their exact numbers",
   assert.equal(report.reportedFirstLaunches, 1);
   assert.equal(report.dailyActiveInstalls, 1);
   assert.equal(report.totalDownloadRequests, 2);
-  assert.equal(report.totalDesktopDownloadRequests, 2);
+  assert.equal(report.totalDesktopDownloadRequests, 0, "MOSA darwin/win32 zips are in-app update packages");
+  assert.equal(report.totalUpdateDownloadRequests, 2);
   assert.equal(report.totalExtensionDownloadRequests, 0);
   assert.equal(report.totalOtherDownloadRequests, 0);
 });

@@ -1,6 +1,8 @@
 // /downloads/* handler: streams release packages out of R2 with single-range
-// support and counts successful GET/Range downloads the way the nginx log
-// contract did. HEAD requests and failures are never counted.
+// support and counts one download per file request: full GETs and ranged
+// requests whose range starts at 0 (the first segment). HEAD requests,
+// failures and continuation segments (range start > 0, issued by resume and
+// multi-connection downloaders) are never counted.
 
 import { objectKeyFromPath } from "./keys.js";
 import { applySecurityHeaders, methodNotAllowedResponse, notFoundResponse } from "./headers.js";
@@ -144,7 +146,9 @@ export async function serveDownload(request, env, url, ctx) {
     const headers = baseHeaders();
     headers.set("content-range", `bytes ${range.start}-${range.end}/${size}`);
     headers.set("content-length", String(length));
-    if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(recordDownload(env.STATS, key, url, Date.now()));
+    // Only the first segment counts; resume/multi-connection segments would
+    // otherwise inflate one real download into several.
+    if (range.start === 0 && ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(recordDownload(env.STATS, key, url, Date.now()));
     return new Response(ranged.body, { status: 206, headers });
   }
 
