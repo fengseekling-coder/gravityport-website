@@ -59,6 +59,13 @@ export async function buildStats(env, nowMs = Date.now()) {
   );
   const botTotal = Number(((await first("SELECT SUM(count) AS total FROM counters WHERE kind = 'bot_page'")) || {}).total || 0);
   const imported = Boolean(await first("SELECT 1 AS marker FROM counters WHERE kind = 'import' LIMIT 1"));
+  const legacyRows = await all(
+    "SELECT kind, key, count FROM counters " +
+      "WHERE kind IN ('legacy_download_file', 'legacy_download_ref', 'legacy_page_path', 'legacy_home_page')"
+  );
+  const legacyCoverageRows = await all(
+    "SELECT key, day FROM counters WHERE kind = 'import' AND key IN ('legacy_coverage_start', 'legacy_coverage_end')"
+  );
   const earliestEdgePageDay = ((await first(
     `SELECT MIN(day) AS day FROM counters WHERE kind = 'page_path' AND day GLOB '${DATE_SHAPED_DAY_GLOB}'`
   )) || {}).day;
@@ -210,5 +217,51 @@ export async function buildStats(env, nowMs = Date.now()) {
   if (siteByKind.page_device.size) report.pageViewsByDevice = mapToObject(siteByKind.page_device);
   if (botTotal > 0) report.botPageViews = botTotal;
   if (earliestEdgePageDay) report.metricsNote = `页面访问自 ${earliestEdgePageDay} 起改为边缘计数`;
+
+  if (legacyCoverageRows.length > 0 || legacyRows.length > 0) {
+    const coverageStart = legacyCoverageRows.find((r) => r.key === "legacy_coverage_start")?.day || "";
+    const coverageEnd = legacyCoverageRows.find((r) => r.key === "legacy_coverage_end")?.day || "";
+
+    const legacyDesktopByFile = new Map();
+    const legacyUpdateByFile = new Map();
+    const legacyExtensionByFile = new Map();
+    const legacyOtherByFile = new Map();
+    const legacyDownloadsByFile = new Map();
+    const legacyDownloadsByRef = new Map();
+    let legacyPageViews = 0;
+    let legacyHomePageViews = 0;
+
+    for (const row of legacyRows) {
+      const count = Number(row.count || 0);
+      if (row.kind === "legacy_download_file") {
+        legacyDownloadsByFile.set(row.key, (legacyDownloadsByFile.get(row.key) || 0) + count);
+        const kind = classifyDownload(row.key);
+        if (kind === "desktop") legacyDesktopByFile.set(row.key, (legacyDesktopByFile.get(row.key) || 0) + count);
+        else if (kind === "update") legacyUpdateByFile.set(row.key, (legacyUpdateByFile.get(row.key) || 0) + count);
+        else if (kind === "extension") legacyExtensionByFile.set(row.key, (legacyExtensionByFile.get(row.key) || 0) + count);
+        else legacyOtherByFile.set(row.key, (legacyOtherByFile.get(row.key) || 0) + count);
+      } else if (row.kind === "legacy_download_ref") {
+        legacyDownloadsByRef.set(row.key, (legacyDownloadsByRef.get(row.key) || 0) + count);
+      } else if (row.kind === "legacy_page_path") {
+        legacyPageViews += count;
+      } else if (row.kind === "legacy_home_page") {
+        legacyHomePageViews += count;
+      }
+    }
+
+    report.legacy = {
+      coverageStart,
+      coverageEnd,
+      pageViews: legacyPageViews,
+      homePageViews: legacyHomePageViews,
+      desktopDownloads: sumMap(legacyDesktopByFile),
+      updateDownloads: sumMap(legacyUpdateByFile),
+      extensionDownloads: sumMap(legacyExtensionByFile),
+      otherDownloads: sumMap(legacyOtherByFile),
+      downloadsByFile: mapToObject(legacyDownloadsByFile),
+      downloadsByRef: mapToObject(legacyDownloadsByRef),
+    };
+  }
+
   return report;
 }

@@ -202,13 +202,64 @@ import { rankRowsWithOther } from "./rank.js";
       if (UPDATE_ZIP_PATTERN.test(file)) downloadLabels[file] = `${file}（App 内更新）`;
     }
     renderRankList("downloadList", data.downloadsByFile, downloadLabels);
+
+    const hasLegacy = Boolean(data.legacy && typeof data.legacy === "object");
+    const anonymousNote = $("anonymousInstallsNote");
+    if (anonymousNote) {
+      anonymousNote.textContent = hasLegacy
+        ? "按匿名编号去重后的电脑数；含 10-29 前旧服务器记录的安装，按匿名编号去重。"
+        : "按匿名编号去重后的电脑数";
+    }
+
+    const legacyPvNote = $("legacyPageViewsNote");
+    if (legacyPvNote) {
+      legacyPvNote.hidden = !hasLegacy;
+      if (hasLegacy) legacyPvNote.textContent = `另：10-29 前旧服务器记录 ${number.format(data.legacy.pageViews || 0)} 次（含爬虫）`;
+    }
+    const legacyHomeNote = $("legacyHomePageViewsNote");
+    if (legacyHomeNote) {
+      legacyHomeNote.hidden = !hasLegacy;
+      if (hasLegacy) legacyHomeNote.textContent = `另：10-29 前旧服务器记录 ${number.format(data.legacy.homePageViews || 0)} 次（含爬虫）`;
+    }
+    const legacyDesktopNote = $("legacyDesktopNote");
+    if (legacyDesktopNote) {
+      legacyDesktopNote.hidden = !hasLegacy;
+      if (hasLegacy) legacyDesktopNote.textContent = `另：10-29 前旧服务器 ${number.format(data.legacy.desktopDownloads || 0)} 次请求（分段每段都算）`;
+    }
+    const legacyUpdateNote = $("legacyUpdateNote");
+    if (legacyUpdateNote) {
+      legacyUpdateNote.hidden = !hasLegacy;
+      if (hasLegacy) legacyUpdateNote.textContent = `另：10-29 前旧服务器 ${number.format(data.legacy.updateDownloads || 0)} 次请求（分段每段都算）`;
+    }
+    const legacyExtensionNote = $("legacyExtensionNote");
+    if (legacyExtensionNote) {
+      legacyExtensionNote.hidden = !hasLegacy;
+      if (hasLegacy) legacyExtensionNote.textContent = `另：10-29 前旧服务器 ${number.format(data.legacy.extensionDownloads || 0)} 次请求（分段每段都算）`;
+    }
+
+    const legacyPanel = $("legacyDownloadPanel");
+    if (legacyPanel) {
+      legacyPanel.hidden = !hasLegacy;
+      if (hasLegacy) {
+        const legacyDownloadLabels = {};
+        for (const [file] of entries(data.legacy.downloadsByFile)) {
+          if (UPDATE_ZIP_PATTERN.test(file)) legacyDownloadLabels[file] = `${file}（App 内更新）`;
+        }
+        renderRankList("legacyDownloadList", data.legacy.downloadsByFile, legacyDownloadLabels);
+        renderRankList("legacyRefList", data.legacy.downloadsByRef, { direct: "Direct / 无 ref" });
+      }
+    }
+
     renderTrend(data.daily);
     const generated = new Date(data.generatedAt);
     $("updatedAt").textContent = Number.isNaN(generated.getTime()) ? "更新时间未知" : `更新于 ${dateTime.format(generated)}`;
     const footer = $("statsFooter");
     const coverage = new Date(data.coverageStart);
     const coverageText = Number.isNaN(coverage.getTime()) ? "覆盖起点未知" : `趋势口径起点 ${dateTime.format(coverage)}`;
-    footer.textContent = `统计日时区：${data.analyticsTimeZone || "unknown"} · ${coverageText} · 2026-10-29 起统计改由 Cloudflare 记录，此前旧服务器上的累计数没有导入。下载为下载请求次数，分段下载只计一次（本次改动上线前的旧数据可能多算），不等同于独立下载人数；趋势图的下载线在旧数据段含 App 内更新（旧数据拆不开）。页面访问由官网边缘逐次记录，已排除爬虫，不是按钮点击；首页→下载 =（安装包下载 + 扩展下载）/ 首页访问。`;
+    const switchoverText = hasLegacy
+      ? `2026-10-29 前为旧服务器数据（${data.legacy.coverageStart || "未知"}～${data.legacy.coverageEnd || "未知"}）：安装按匿名编号和新数据合并；页面访问含爬虫、下载按请求次数（分段每段都算），单独列出，没加进上面的总数；趋势图 10-29 前的线也是旧口径。`
+      : "2026-10-29 起统计改由 Cloudflare 记录，此前旧服务器上的累计数没有导入。";
+    footer.textContent = `统计日时区：${data.analyticsTimeZone || "unknown"} · ${coverageText} · ${switchoverText}下载为下载请求次数，分段下载只计一次（本次改动上线前的旧数据可能多算），不等同于独立下载人数；趋势图的下载线在旧数据段含 App 内更新（旧数据拆不开）。页面访问由官网边缘逐次记录，已排除爬虫，不是按钮点击；首页→下载 =（安装包下载 + 扩展下载）/ 首页访问。`;
     renderSiteTraffic(data);
   }
 

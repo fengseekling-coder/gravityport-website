@@ -9,7 +9,7 @@ import { mkdtempSync, rmSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildContractData, buildImportState } from "./contract-data.mjs";
+import { buildContractData, buildImportLogText, TEST_INSTALL_ID, EXCLUDED_INSTALL_ID } from "./contract-data.mjs";
 import { analyticsDayKey } from "../src/util.js";
 
 const edgeDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -48,26 +48,33 @@ export async function prepareContractBindings() {
       "--now", String(nowMs),
     ]);
 
-    const state = buildImportState(nowMs, (timestamp) => analyticsDayKey(timestamp));
+    const importLogText = buildImportLogText(nowMs);
+    const importAccessLog = path.join(dir, "import-access.log");
+    writeFileSync(importAccessLog, importLogText);
     const statePath = path.join(dir, "usage-state.json");
-    writeFileSync(statePath, `${JSON.stringify(state)}\n`);
+    const importStatsPath = path.join(dir, "import-stats.json");
+    runScript(reportUsagePath, [
+      importAccessLog,
+      "--state", statePath,
+      "--output", importStatsPath,
+      "--now", String(nowMs),
+    ]);
+
+    const excludesPath = path.join(dir, "excludes.txt");
+    writeFileSync(excludesPath, `${EXCLUDED_INSTALL_ID}\n`);
+
+    const summaryPath = path.join(dir, "summary.json");
+    const importSqlPath = path.join(dir, "import.sql");
     const imported = runScript(importScriptPath, [
       statePath,
-      "--output", path.join(dir, "import.sql"),
+      "--output", importSqlPath,
+      "--summary", summaryPath,
       "--now", String(nowMs),
+      "--exclude-installs", excludesPath,
     ]);
-    const importSql = readFileSync(path.join(dir, "import.sql"), "utf8");
-
-    // Expected numbers for the import case come from report-usage.mjs run on
-    // the same state with an empty access log.
-    const emptyLog = path.join(dir, "empty.log");
-    writeFileSync(emptyLog, "");
-    const importExpected = runScript(reportUsagePath, [
-      emptyLog,
-      "--state", statePath,
-      "--output", path.join(dir, "import-stats.json"),
-      "--now", String(nowMs),
-    ]);
+    const importSql = readFileSync(importSqlPath, "utf8");
+    const summary = JSON.parse(readFileSync(summaryPath, "utf8"));
+    const importExpected = JSON.parse(readFileSync(importStatsPath, "utf8"));
 
     return {
       feed: {
@@ -80,7 +87,10 @@ export async function prepareContractBindings() {
       importCase: {
         t0: nowMs,
         sql: importSql,
-        expected: JSON.parse(readFileSync(path.join(dir, "import-stats.json"), "utf8")),
+        summary,
+        expected: importExpected,
+        testId: TEST_INSTALL_ID,
+        excludedId: EXCLUDED_INSTALL_ID,
         expectedStdout: imported.stdout || "",
       },
     };

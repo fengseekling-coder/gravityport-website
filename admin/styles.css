@@ -51,12 +51,14 @@ h1 { margin: 0; font-size: clamp(32px, 5vw, 48px); line-height: 1; letter-spacin
 .metric-card span { display: block; color: var(--muted); font-size: 12px; }
 .metric-card strong { display: block; margin: 14px 0 10px; font-size: 30px; font-weight: 650; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
 .metric-card small { color: var(--muted); font-size: 10px; line-height: 1.4; }
+.legacy-note { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.4; }
 
 .stat-group { margin-bottom: 30px; }
 .group-heading { margin: 0 0 14px; }
 .group-heading h2 { margin: 0; font-size: 20px; letter-spacing: -.02em; }
 .group-heading p { max-width: 760px; margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .stat-group .site-traffic-grid { margin-top: 0; }
+.legacy-downloads-panel { margin-top: 12px; }
 
 .panel { border-radius: 16px; padding: 20px; }
 .trend-panel { margin-bottom: 12px; }

@@ -29,7 +29,7 @@
         <p>打开过 GravityPort 并发回匿名统计的电脑，按匿名编号去重；2026-10-29 起记录，之前的没有导入，所以只含 10-29 以后打开过 App 的电脑。</p>
       </div>
       <section class="metric-grid" aria-label="App 安装指标">
-        <article class="metric-card primary"><span>安装实例</span><strong id="anonymousInstalls">—</strong><small>按匿名编号去重后的电脑数</small></article>
+        <article class="metric-card primary"><span>安装实例</span><strong id="anonymousInstalls">—</strong><small id="anonymousInstallsNote">按匿名编号去重后的电脑数</small></article>
         <article class="metric-card"><span>首次启动</span><strong id="firstLaunches">—</strong><small>装好后第一次打开 App 的电脑数</small></article>
         <article class="metric-card"><span>DAU</span><strong id="dau">—</strong><small>当前统计日打开过 App 的电脑数</small></article>
         <article class="metric-card"><span>7 日活跃</span><strong id="wau">—</strong><small id="wauNote">最近 7 个统计日打开过 App 的电脑数</small></article>
@@ -53,8 +53,18 @@
         <p>官网网页被打开的次数（同一个人刷新也算），2026-10-29 起由 Cloudflare 记录，已排除爬虫，累计。</p>
       </div>
       <section class="metric-grid" aria-label="官网访问指标">
-        <article class="metric-card primary"><span>官网页面访问</span><strong id="pageViews">—</strong><small>官网各公开页面被打开的次数加总</small></article>
-        <article class="metric-card"><span>首页访问</span><strong id="homePageViews">—</strong><small>官网首页被打开的次数</small></article>
+        <article class="metric-card primary">
+          <span>官网页面访问</span>
+          <strong id="pageViews">—</strong>
+          <small>官网各公开页面被打开的次数加总</small>
+          <small class="legacy-note" id="legacyPageViewsNote" hidden></small>
+        </article>
+        <article class="metric-card">
+          <span>首页访问</span>
+          <strong id="homePageViews">—</strong>
+          <small>官网首页被打开的次数</small>
+          <small class="legacy-note" id="legacyHomePageViewsNote" hidden></small>
+        </article>
         <article class="metric-card" id="botPageViewsCard" hidden><span>爬虫访问</span><strong id="botPageViews">—</strong><small>已识别为爬虫的页面请求，不计入访问量</small></article>
       </section>
       <section class="detail-grid site-traffic-grid" id="siteTrafficGrid" hidden aria-label="官网访问分布">
@@ -79,9 +89,24 @@
         <p>下载服务器收到的下载次数，2026-10-29 起记录；分段下载只算一次（本次改动上线前的数据可能多算）。</p>
       </div>
       <section class="metric-grid" aria-label="下载指标">
-        <article class="metric-card primary"><span>安装包下载</span><strong id="desktopDownloads">—</strong><small>官网下载的 .dmg / .exe</small></article>
-        <article class="metric-card"><span>App 内更新</span><strong id="updateDownloads">—</strong><small>已安装的 App 下载更新包（.zip）</small></article>
-        <article class="metric-card"><span>扩展下载</span><strong id="extensionDownloads">—</strong><small>官网下载的浏览器扩展包（.zip）</small></article>
+        <article class="metric-card primary">
+          <span>安装包下载</span>
+          <strong id="desktopDownloads">—</strong>
+          <small>官网下载的 .dmg / .exe</small>
+          <small class="legacy-note" id="legacyDesktopNote" hidden></small>
+        </article>
+        <article class="metric-card">
+          <span>App 内更新</span>
+          <strong id="updateDownloads">—</strong>
+          <small>已安装的 App 下载更新包（.zip）</small>
+          <small class="legacy-note" id="legacyUpdateNote" hidden></small>
+        </article>
+        <article class="metric-card">
+          <span>扩展下载</span>
+          <strong id="extensionDownloads">—</strong>
+          <small>官网下载的浏览器扩展包（.zip）</small>
+          <small class="legacy-note" id="legacyExtensionNote" hidden></small>
+        </article>
         <article class="metric-card"><span>首页→下载</span><strong id="homeToDownloadRate">—</strong><small>（安装包下载 + 扩展下载）/ 首页访问</small></article>
       </section>
       <section class="detail-grid" aria-label="下载明细">
@@ -94,6 +119,19 @@
           <div class="rank-list" id="downloadList"></div>
         </article>
       </section>
+      <article class="panel legacy-downloads-panel" id="legacyDownloadPanel" hidden aria-label="10-29 前旧服务器下载">
+        <div class="panel-heading"><div><p class="panel-kicker">LEGACY SERVER</p><h2>10-29 前（旧服务器）</h2></div></div>
+        <div class="detail-grid">
+          <div>
+            <div class="panel-heading"><div><p class="panel-kicker">DOWNLOADS</p><h2>下载文件</h2></div></div>
+            <div class="rank-list" id="legacyDownloadList"></div>
+          </div>
+          <div>
+            <div class="panel-heading"><div><p class="panel-kicker">SOURCE</p><h2>渠道来源</h2></div></div>
+            <div class="rank-list" id="legacyRefList"></div>
+          </div>
+        </div>
+      </article>
     </section>
 
     <section class="panel trend-panel">
