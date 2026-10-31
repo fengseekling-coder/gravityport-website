@@ -10,10 +10,14 @@
 //   - Platforms are normalized to macos / windows / other / unknown;
 //   - Architectures and versions are validated or normalized to unknown;
 //   - Download filenames containing /, \\, .., control characters or >128 chars
-//     are dropped;
+//     are dropped; names that are not GravityPort/MOSA packages are summed
+//     under the single key "other";
 //   - Ref channels outside [A-Za-z0-9._-]{1,64} are merged into "other";
 //   - Page paths only retain normalized public page paths;
 // - Legacy counts write to legacy_* kinds on day 'pre-edge';
+// - Coverage start/end are the first/last analytics days holding legacy data
+//   (the state's coverageStart can only move the start earlier; updatedAt is
+//   only a fallback because the old cron keeps rewriting it after the switch);
 // - Pre-edge download_file, download_ref, and page_path are no longer written;
 // - Idempotence:
 //   1. Delete imported rows: day='pre-edge' counters, and download_all,
@@ -118,6 +122,7 @@ const rawDailyHomePageViews = isV2 ? pairsToMap(aggregate.dailyHomePageViews) : 
 const rawHomePageViews = countOf(aggregate.homePageViews);
 
 const PRE_EDGE_DAY = "pre-edge";
+const OTHER_FILES_KEY = "other";
 const installCutoff = now - 90 * DAY_MS;
 const dailyCutoff = recentDayKeys(now, 32)[0];
 
@@ -133,13 +138,17 @@ let skippedTestInstalls = 0;
 let importedInstalls = 0;
 let droppedDownloadRequests = 0;
 let refsMergedToOther = 0;
+let otherFileNamesMerged = 0;
 
 const foldTotals = { all: 0, platforms: new Map(), firstLaunches: 0 };
-let maxTimestamp = Number.isFinite(Number(raw.coverageStart)) ? Number(raw.coverageStart) : Date.parse(raw.coverageStart) || 0;
-if (raw.updatedAt) {
-  const updatedParsed = Date.parse(raw.updatedAt);
-  if (Number.isFinite(updatedParsed) && updatedParsed > maxTimestamp) maxTimestamp = updatedParsed;
-}
+// Analytics days that actually hold legacy data. The state's coverageStart is
+// only the trend baseline (data migrated into the state can be older), and
+// updatedAt keeps moving while the old server's cron runs after the switch,
+// so neither bounds the coverage on its own.
+const dataDays = new Set();
+const addDataDay = (timestamp) => {
+  if (Number.isFinite(timestamp) && timestamp > 0) dataDays.add(analyticsDayKey(timestamp));
+};
 
 // Process installs
 for (const [installId, record] of [...rawInstalls.entries()].sort(([a], [b]) => a.localeCompare(b))) {
@@ -153,8 +162,8 @@ for (const [installId, record] of [...rawInstalls.entries()].sort(([a], [b]) => 
   if (!Number.isFinite(last)) last = now;
   let first = Number(record?.first);
   if (!Number.isFinite(first)) first = last;
-  if (last > maxTimestamp) maxTimestamp = last;
-  if (first > maxTimestamp) maxTimestamp = first;
+  addDataDay(Number(record?.first));
+  addDataDay(Number(record?.last));
 
   let platform = String(record?.platform || "unknown").toLowerCase();
   if (!ALLOWED_PLATFORMS.has(platform)) platform = "unknown";
@@ -237,9 +246,18 @@ for (const [file, rawCount] of [...rawDownloadCounts.entries()].sort(([a], [b]) 
     droppedDownloadRequests += count;
     continue;
   }
-  legacyDownloadsByFile.set(file, count);
   const kind = classifyDownload(file);
   downloadByKind[kind] = (downloadByKind[kind] || 0) + count;
+  // Names that are not GravityPort/MOSA packages (probes, stray files,
+  // "unknown") are summed under one key instead of being stored verbatim.
+  let key = file;
+  if (kind === "other") {
+    key = OTHER_FILES_KEY;
+    otherFileNamesMerged += 1;
+  }
+  legacyDownloadsByFile.set(key, (legacyDownloadsByFile.get(key) || 0) + count);
+}
+for (const [file, count] of [...legacyDownloadsByFile.entries()].sort(([a], [b]) => a.localeCompare(b))) {
   statements.push(
     `INSERT INTO counters (day, kind, key, count) VALUES (${sqlString(PRE_EDGE_DAY)}, 'legacy_download_file', ${sqlString(file)}, ${count});`
   );
@@ -281,15 +299,34 @@ if (rawHomePageViews > 0) {
   );
 }
 
-// Coverage start & end
+// Coverage start & end: the first and last analytics day holding legacy data
+// (kept installs plus every non-empty daily bucket, before the 32-day trim).
+for (const dailyMap of [rawDailyDownloads, rawDailyPageViews, rawDailyHomePageViews]) {
+  for (const [day, value] of dailyMap) {
+    if (DAY_PATTERN.test(day) && countOf(value)) dataDays.add(day);
+  }
+}
+for (const [day, ids] of rawDailyActiveSets) {
+  if (!DAY_PATTERN.test(day)) continue;
+  for (const id of ids) {
+    if (!id.startsWith("00000000-") && !excludedInstalls.has(id) && INSTALLATION_ID_PATTERN.test(id)) {
+      dataDays.add(day);
+      break;
+    }
+  }
+}
 const parsedCoverageStart = (() => {
   const num = Number(raw.coverageStart);
   if (Number.isFinite(num) && num > 0) return num;
   const parsed = Date.parse(raw.coverageStart);
-  return Number.isFinite(parsed) ? parsed : now;
+  return Number.isFinite(parsed) ? parsed : NaN;
 })();
-const coverageStartDay = analyticsDayKey(parsedCoverageStart);
-const coverageEndDay = analyticsDayKey(maxTimestamp > 0 ? maxTimestamp : (Date.parse(raw.updatedAt) || now));
+const sortedDataDays = [...dataDays].sort();
+const fallbackEnd = Date.parse(raw.updatedAt);
+const coverageEndDay = sortedDataDays.at(-1) || analyticsDayKey(Number.isFinite(fallbackEnd) ? fallbackEnd : now);
+const coverageStartDay = [sortedDataDays[0], Number.isFinite(parsedCoverageStart) ? analyticsDayKey(parsedCoverageStart) : ""]
+  .filter(Boolean)
+  .sort()[0] || coverageEndDay;
 
 statements.push(
   `INSERT INTO counters (day, kind, key, count) VALUES (${sqlString(coverageStartDay)}, 'import', 'legacy_coverage_start', 1);`
@@ -356,6 +393,7 @@ const summary = {
   homePageViews: rawHomePageViews,
   daily: summaryDaily,
   droppedDownloadRequests,
+  otherFileNamesMerged,
   refsMergedToOther,
 };
 

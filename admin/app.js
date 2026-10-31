@@ -207,8 +207,11 @@ import { rankRowsWithOther } from "./rank.js";
     const anonymousNote = $("anonymousInstallsNote");
     if (anonymousNote) {
       anonymousNote.textContent = hasLegacy
-        ? "按匿名编号去重后的电脑数；含 10-29 前旧服务器记录的安装，按匿名编号去重。"
+        ? "按匿名编号去重后的电脑数，含 10-29 前旧服务器记录的安装"
         : "按匿名编号去重后的电脑数";
+    }
+    if (hasLegacy) {
+      $("installGroupNote").textContent = "打开过 GravityPort 并发回匿名统计的电脑，按匿名编号去重；10-29 前旧服务器记录的安装已按匿名编号合并进来，同一台电脑只算一次。";
     }
 
     const legacyPvNote = $("legacyPageViewsNote");
@@ -241,7 +244,7 @@ import { rankRowsWithOther } from "./rank.js";
     if (legacyPanel) {
       legacyPanel.hidden = !hasLegacy;
       if (hasLegacy) {
-        const legacyDownloadLabels = {};
+        const legacyDownloadLabels = { other: "其他文件（非安装包）" };
         for (const [file] of entries(data.legacy.downloadsByFile)) {
           if (UPDATE_ZIP_PATTERN.test(file)) legacyDownloadLabels[file] = `${file}（App 内更新）`;
         }

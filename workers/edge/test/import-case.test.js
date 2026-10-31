@@ -82,11 +82,24 @@ describe("import-usage-state.mjs contract & edge integration", () => {
 
     // Dropped file (with ..) must not exist in legacy downloadsByFile
     expect(legacy.downloadsByFile["evil..package.zip"]).toBeUndefined();
+    // Package files keep their names; anything else (notes.txt here) is
+    // summed under the single "other" key instead of being stored verbatim.
+    expect(legacy.downloadsByFile["notes.txt"]).toBeUndefined();
+    expect(legacy.downloadsByFile.other).toBe(legacy.otherDownloads);
+    expect(importCase.summary.otherFileNamesMerged).toBe(1);
     for (const [file, count] of Object.entries(importCase.expected.downloadsByFile)) {
-      if (file !== "evil..package.zip") {
+      if (file !== "evil..package.zip" && file !== "notes.txt") {
         expect(legacy.downloadsByFile[file], file).toBe(count);
       }
     }
+
+    // Coverage spans the days that hold legacy data, not the state's
+    // coverageStart/updatedAt (both are "now" for this synthetic state):
+    // oldest data is ID_F's report 110 days back, newest is ID_G's 2 days back.
+    const DAY = 24 * 3600 * 1000;
+    expect(legacy.coverageStart).toBe(analyticsDayKey(importCase.t0 - 110 * DAY));
+    expect(legacy.coverageEnd).toBe(analyticsDayKey(importCase.t0 - 2 * DAY));
+    expect(importCase.summary.coverageEnd).toBe(legacy.coverageEnd);
 
     // Weird ref (bad ref) was merged into other
     expect(legacy.downloadsByRef["bad ref"]).toBeUndefined();
