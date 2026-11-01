@@ -6,7 +6,7 @@
 - 隐私说明：App 仓库的 [PRIVACY.md](https://github.com/fengseekling-coder/gravityport/blob/main/PRIVACY.md) 和[官网隐私页](https://gravityport.azhuilab.com/privacy/)。
 - `MOSA-Web-Capture-0.15.3/` 是产品还叫 MOSA 时的历史源码快照，不是当前版本，不要从这里安装扩展。
 
-可下载的公开文件不放在本目录，而放在仓库根目录的 `downloads/`，例如 `downloads/GravityPort-Web-Capture-0.15.43.zip`。官网按钮使用的版本号和地址在 `site-config.js` 的 `extension` 段。
+可下载的公开文件不放在本目录，而放在仓库根目录的 `downloads/`，例如 `downloads/GravityPort-Web-Capture-0.15.44.zip`。官网按钮使用的版本号和地址在 `site-config.js` 的 `extension` 段。
 
 ## 安装
 

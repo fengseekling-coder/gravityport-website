@@ -12,7 +12,7 @@
 // process exits. Nothing in this file modifies the snapshot copy, touches any
 // real signing key, or reaches any remote host.
 
-import { createHash, generateKeyPairSync } from "node:crypto";
+import { createHash, createPublicKey, generateKeyPairSync } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -92,6 +92,18 @@ export async function createWriterHarness() {
   const keyId = createHash("sha256")
     .update(publicKey.export({ format: "der", type: "spki" }))
     .digest("hex");
+  // Writers from 0.3.8 on require the committed backup public key (public,
+  // not a secret) in the build identity; the snapshot carries the same file.
+  const backupKeyPath = path.resolve(path.dirname(CANONICAL_WRITER_PATH), "release-keys/release-manifest-backup-public.pem");
+  let releaseManifestBackupTrust;
+  if (fs.existsSync(backupKeyPath)) {
+    const backupPem = fs.readFileSync(backupKeyPath, "utf8");
+    releaseManifestBackupTrust = {
+      algorithm: "ed25519",
+      keyId: createHash("sha256").update(createPublicKey(backupPem).export({ format: "der", type: "spki" })).digest("hex"),
+      publicKeyPem: backupPem,
+    };
+  }
   const identityPath = path.join(dir, "build-identity.json");
   fs.writeFileSync(identityPath, `${JSON.stringify({
     ...FIXTURE_BUILD_IDENTITY,
@@ -100,6 +112,7 @@ export async function createWriterHarness() {
       keyId,
       publicKeyPem: publicKey.export({ format: "pem", type: "spki" }).toString(),
     },
+    ...(releaseManifestBackupTrust ? { releaseManifestBackupTrust } : {}),
   }, null, 2)}\n`);
 
   const writerUrl = pathToFileURL(CANONICAL_WRITER_PATH).href;
