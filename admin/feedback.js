@@ -10,7 +10,7 @@
 
   const KIND_LABELS = { bug: "缺陷", idea: "建议", other: "其他" };
   const PLATFORM_LABELS = { macos: "macOS", windows: "Windows", other: "其他" };
-  const PRODUCT_LABELS = { GravityPort: "GravityPort", MOSA: "MOSA" };
+  const PRODUCT_LABELS = { GravityPort: "GravityPort", MOSA: "GravityPort（旧版）" };
 
   function requireLogin() {
     window.location.replace("./login.html?expired=1");
