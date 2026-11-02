@@ -51,6 +51,7 @@ test("both home pages carry hreflang, the share image and a large Twitter card",
   assert.equal(metaContent(enPage, 'property="og:image:alt"'), strings.en["meta.ogImageAlt"]);
 });
 
+let lastBootWindow = null;
 function loadRoute() {
   const root = { classList: { add() {}, remove() {} }, getAttribute: () => null, setAttribute() {} };
   const window = { matchMedia: () => ({ matches: true }) };
@@ -64,26 +65,58 @@ function loadRoute() {
     setTimeout: () => 0,
   };
   vm.runInNewContext(read("site/boot.js"), sandbox, { filename: "site/boot.js" });
+  lastBootWindow = window;
   return window.__gpLangRoute;
 }
 
-test("the home page language follows the URL", () => {
+function loadBootHelper(name) {
+  loadRoute();
+  return lastBootWindow[name];
+}
+
+test("the home page language follows the URL and the saved choice, never the browser language", () => {
   const route = loadRoute();
-  // [page, search, hash, saved preference, browser language] -> expected
+  // [page, search, hash, saved preference] -> expected
   const cases = [
-    [["zh", "?lang=en", "", "", "zh-CN"], "/en/"],
-    [["zh", "", "", "en", "zh-CN"], "/en/"],
-    [["zh", "", "", "", "en-US"], "/en/"],
-    [["zh", "", "", "", "zh-CN"], null],
-    [["zh", "", "", "zh", "en-US"], null],
-    [["en", "?lang=zh", "", "", "en-US"], "/"],
-    [["en", "", "", "zh", "zh-CN"], null],
-    [["en", "", "", "", "zh-TW"], null],
-    [["zh", "?ref=youtube&lang=en", "#install", "", "zh-CN"], "/en/?ref=youtube#install"],
-    [["zh", "?ref=youtube", "", "", "en-US"], "/en/?ref=youtube"],
+    [["zh", "?lang=en", "", ""], "/en/"],
+    [["zh", "", "", "en"], "/en/"],
+    // An English browser (and every search engine crawler) stays on the Chinese page.
+    [["zh", "", "", ""], null],
+    [["zh", "", "", "zh"], null],
+    [["en", "?lang=zh", "", ""], "/"],
+    [["en", "", "", "zh"], null],
+    [["en", "", "", ""], null],
+    [["zh", "?ref=youtube&lang=en", "#install", ""], "/en/?ref=youtube#install"],
+    [["zh", "?ref=youtube", "", "en"], "/en/?ref=youtube"],
   ];
   for (const [args, expected] of cases) {
     assert.equal(route(...args), expected, JSON.stringify(args));
+  }
+});
+
+test("a browser in the other language is offered the other page until a choice is saved", () => {
+  const suggest = loadBootHelper("__gpLangSuggest");
+  // [page, saved preference, browser language] -> language to offer
+  const cases = [
+    [["zh", "", "en-US"], "en"],
+    [["zh", "", "zh-CN"], null],
+    [["zh", "", "zh-TW"], null],
+    [["zh", "zh", "en-US"], null],
+    [["en", "", "zh-CN"], "zh"],
+    [["en", "", "en-GB"], null],
+    [["en", "en", "zh-CN"], null],
+    [[null, "", "en-US"], null],
+  ];
+  for (const [args, expected] of cases) {
+    assert.equal(suggest(...args), expected, JSON.stringify(args));
+  }
+});
+
+test("both home pages carry the hint bar, hidden, linking to the other page", () => {
+  for (const [page, href, text] of [[zhPage, "/en/", strings.zh["nav.langHint"]], [enPage, "/", strings.en["nav.langHint"]]]) {
+    const hint = page.match(/<div class="lang-hint" data-lang-hint hidden[^>]*>[\s\S]*?<\/div>/);
+    assert.ok(hint, "hint bar present and hidden by default");
+    assert.match(hint[0], new RegExp(`<a href="${href}" data-lang-toggle data-i18n="nav.langHint">${text}</a>`));
   }
 });
 
@@ -124,6 +157,8 @@ const CHINESE_WHITELIST = [
   "12 个素材",
   strings.en["download.first.ext"],
   strings.en["install.s4.body"],
+  strings.en["nav.langHint"],
+  strings.en["nav.langHintClose"],
 ];
 
 test("the static English page keeps no Chinese copy beyond the whitelist", () => {
