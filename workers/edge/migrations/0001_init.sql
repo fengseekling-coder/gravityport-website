@@ -30,9 +30,7 @@ CREATE TABLE IF NOT EXISTS daily_active (
 --   download_ref          successful download per ?ref= channel ("direct" when absent)
 --   download_all          import only: a per-day download request total (the old
 --                         usage state kept daily totals without a file breakdown)
---   page_path             site page views per normalized path (edge middleware,
---                         plus the imported all-time totals stored on the
---                         fixed "pre-edge" day)
+--   page_path             site page views per normalized path (edge middleware)
 --   page_referrer         page views per referrer site (internal/direct/hostname)
 --   page_country          page views per CF-IPCountry value
 --   page_device           page views per device class (desktop/mobile/tablet)
@@ -43,7 +41,11 @@ CREATE TABLE IF NOT EXISTS daily_active (
 --   install_total         folded/imported cumulative number of known installations
 --   install_platform      folded/imported cumulative installations per platform
 --   install_first_launch  folded/imported cumulative first-launch reports
---   import                import marker rows
+--   legacy_download_file  import only: legacy cumulative download requests per file (day 'pre-edge')
+--   legacy_download_ref   import only: legacy cumulative downloads per ref channel (day 'pre-edge')
+--   legacy_page_path      import only: legacy cumulative page views per normalized path (day 'pre-edge')
+--   legacy_home_page      import only: legacy cumulative home page views (day 'pre-edge', key 'all')
+--   import                import marker rows (usage_state marker, and legacy_coverage_start / legacy_coverage_end)
 --
 -- The fixed day value "pre-edge" holds imported all-time totals that cannot be
 -- split by day. It intentionally sorts after real dates so date-shaped rows win

@@ -55,11 +55,17 @@ export async function buildStats(env, nowMs = Date.now()) {
   const homeAllRows = await all("SELECT day, SUM(count) AS total FROM counters WHERE kind = 'home_page_all' GROUP BY day");
   const siteRows = await all(
     "SELECT kind, key, SUM(count) AS total FROM counters " +
-      "WHERE kind IN ('page_referrer', 'page_country', 'page_device') AND day >= ? GROUP BY kind, key",
-    trendKeys[0]
+      "WHERE kind IN ('page_referrer', 'page_country', 'page_device') GROUP BY kind, key"
   );
   const botTotal = Number(((await first("SELECT SUM(count) AS total FROM counters WHERE kind = 'bot_page'")) || {}).total || 0);
   const imported = Boolean(await first("SELECT 1 AS marker FROM counters WHERE kind = 'import' LIMIT 1"));
+  const legacyRows = await all(
+    "SELECT kind, key, count FROM counters " +
+      "WHERE kind IN ('legacy_download_file', 'legacy_download_ref', 'legacy_page_path', 'legacy_home_page')"
+  );
+  const legacyCoverageRows = await all(
+    "SELECT key, day FROM counters WHERE kind = 'import' AND key IN ('legacy_coverage_start', 'legacy_coverage_end')"
+  );
   const earliestEdgePageDay = ((await first(
     `SELECT MIN(day) AS day FROM counters WHERE kind = 'page_path' AND day GLOB '${DATE_SHAPED_DAY_GLOB}'`
   )) || {}).day;
@@ -98,10 +104,15 @@ export async function buildStats(env, nowMs = Date.now()) {
   }
 
   const downloadsByFile = new Map();
+  // Per-day trend input excludes in-app update zips (the legacy download_all
+  // rows cannot be split, see the daily mapping below).
   const downloadFileByDay = new Map();
   for (const row of downloadFileRows) {
-    downloadsByFile.set(row.key, (downloadsByFile.get(row.key) || 0) + Number(row.count || 0));
-    downloadFileByDay.set(row.day, (downloadFileByDay.get(row.day) || 0) + Number(row.count || 0));
+    const count = Number(row.count || 0);
+    downloadsByFile.set(row.key, (downloadsByFile.get(row.key) || 0) + count);
+    if (classifyDownload(row.key) !== "update") {
+      downloadFileByDay.set(row.day, (downloadFileByDay.get(row.day) || 0) + count);
+    }
   }
   const downloadsByRef = new Map();
   addToMap(downloadRefRows.map((row) => [row.key, Number(row.total) || 0]), downloadsByRef);
@@ -110,11 +121,13 @@ export async function buildStats(env, nowMs = Date.now()) {
   // Download kinds are recomputed from the per-file counts, matching
   // report-usage.mjs's hydrateAggregate behavior.
   const desktopByFile = new Map();
+  const updateByFile = new Map();
   const extensionByFile = new Map();
   const otherByFile = new Map();
   for (const [file, count] of downloadsByFile) {
     const kind = classifyDownload(file);
-    const target = kind === "desktop" ? desktopByFile : kind === "extension" ? extensionByFile : otherByFile;
+    const target =
+      kind === "desktop" ? desktopByFile : kind === "update" ? updateByFile : kind === "extension" ? extensionByFile : otherByFile;
     target.set(file, (target.get(file) || 0) + count);
   }
 
@@ -141,11 +154,16 @@ export async function buildStats(env, nowMs = Date.now()) {
     .reduce((sum, [, count]) => sum + count, 0);
   const totalDownloadRequests = [...downloadsByFile.values()].reduce((sum, value) => sum + value, 0);
   const sumMap = (map) => [...map.values()].reduce((sum, value) => sum + value, 0);
+  const totalDesktopDownloadRequests = sumMap(desktopByFile);
+  const totalExtensionDownloadRequests = sumMap(extensionByFile);
 
   const daily = trendKeys.map((day) => ({
     date: day,
     firstLaunches: firstLaunchByDay.get(day) || 0,
     activeInstalls: (activeByDay.get(day) || new Set()).size,
+    // Edge-era days recompute the per-file counts minus in-app update zips;
+    // legacy days only carry download_all, which cannot be split by kind, so
+    // the line mixes the two methodologies at the 2026-10-29 switchover.
     downloadRequests: (downloadFileByDay.get(day) || 0) + (downloadAllByDay.get(day) || 0),
     pageViews: (pagePathByDay.get(day) || 0) + (pageAllByDay.get(day) || 0),
     homePageViews: (homePageByDay.get(day) || 0) + (homeAllByDay.get(day) || 0),
@@ -175,14 +193,19 @@ export async function buildStats(env, nowMs = Date.now()) {
     downloadsByFile: mapToObject(downloadsByFile),
     downloadsByRef: mapToObject(downloadsByRef),
     desktopDownloadsByFile: mapToObject(desktopByFile),
+    updateDownloadsByFile: mapToObject(updateByFile),
     extensionDownloadsByFile: mapToObject(extensionByFile),
     pageViewsByPath: mapToObject(pageViewsByPath),
     totalPageViews,
     totalHomePageViews,
-    homeToDownloadRate: totalHomePageViews > 0 ? totalDownloadRequests / totalHomePageViews : null,
+    // The rate compares what the website offers (installer + extension
+    // downloads) with home page views; in-app update zips are not a website
+    // conversion.
+    homeToDownloadRate: totalHomePageViews > 0 ? (totalDesktopDownloadRequests + totalExtensionDownloadRequests) / totalHomePageViews : null,
     totalDownloadRequests,
-    totalDesktopDownloadRequests: sumMap(desktopByFile),
-    totalExtensionDownloadRequests: sumMap(extensionByFile),
+    totalDesktopDownloadRequests,
+    totalUpdateDownloadRequests: sumMap(updateByFile),
+    totalExtensionDownloadRequests,
     totalOtherDownloadRequests: sumMap(otherByFile),
     daily,
   };
@@ -194,5 +217,51 @@ export async function buildStats(env, nowMs = Date.now()) {
   if (siteByKind.page_device.size) report.pageViewsByDevice = mapToObject(siteByKind.page_device);
   if (botTotal > 0) report.botPageViews = botTotal;
   if (earliestEdgePageDay) report.metricsNote = `页面访问自 ${earliestEdgePageDay} 起改为边缘计数`;
+
+  if (legacyCoverageRows.length > 0 || legacyRows.length > 0) {
+    const coverageStart = legacyCoverageRows.find((r) => r.key === "legacy_coverage_start")?.day || "";
+    const coverageEnd = legacyCoverageRows.find((r) => r.key === "legacy_coverage_end")?.day || "";
+
+    const legacyDesktopByFile = new Map();
+    const legacyUpdateByFile = new Map();
+    const legacyExtensionByFile = new Map();
+    const legacyOtherByFile = new Map();
+    const legacyDownloadsByFile = new Map();
+    const legacyDownloadsByRef = new Map();
+    let legacyPageViews = 0;
+    let legacyHomePageViews = 0;
+
+    for (const row of legacyRows) {
+      const count = Number(row.count || 0);
+      if (row.kind === "legacy_download_file") {
+        legacyDownloadsByFile.set(row.key, (legacyDownloadsByFile.get(row.key) || 0) + count);
+        const kind = classifyDownload(row.key);
+        if (kind === "desktop") legacyDesktopByFile.set(row.key, (legacyDesktopByFile.get(row.key) || 0) + count);
+        else if (kind === "update") legacyUpdateByFile.set(row.key, (legacyUpdateByFile.get(row.key) || 0) + count);
+        else if (kind === "extension") legacyExtensionByFile.set(row.key, (legacyExtensionByFile.get(row.key) || 0) + count);
+        else legacyOtherByFile.set(row.key, (legacyOtherByFile.get(row.key) || 0) + count);
+      } else if (row.kind === "legacy_download_ref") {
+        legacyDownloadsByRef.set(row.key, (legacyDownloadsByRef.get(row.key) || 0) + count);
+      } else if (row.kind === "legacy_page_path") {
+        legacyPageViews += count;
+      } else if (row.kind === "legacy_home_page") {
+        legacyHomePageViews += count;
+      }
+    }
+
+    report.legacy = {
+      coverageStart,
+      coverageEnd,
+      pageViews: legacyPageViews,
+      homePageViews: legacyHomePageViews,
+      desktopDownloads: sumMap(legacyDesktopByFile),
+      updateDownloads: sumMap(legacyUpdateByFile),
+      extensionDownloads: sumMap(legacyExtensionByFile),
+      otherDownloads: sumMap(legacyOtherByFile),
+      downloadsByFile: mapToObject(legacyDownloadsByFile),
+      downloadsByRef: mapToObject(legacyDownloadsByRef),
+    };
+  }
+
   return report;
 }

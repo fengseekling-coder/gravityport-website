@@ -1,3 +1,5 @@
+import { rankRowsWithOther } from "./rank.js";
+
 (function () {
   const $ = (id) => document.getElementById(id);
   const number = new Intl.NumberFormat("zh-CN");
@@ -54,6 +56,20 @@
     return Object.entries(value && typeof value === "object" ? value : {}).filter(([, count]) => Number(count) > 0);
   }
 
+  // In-app update zips, same rule as the worker's classifyDownload: mark
+  // their rows in the download-files list.
+  const UPDATE_ZIP_PATTERN = /^(?:MOSA|GravityPort)-(?:darwin|win32)-[A-Za-z0-9._-]+\.zip$/;
+
+  // Analytics days actually covered by the report, capped at the window: the
+  // edge counters only start at coverageStart, so a young dataset gets a
+  // "实际只有 N 天数据" note instead of a full-window claim.
+  function coveredDays(data, windowDays) {
+    const start = Date.parse(data.coverageStart);
+    if (!Number.isFinite(start)) return windowDays;
+    const days = Math.floor((Date.now() - start) / 86_400_000) + 1;
+    return Math.max(0, Math.min(windowDays, days));
+  }
+
   function renderRankList(id, source, labelMap = {}) {
     const host = $(id);
     host.replaceChildren();
@@ -65,8 +81,9 @@
       host.append(empty);
       return;
     }
-    const max = Math.max(...rows.map(([, value]) => Number(value)));
-    rows.slice(0, 12).forEach(([label, value]) => {
+    const visible = rankRowsWithOther(rows);
+    const max = Math.max(...visible.map(([, value]) => Number(value)));
+    visible.forEach(([label, value]) => {
       const row = document.createElement("div");
       row.className = "rank-row";
       const name = document.createElement("span");
@@ -164,21 +181,88 @@
     setMetric("wau", data.activeInstalls7d);
     setMetric("mau", data.activeInstalls30d);
     setMetric("desktopDownloads", data.totalDesktopDownloadRequests);
+    setMetric("updateDownloads", data.totalUpdateDownloadRequests);
     setMetric("extensionDownloads", data.totalExtensionDownloadRequests);
     setMetric("pageViews", data.totalPageViews);
     setMetric("homePageViews", data.totalHomePageViews);
     setRate("homeToDownloadRate", data.homeToDownloadRate);
+    const covered30 = coveredDays(data, 30);
+    $("mauNote").textContent = covered30 < 30
+      ? `最近 30 个统计日打开过 App 的电脑数（实际只有 ${number.format(covered30)} 天数据）`
+      : "最近 30 个统计日打开过 App 的电脑数";
+    const covered7 = coveredDays(data, 7);
+    $("wauNote").textContent = covered7 < 7
+      ? `最近 7 个统计日打开过 App 的电脑数（实际只有 ${number.format(covered7)} 天数据）`
+      : "最近 7 个统计日打开过 App 的电脑数";
     renderRankList("platformList", data.platformInstalls, { macos: "macOS", windows: "Windows", darwin: "macOS", win32: "Windows", other: "Other" });
     renderRankList("versionList", data.versionInstalls);
     renderRankList("refList", data.downloadsByRef, { direct: "Direct / 无 ref" });
-    renderRankList("downloadList", data.downloadsByFile);
+    const downloadLabels = {};
+    for (const [file] of entries(data.downloadsByFile)) {
+      if (UPDATE_ZIP_PATTERN.test(file)) downloadLabels[file] = `${file}（App 内更新）`;
+    }
+    renderRankList("downloadList", data.downloadsByFile, downloadLabels);
+
+    const hasLegacy = Boolean(data.legacy && typeof data.legacy === "object");
+    const anonymousNote = $("anonymousInstallsNote");
+    if (anonymousNote) {
+      anonymousNote.textContent = hasLegacy
+        ? "按匿名编号去重后的电脑数，含 10-29 前旧服务器记录的安装"
+        : "按匿名编号去重后的电脑数";
+    }
+    if (hasLegacy) {
+      $("installGroupNote").textContent = "打开过 GravityPort 并发回匿名统计的电脑，按匿名编号去重；10-29 前旧服务器记录的安装已按匿名编号合并进来，同一台电脑只算一次。";
+    }
+
+    const legacyPvNote = $("legacyPageViewsNote");
+    if (legacyPvNote) {
+      legacyPvNote.hidden = !hasLegacy;
+      if (hasLegacy) legacyPvNote.textContent = `另：10-29 前旧服务器记录 ${number.format(data.legacy.pageViews || 0)} 次（含爬虫）`;
+    }
+    const legacyHomeNote = $("legacyHomePageViewsNote");
+    if (legacyHomeNote) {
+      legacyHomeNote.hidden = !hasLegacy;
+      if (hasLegacy) legacyHomeNote.textContent = `另：10-29 前旧服务器记录 ${number.format(data.legacy.homePageViews || 0)} 次（含爬虫）`;
+    }
+    const legacyDesktopNote = $("legacyDesktopNote");
+    if (legacyDesktopNote) {
+      legacyDesktopNote.hidden = !hasLegacy;
+      if (hasLegacy) legacyDesktopNote.textContent = `另：10-29 前旧服务器 ${number.format(data.legacy.desktopDownloads || 0)} 次请求（分段每段都算）`;
+    }
+    const legacyUpdateNote = $("legacyUpdateNote");
+    if (legacyUpdateNote) {
+      legacyUpdateNote.hidden = !hasLegacy;
+      if (hasLegacy) legacyUpdateNote.textContent = `另：10-29 前旧服务器 ${number.format(data.legacy.updateDownloads || 0)} 次请求（分段每段都算）`;
+    }
+    const legacyExtensionNote = $("legacyExtensionNote");
+    if (legacyExtensionNote) {
+      legacyExtensionNote.hidden = !hasLegacy;
+      if (hasLegacy) legacyExtensionNote.textContent = `另：10-29 前旧服务器 ${number.format(data.legacy.extensionDownloads || 0)} 次请求（分段每段都算）`;
+    }
+
+    const legacyPanel = $("legacyDownloadPanel");
+    if (legacyPanel) {
+      legacyPanel.hidden = !hasLegacy;
+      if (hasLegacy) {
+        const legacyDownloadLabels = { other: "其他文件（非安装包）" };
+        for (const [file] of entries(data.legacy.downloadsByFile)) {
+          if (UPDATE_ZIP_PATTERN.test(file)) legacyDownloadLabels[file] = `${file}（App 内更新）`;
+        }
+        renderRankList("legacyDownloadList", data.legacy.downloadsByFile, legacyDownloadLabels);
+        renderRankList("legacyRefList", data.legacy.downloadsByRef, { direct: "Direct / 无 ref" });
+      }
+    }
+
     renderTrend(data.daily);
     const generated = new Date(data.generatedAt);
     $("updatedAt").textContent = Number.isNaN(generated.getTime()) ? "更新时间未知" : `更新于 ${dateTime.format(generated)}`;
     const footer = $("statsFooter");
     const coverage = new Date(data.coverageStart);
     const coverageText = Number.isNaN(coverage.getTime()) ? "覆盖起点未知" : `趋势口径起点 ${dateTime.format(coverage)}`;
-    footer.textContent = `统计日时区：${data.analyticsTimeZone || "unknown"} · ${coverageText} · 2026-10-29 起统计改由 Cloudflare 记录，此前旧服务器上的累计数没有导入。下载数字为 HTTP 请求数（分段下载每段各计一次），不等同于独立下载人数。页面访问由官网边缘逐次记录，已排除爬虫，不是按钮点击；首页→下载是下载请求除以首页访问。`;
+    const switchoverText = hasLegacy
+      ? `2026-10-29 前为旧服务器数据（${data.legacy.coverageStart || "未知"}～${data.legacy.coverageEnd || "未知"}）：安装按匿名编号和新数据合并；页面访问含爬虫、下载按请求次数（分段每段都算），单独列出，没加进上面的总数；趋势图 10-29 前的线也是旧口径。`
+      : "2026-10-29 起统计改由 Cloudflare 记录，此前旧服务器上的累计数没有导入。";
+    footer.textContent = `统计日时区：${data.analyticsTimeZone || "unknown"} · ${coverageText} · ${switchoverText}下载为下载请求次数，分段下载只计一次（本次改动上线前的旧数据可能多算），不等同于独立下载人数；趋势图的下载线在旧数据段含 App 内更新（旧数据拆不开）。页面访问由官网边缘逐次记录，已排除爬虫，不是按钮点击；首页→下载 =（安装包下载 + 扩展下载）/ 首页访问。`;
     renderSiteTraffic(data);
   }
 

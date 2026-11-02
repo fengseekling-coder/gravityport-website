@@ -125,6 +125,24 @@ describe("download serving", () => {
     expect(rows.every((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.day))).toBe(true);
   });
 
+  it("counts only the first segment of a ranged download; continuations serve bytes but never count", async () => {
+    await seed();
+    const firstSegment = await fetchWorker(`${BASE}/downloads/GravityPort-darwin-arm64-0.3.7.zip`, { headers: { range: "bytes=0-9" } });
+    expect(firstSegment.status).toBe(206);
+    const continuation = await fetchWorker(`${BASE}/downloads/GravityPort-darwin-arm64-0.3.7.zip`, { headers: { range: "bytes=10-19" } });
+    expect(continuation.status).toBe(206);
+    await expectBody(continuation, ZIP_BODY.slice(10, 20));
+    const suffixTail = await fetchWorker(`${BASE}/downloads/GravityPort-darwin-arm64-0.3.7.zip`, { headers: { range: "bytes=-7" } });
+    expect(suffixTail.status).toBe(206);
+    await expectBody(suffixTail, ZIP_BODY.slice(-7));
+    // A suffix long enough to cover the object starts at 0 and counts.
+    const wholeSuffix = await fetchWorker(`${BASE}/downloads/GravityPort-darwin-arm64-0.3.7.zip`, { headers: { range: "bytes=-99999" } });
+    expect(wholeSuffix.status).toBe(206);
+    const full = await fetchWorker(`${BASE}/downloads/GravityPort-darwin-arm64-0.3.7.zip`);
+    expect(full.status).toBe(200);
+    expect(await counterTotal(env.STATS, "download_file", "GravityPort-darwin-arm64-0.3.7.zip")).toBe(3);
+  });
+
   it("returns 404 for missing objects and helper/visual packs", async () => {
     await seed();
     expect((await fetchWorker(`${BASE}/downloads/missing.zip`)).status).toBe(404);
