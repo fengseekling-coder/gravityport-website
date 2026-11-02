@@ -145,7 +145,9 @@ function englishJsonLd(en) {
         "@type": "Organization",
         "@id": `${SITE}/#organization`,
         "name": "azhuilab",
-        "url": `${SITE}/`
+        "url": `${SITE}/`,
+        "logo": `${SITE}/apple-touch-icon.png`,
+        "sameAs": ["https://github.com/fengseekling-coder/gravityport"]
       },
       {
         "@type": "WebSite",
@@ -181,6 +183,7 @@ function englishJsonLd(en) {
         "operatingSystem": "macOS (Apple silicon), Windows 10, Windows 11",
         "inLanguage": ["en", "zh-CN"],
         "image": image,
+        "screenshot": image,
         "downloadUrl": `${SITE}/en/#download`,
         "sameAs": ["https://github.com/fengseekling-coder/gravityport"],
         "author": { "@id": `${SITE}/#organization` },
