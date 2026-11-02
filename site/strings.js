@@ -1,7 +1,7 @@
 /* GravityPort site copy. Chinese and English are both first-class. */
 window.GP_STRINGS = {
   zh: {
-    "meta.title": "GravityPort — 每张 AI 图，都记得自己从哪来",
+    "meta.title": "GravityPort：AI 图片视频素材管理工具，免费下载",
     "meta.description": "GravityPort 是 AI 素材管理工具，支持 ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、即梦：图片、视频生成即入库，提示词、参考图和来源一起保留，纯本地存储，免费下载。",
     "meta.ogLocale": "zh_CN",
     "meta.ogImageAlt": "GravityPort：那条提示词去哪了？",
@@ -16,12 +16,15 @@ window.GP_STRINGS = {
     "nav.download": "下载",
     "nav.guide": "指南",
     "nav.langLabel": "切换到英文",
+    "nav.langHint": "View this page in English",
+    "nav.langHintLang": "en",
+    "nav.langHintClose": "Dismiss",
     "nav.cta": "下载",
     "nav.menu": "打开导航",
     "nav.menuClose": "关闭导航",
 
     "hero.title": "每张图，<br />都记得<br />自己<wbr />从哪来。",
-    "hero.lede": "AI 素材管理工具，支持 ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、即梦。图片、视频生成即入库，提示词、参考图和来源跟着走。",
+    "hero.lede": "GravityPort 是一款 AI 素材管理工具，支持 ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、即梦。图片、视频生成即入库，提示词、参考图和来源跟着走。",
     "hero.cta": "下载 macOS 版",
     "hero.ctaMeta": "Apple 芯片 · 免费",
     "hero.windows": "Windows",
@@ -218,7 +221,7 @@ window.GP_STRINGS = {
   },
 
   en: {
-    "meta.title": "GravityPort — Every AI image remembers where it came from",
+    "meta.title": "GravityPort: Free AI Image and Video Asset Manager",
     "meta.description": "Free AI asset manager for ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng. Images and videos saved on your computer with their prompts.",
     "meta.ogLocale": "en_US",
     "meta.ogImageAlt": "GravityPort: Where did that prompt go?",
@@ -233,12 +236,15 @@ window.GP_STRINGS = {
     "nav.download": "Download",
     "nav.guide": "Guide",
     "nav.langLabel": "Switch to Chinese",
+    "nav.langHint": "查看中文版",
+    "nav.langHintLang": "zh-CN",
+    "nav.langHintClose": "关闭",
     "nav.cta": "Download",
     "nav.menu": "Open menu",
     "nav.menuClose": "Close menu",
 
     "hero.title": "Every image remembers where it came from.",
-    "hero.lede": "An AI asset manager for ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng. Images and videos land in your library as they’re generated, with prompts, reference images and sources attached.",
+    "hero.lede": "GravityPort is an AI asset manager for ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng. Images and videos land in your library as they’re generated, with prompts, reference images and sources attached.",
     "hero.cta": "Download for Mac",
     "hero.ctaMeta": "Apple silicon · Free",
     "hero.windows": "Windows",

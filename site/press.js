@@ -74,6 +74,19 @@
     location.href = (next === "en" ? "/en/" : "/") + (query ? `?${query}` : "") + location.hash;
   }));
 
+  // A browser in the other language is offered the other page instead of being redirected.
+  // Closing the hint counts as choosing this page, so it does not come back.
+  const langHint = $("[data-lang-hint]");
+  if (langHint && typeof window.__gpLangSuggest === "function") {
+    let saved = "";
+    try { saved = localStorage.getItem("gp-lang") || ""; } catch (e) { /* storage may be blocked */ }
+    if (window.__gpLangSuggest(pageLang, saved, navigator.language)) langHint.hidden = false;
+    $("[data-lang-hint-close]", langHint)?.addEventListener("click", () => {
+      langHint.hidden = true;
+      try { localStorage.setItem("gp-lang", pageLang); } catch (e) { /* storage may be blocked */ }
+    });
+  }
+
   /* ---------------- Masthead ---------------- */
   const masthead = $("[data-masthead]");
   const onScroll = () => masthead && masthead.classList.toggle("is-stuck", window.scrollY > 8);
