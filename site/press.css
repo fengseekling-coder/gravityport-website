@@ -177,6 +177,14 @@ html { scrollbar-color: var(--ink) var(--stock-2); }
 .masthead__cta:hover { background: var(--ink); color: var(--fluo); }
 .masthead__menu { display: none; width: 38px; height: 38px; align-items: center; justify-content: center; }
 .masthead__menu svg { width: 22px; height: 22px; }
+/* Offered to a browser in the other language instead of redirecting it (see site/boot.js). */
+.lang-hint { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 36px; padding: 2px var(--margin); border-top: 1px solid rgba(18, 18, 18, 0.12); background: var(--stock-2); font-family: var(--font-mono); font-size: 12px; }
+.lang-hint[hidden] { display: none; }
+.lang-hint a { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; text-decoration-color: var(--fluo); }
+.lang-hint a:hover { background: var(--fluo); }
+.lang-hint button { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; color: var(--muted); }
+.lang-hint button:hover { color: var(--ink); }
+.lang-hint svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
 
 /* ---------- Sheet anatomy ---------- */
 .sheet { position: relative; padding: calc(var(--margin) * 0.9) var(--margin) calc(var(--margin) * 1.1); }

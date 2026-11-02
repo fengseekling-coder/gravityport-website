@@ -42,7 +42,11 @@ test("both home pages carry exactly one JSON-LD graph with the app entity", () =
     assert.match(app.operatingSystem, /macOS/);
     assert.match(app.operatingSystem, /Windows/);
     assert.deepEqual(app.sameAs, [GITHUB], `${name}: sameAs is the GitHub repo only`);
-    assert.equal(graphNode(data, "Organization").name, "azhuilab");
+    const org = graphNode(data, "Organization");
+    assert.equal(org.name, "azhuilab");
+    assert.equal(org.logo, `${SITE}/apple-touch-icon.png`, `${name}: Organization has the logo`);
+    assert.deepEqual(org.sameAs, [GITHUB], `${name}: Organization sameAs is the GitHub repo only`);
+    assert.equal(app.screenshot, `${SITE}/assets/og/gravityport-og-1200x630.jpg`, `${name}: the app has a screenshot`);
     assert.equal(app.softwareVersion, undefined, `${name}: no softwareVersion (would go stale every release)`);
     assert.equal(app.aggregateRating, undefined, `${name}: no rating`);
     assert.equal(app.review, undefined, `${name}: no review`);

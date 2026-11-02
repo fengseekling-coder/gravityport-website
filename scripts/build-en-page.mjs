@@ -145,7 +145,9 @@ function englishJsonLd(en) {
         "@type": "Organization",
         "@id": `${SITE}/#organization`,
         "name": "azhuilab",
-        "url": `${SITE}/`
+        "url": `${SITE}/`,
+        "logo": `${SITE}/apple-touch-icon.png`,
+        "sameAs": ["https://github.com/fengseekling-coder/gravityport"]
       },
       {
         "@type": "WebSite",
@@ -181,6 +183,7 @@ function englishJsonLd(en) {
         "operatingSystem": "macOS (Apple silicon), Windows 10, Windows 11",
         "inLanguage": ["en", "zh-CN"],
         "image": image,
+        "screenshot": image,
         "downloadUrl": `${SITE}/en/#download`,
         "sameAs": ["https://github.com/fengseekling-coder/gravityport"],
         "author": { "@id": `${SITE}/#organization` },
@@ -225,7 +228,7 @@ export function buildEnglishPage(indexHtml, strings) {
   html = html.replace(/(\s(?:href|src)=")\.\//g, "$1../");
   html = html.replace(/(\ssrcset=")([^"]*)(")/g, (_, a, list, b) => `${a}${list.replace(/(^|,\s*)\.\//g, "$1../")}${b}`);
   // The language toggle is a real link to the other language: on this page, the Chinese home.
-  html = replaceOnce(html, /(\shref=")\/en\/(" data-lang-toggle)/, "$1/$2", "language toggle link");
+  html = replaceCount(html, /(\shref=")\/en\/(" data-lang-toggle)/g, "$1/$2", "language toggle links", 2);
   // Structured data: swap the Chinese JSON-LD block for the English one.
   html = replaceOnce(html, /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
     `<script type="application/ld+json">\n${englishJsonLd(en).replace(/^/gm, "    ")}\n    </script>`, "JSON-LD block");
