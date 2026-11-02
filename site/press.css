@@ -721,6 +721,9 @@ p, li, dd { text-wrap: pretty; }
 .qr h2 { font-family: var(--font-display); font-weight: 860; font-stretch: 70%; font-size: 30px; }
 .qr p { color: var(--muted); }
 .qr img { width: 260px; max-width: calc(100vw - 96px); height: auto; }
+.qr .qr__or { font-size: 14px; margin-top: 4px; }
+.qr .qr__discord { color: var(--ink); }
+.qr .qr__discord:hover { background: var(--ink); color: var(--stock); box-shadow: inset 0 0 0 1.5px var(--ink); }
 /* Phones and tablets: a download button opens this, with the address to open on a computer. */
 .handoff { border: 0; padding: 28px 24px 24px; width: min(420px, calc(100vw - 32px)); background: var(--stock); color: var(--ink); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35); display: none; }
 .handoff[open] { display: grid; gap: 14px; }

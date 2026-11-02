@@ -208,6 +208,8 @@ window.GP_STRINGS = {
 
     "community.title": "加入交流群",
     "community.alt": "交流群二维码",
+    "community.discordLead": "或者加入 Discord",
+    "community.discord": "加入 Discord",
     "community.close": "关闭",
 
     "handoff.title": "到电脑上下载",
@@ -428,6 +430,8 @@ window.GP_STRINGS = {
 
     "community.title": "Join the community",
     "community.alt": "Community group QR code",
+    "community.discordLead": "Or join us on Discord",
+    "community.discord": "Join on Discord",
     "community.close": "Close",
 
     "handoff.title": "Download on your computer",
