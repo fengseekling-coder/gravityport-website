@@ -32,6 +32,11 @@ jobs:
         with:
           node-version: 22
 
+      # Secrets, personal paths, working documents, big files and stray media
+      # never belong in this public repository.
+      - name: Check repo hygiene
+        run: node scripts/check-repo-hygiene.mjs
+
       # The release-publisher tests need the App checkout next to this one
       # (../gravityport, ../gravityport-writer-snapshot) and macOS hdiutil; they run locally
       # at release time instead.
