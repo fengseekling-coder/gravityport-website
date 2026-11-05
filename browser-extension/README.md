@@ -5,7 +5,7 @@
 - 当前扩展的源码在 App 仓库：[extensions/chatgpt-web-capture](https://github.com/fengseekling-coder/gravityport/tree/main/extensions/chatgpt-web-capture)。
 - 隐私说明：App 仓库的 [PRIVACY.md](https://github.com/fengseekling-coder/gravityport/blob/main/PRIVACY.md) 和[官网隐私页](https://gravityport.azhuilab.com/privacy/)。
 
-可下载的公开文件不放在本目录，而放在仓库根目录的 `downloads/`，例如 `downloads/GravityPort-Web-Capture-0.15.44.zip`。官网按钮使用的版本号和地址在 `site-config.js` 的 `extension` 段。
+可下载的公开文件不放在本目录，而放在仓库根目录的 `downloads/`，例如 `downloads/GravityPort-Web-Capture-0.15.45.zip`。官网按钮使用的版本号和地址在 `site-config.js` 的 `extension` 段。
 
 ## 安装
 
