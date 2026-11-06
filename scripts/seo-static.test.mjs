@@ -196,7 +196,6 @@ test("the Windows download line matches the strings and what the runtime shows",
 });
 
 test("the English home page links the privacy pages inside /en/", () => {
-  assert.match(enHome, /href="privacy\/#online"/);
   assert.match(enHome, /href="privacy\/"/);
   assert.doesNotMatch(enHome, /href="\.\.\/privacy\//, "the English home must not link the Chinese privacy page");
 });

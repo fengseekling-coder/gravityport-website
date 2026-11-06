@@ -137,10 +137,6 @@ window.GP_STRINGS = {
     "local.trash.d2": "还剩 61 天",
     "local.trash.d3": "还剩 3 天",
     "local.trash.body": "删除的图在回收站保留 90 天，每张都有倒计时；刚删完还能直接撤销。",
-    "local.signal.title": "桌面版自动联网只做两件事：",
-    "local.signal.body": "检查更新，以及每天最多一次的匿名活跃信号（随机安装 ID、版本、系统和芯片架构）。都不含素材、Prompt、文件名或路径。活跃信号可以关闭，方法见",
-    "local.signal.link": "隐私政策",
-    "local.signal.end": "。",
 
     "free.title": "免费。",
     "free.body": "免费下载 · macOS · Windows",
@@ -359,10 +355,6 @@ window.GP_STRINGS = {
     "local.trash.d2": "61 days left",
     "local.trash.d3": "3 days left",
     "local.trash.body": "Deleted images stay in Trash for 90 days, each with a countdown. Right after deleting, you can undo.",
-    "local.signal.title": "The desktop app goes online on its own for two things only:",
-    "local.signal.body": "update checks, and an anonymous activity signal at most once a day (a random install ID, version, OS and CPU architecture). Neither includes assets, Prompts, file names or paths. To turn the signal off, see the",
-    "local.signal.link": "privacy policy",
-    "local.signal.end": ".",
 
     "free.title": "Free.",
     "free.body": "Free download · macOS · Windows",
