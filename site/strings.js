@@ -23,7 +23,7 @@ window.GP_STRINGS = {
     "nav.menu": "打开导航",
     "nav.menuClose": "关闭导航",
 
-    "hero.title": "每张图，<br />都记得<br />自己<wbr />从哪来。",
+    "hero.title": "让每一次<br />AI 创作，<br />有迹<wbr />可循",
     "hero.lede": "GravityPort 是一款 AI 素材管理工具，支持 ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、即梦。图片、视频生成即入库，提示词、参考图和来源跟着走。",
     "hero.cta": "下载 macOS 版",
     "hero.ctaMeta": "Apple 芯片 · 免费",
@@ -198,7 +198,7 @@ window.GP_STRINGS = {
     "faq.a8link": "加 WeChat",
     "faq.a8end": "。",
 
-    "footer.line": "每张图，都记得自己从哪来。",
+    "footer.line": "让每一次 AI 创作，有迹可循",
     "footer.label": "页脚导航",
     "footer.guide": "安装扩展",
     "footer.privacy": "隐私政策",
@@ -245,7 +245,7 @@ window.GP_STRINGS = {
     "nav.menu": "Open menu",
     "nav.menuClose": "Close menu",
 
-    "hero.title": "Every image remembers where it came from.",
+    "hero.title": "Every AI creation leaves a trail",
     "hero.lede": "GravityPort is an AI asset manager for ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng. Images and videos land in your library as they’re generated, with prompts, reference images and sources attached.",
     "hero.cta": "Download for Mac",
     "hero.ctaMeta": "Apple silicon · Free",
@@ -420,7 +420,7 @@ window.GP_STRINGS = {
     "faq.a8link": "contact on WeChat",
     "faq.a8end": ".",
 
-    "footer.line": "Every image remembers where it came from.",
+    "footer.line": "Every AI creation leaves a trail",
     "footer.label": "Footer",
     "footer.guide": "Install the extension",
     "footer.privacy": "Privacy",
