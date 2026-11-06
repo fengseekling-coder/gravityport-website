@@ -7,7 +7,7 @@ Object.assign(window.GP_STRINGS.zh, {
   "pp.meta.ogImageAlt": "GravityPort 隐私政策",
   "pp.title": "隐私政策",
   "pp.lede": "GravityPort 是本地素材库：没有账号，没有云端，素材库只在你的电脑上。这一页写清楚它读什么、存什么、什么时候联网。",
-  "pp.updated": "最后更新 2026-11-05",
+  "pp.updated": "最后更新 2026-11-06",
   "pp.keys.label": "要点",
   "pp.k1.title": "素材库",
   "pp.k1.body": "只在你的电脑上，不上传，不同步。",
@@ -52,9 +52,7 @@ Object.assign(window.GP_STRINGS.zh, {
   "pp.third.title": "第三方服务",
   "pp.third.body": "<p>ChatGPT、Gemini、Flow、Google AI Studio、即梦、Midjourney、Codex、Grok、Cowart、Chrome 和 Pinterest 都是独立产品，它们自己的联网行为和隐私政策照样适用。官网和反馈服务由 Cloudflare 承载，Cloudflare 自己的隐私政策也适用。</p><p>GravityPort 不出售数据，不把数据用于广告画像、信用评估或贷款。</p>",
   "pp.contact.title": "联系与安全",
-  "pp.contact.body": "<p>安全漏洞请按 GitHub 仓库里的安全说明报告。其他问题可以在 GitHub Issues 里提，但不要贴 Token、Prompt、私人素材或对话内容。</p>",
-  "pp.contact.github": "GitHub 仓库",
-  "pp.contact.issues": "GitHub Issues"
+  "pp.contact.body": "<p>安全漏洞和其他问题，请写信到 <a href=\"mailto:fengseekling@gmail.com\">fengseekling@gmail.com</a>，或者点页面顶部的「联系」。不要附上 Token、Prompt、私人素材或对话内容。</p>"
 });
 Object.assign(window.GP_STRINGS.en, {
   "pp.meta.title": "Privacy · GravityPort",
@@ -64,7 +62,7 @@ Object.assign(window.GP_STRINGS.en, {
   "pp.meta.ogImageAlt": "GravityPort privacy policy",
   "pp.title": "Privacy",
   "pp.lede": "GravityPort is a local library: no account, no cloud, and your library stays on your computer. This page says exactly what it reads, what it stores, and when it goes online.",
-  "pp.updated": "Last updated 2026-11-05",
+  "pp.updated": "Last updated 2026-11-06",
   "pp.keys.label": "In short",
   "pp.k1.title": "Your library",
   "pp.k1.body": "Stays on your computer. No uploads, no sync.",
@@ -109,7 +107,5 @@ Object.assign(window.GP_STRINGS.en, {
   "pp.third.title": "Third parties",
   "pp.third.body": "<p>ChatGPT, Gemini, Flow, Google AI Studio, Jimeng, Midjourney, Codex, Grok, Cowart, Chrome and Pinterest are separate products; their own network behavior and privacy policies still apply. This site and its services run on Cloudflare, whose own privacy policy applies as well.</p><p>GravityPort does not sell data or use it for ad profiling, credit scoring or lending.</p>",
   "pp.contact.title": "Contact and security",
-  "pp.contact.body": "<p>Report security issues as described in the GitHub repository’s security policy. Other questions can go to GitHub Issues, but never post tokens, Prompts, private assets or conversation content there.</p>",
-  "pp.contact.github": "GitHub repository",
-  "pp.contact.issues": "GitHub Issues"
+  "pp.contact.body": "<p>For security issues and other questions, email <a href=\"mailto:fengseekling@gmail.com\">fengseekling@gmail.com</a> or use Contact at the top of the page. Never include tokens, Prompts, private assets or conversation content.</p>"
 });

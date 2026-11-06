@@ -655,9 +655,6 @@ p, li, dd { text-wrap: pretty; }
 :root[lang|="en"] .free { align-items: last baseline; }
 :root[lang|="en"] .free__body { padding-bottom: 0; }
 .free__body { display: grid; gap: 24px; font-size: clamp(17px, 1.45vw, 21px); line-height: 1.7; max-width: 28em; padding-bottom: 0.4em; }
-.free__link { display: inline-flex; align-items: center; gap: 10px; justify-self: start; font-weight: 700; font-size: 16px; text-decoration: none; border-bottom: 2px solid var(--ink); padding-bottom: 4px; }
-.free__link svg { width: 18px; height: 18px; }
-.free__link:hover { background: var(--ink); color: var(--fluo); border-color: var(--ink); }
 
 /* ---------- Download ---------- */
 #download .intro { position: relative; }
