@@ -36,6 +36,11 @@ export async function runMaintenance(env, nowMs = Date.now()) {
     const statements = [counterUpsert(env, day, "install_total", "all", rows.length)];
     for (const [platform, count] of byPlatform) statements.push(counterUpsert(env, day, "install_platform", platform, count));
     if (firstLaunches) statements.push(counterUpsert(env, day, "install_first_launch", "all", firstLaunches));
+    statements.push(
+      env
+        .prepare("DELETE FROM install_versions WHERE install_id IN (SELECT install_id FROM installs WHERE last_seen_at < ?)")
+        .bind(cutoff)
+    );
     statements.push(env.prepare("DELETE FROM installs WHERE last_seen_at < ?").bind(cutoff));
     await env.batch(statements);
   }

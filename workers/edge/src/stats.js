@@ -10,6 +10,64 @@ import { classifyDownload } from "./counters.js";
 
 const HOME_PAGE_PATHS = new Set(["/", "/en/"]);
 const DATE_SHAPED_DAY_GLOB = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]";
+const SEMVER_PATTERN = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/;
+
+function parseSemver(value) {
+  const match = SEMVER_PATTERN.exec(String(value || ""));
+  if (!match) return null;
+  return {
+    parts: [Number(match[1]), Number(match[2]), Number(match[3])],
+    prerelease: match[4] ? match[4].split(".") : [],
+  };
+}
+
+function compareNumericIdentifiers(left, right) {
+  const normalizedLeft = left.replace(/^0+(?=\d)/, "");
+  const normalizedRight = right.replace(/^0+(?=\d)/, "");
+  if (normalizedLeft.length !== normalizedRight.length) {
+    return normalizedLeft.length > normalizedRight.length ? 1 : -1;
+  }
+  return normalizedLeft === normalizedRight ? 0 : normalizedLeft > normalizedRight ? 1 : -1;
+}
+
+/**
+ * Compare two semantic version strings (ascending: < 0 if left < right).
+ * @param {string} leftValue
+ * @param {string} rightValue
+ * @returns {number}
+ */
+export function compareSemver(leftValue, rightValue) {
+  const left = parseSemver(leftValue);
+  const right = parseSemver(rightValue);
+  if (!left && !right) return String(leftValue).localeCompare(String(rightValue));
+  if (!left) return -1;
+  if (!right) return 1;
+
+  for (let index = 0; index < left.parts.length; index += 1) {
+    if (left.parts[index] !== right.parts[index]) return left.parts[index] > right.parts[index] ? 1 : -1;
+  }
+
+  if (!left.prerelease.length || !right.prerelease.length) {
+    if (!left.prerelease.length && !right.prerelease.length) return 0;
+    return left.prerelease.length ? -1 : 1;
+  }
+
+  const length = Math.max(left.prerelease.length, right.prerelease.length);
+  for (let index = 0; index < length; index += 1) {
+    const leftPart = left.prerelease[index];
+    const rightPart = right.prerelease[index];
+    if (leftPart === undefined) return -1;
+    if (rightPart === undefined) return 1;
+    if (leftPart === rightPart) continue;
+
+    const leftNumeric = /^\d+$/.test(leftPart);
+    const rightNumeric = /^\d+$/.test(rightPart);
+    if (leftNumeric && rightNumeric) return compareNumericIdentifiers(leftPart, rightNumeric ? rightPart : "");
+    if (leftNumeric !== rightNumeric) return leftNumeric ? -1 : 1;
+    return leftPart > rightPart ? 1 : -1;
+  }
+  return 0;
+}
 
 /**
  * Sort entries by count descending then key ascending, exactly like
@@ -40,7 +98,11 @@ export async function buildStats(env, nowMs = Date.now()) {
   const all = async (sql, ...values) => (await db.prepare(sql).bind(...values).all()).results || [];
   const first = async (sql, ...values) => await db.prepare(sql).bind(...values).first();
 
-  const installRows = await all("SELECT platform, arch, version, first_launch FROM installs");
+  const installRows = await all("SELECT install_id, platform, arch, version, first_launch FROM installs");
+  const installVersionStats = await all(
+    "SELECT version, MIN(first_seen_at) AS first_seen_at, COUNT(DISTINCT install_id) AS ever_reached " +
+      "FROM install_versions GROUP BY version"
+  );
   const foldedRows = await all(
     "SELECT kind, key, SUM(count) AS total FROM counters " +
       "WHERE kind IN ('install_total', 'install_platform', 'install_first_launch') GROUP BY kind, key"
@@ -84,11 +146,13 @@ export async function buildStats(env, nowMs = Date.now()) {
   const platformInstalls = new Map(folded.install_platform);
   const archInstalls = new Map();
   const versionInstalls = new Map();
+  const currentVersionByInstallId = new Map();
   let liveFirstLaunches = 0;
   for (const install of installRows) {
     platformInstalls.set(install.platform, (platformInstalls.get(install.platform) || 0) + 1);
     archInstalls.set(install.arch, (archInstalls.get(install.arch) || 0) + 1);
     versionInstalls.set(install.version, (versionInstalls.get(install.version) || 0) + 1);
+    currentVersionByInstallId.set(install.install_id, install.version);
     if (Number(install.first_launch)) liveFirstLaunches += 1;
   }
   const knownInstallationInstances = installRows.length + [...folded.install_total.values()].reduce((sum, value) => sum + value, 0);
@@ -174,6 +238,43 @@ export async function buildStats(env, nowMs = Date.now()) {
     ? new Date(`${coverageDays[0]}T12:00:00Z`).toISOString()
     : new Date(nowMs).toISOString();
 
+  const active7dIds = new Set(trendKeys.slice(-7).flatMap((day) => [...(activeByDay.get(day) || new Set())]));
+  const active30dIds = new Set(trendKeys.flatMap((day) => [...(activeByDay.get(day) || new Set())]));
+  const active7dByVersion = new Map();
+  for (const installId of active7dIds) {
+    const ver = currentVersionByInstallId.get(installId);
+    if (ver) active7dByVersion.set(ver, (active7dByVersion.get(ver) || 0) + 1);
+  }
+
+  const versionStatsByVer = new Map();
+  for (const row of installVersionStats) {
+    if (!row.version || row.version === "unknown" || !parseSemver(row.version)) continue;
+    versionStatsByVer.set(row.version, {
+      firstSeenAt: row.first_seen_at !== null && row.first_seen_at !== undefined ? Number(row.first_seen_at) : null,
+      everReached: Number(row.ever_reached) || 0,
+    });
+  }
+  for (const [ver] of versionInstalls) {
+    if (!ver || ver === "unknown" || !parseSemver(ver)) continue;
+    if (!versionStatsByVer.has(ver)) {
+      versionStatsByVer.set(ver, { firstSeenAt: null, everReached: 0 });
+    }
+  }
+  const rollout = [...versionStatsByVer.keys()]
+    .sort((a, b) => compareSemver(b, a))
+    .slice(0, 5)
+    .map((ver) => {
+      const info = versionStatsByVer.get(ver);
+      const activeCount = active7dByVersion.get(ver) || 0;
+      return {
+        version: ver,
+        firstSeenAt: info.firstSeenAt,
+        currentInstalls: versionInstalls.get(ver) || 0,
+        everReached: info.everReached,
+        shareOfActive7d: active7dIds.size > 0 ? activeCount / active7dIds.size : 0,
+      };
+    });
+
   /** @type {Record<string, unknown>} */
   const report = {
     schemaVersion: 2,
@@ -185,11 +286,12 @@ export async function buildStats(env, nowMs = Date.now()) {
     knownInstallationInstances,
     reportedFirstLaunches,
     dailyActiveInstalls: (activeByDay.get(trendKeys[trendKeys.length - 1]) || new Set()).size,
-    activeInstalls7d: new Set(trendKeys.slice(-7).flatMap((day) => [...(activeByDay.get(day) || new Set())])).size,
-    activeInstalls30d: new Set(trendKeys.flatMap((day) => [...(activeByDay.get(day) || new Set())])).size,
+    activeInstalls7d: active7dIds.size,
+    activeInstalls30d: active30dIds.size,
     platformInstalls: mapToObject(platformInstalls),
     archInstalls: mapToObject(archInstalls),
     versionInstalls: mapToObject(versionInstalls),
+    rollout,
     downloadsByFile: mapToObject(downloadsByFile),
     downloadsByRef: mapToObject(downloadsByRef),
     desktopDownloadsByFile: mapToObject(desktopByFile),
