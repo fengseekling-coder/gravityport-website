@@ -207,3 +207,39 @@ describe("rollout statistics and semver sorting", () => {
     expect(r039rc2.shareOfActive7d).toBe(0);
   });
 });
+
+describe("buildStats daily conversion rate", () => {
+  it("calculates daily conversion rate as (desktop + extension downloads) / homePageViews, giving null when homePageViews is 0", async () => {
+    await resetStats();
+    const now = Date.now();
+    const dayKeys = recentDayKeys(now, 30);
+    const dayWithViews = dayKeys[dayKeys.length - 2];
+    const dayWithoutViews = dayKeys[dayKeys.length - 1];
+
+    // On dayWithViews: 4 desktop, 1 extension, 10 home page views -> rate = (4 + 1) / 10 = 0.5
+    // Also 2 update downloads and 1 other file which shouldn't count in conversion rate
+    await seedCounter(dayWithViews, "download_file", "GravityPort-darwin-arm64-1.0.0.dmg", 4);
+    await seedCounter(dayWithViews, "download_file", "GravityPort-Web-Capture-0.15.41.zip", 1);
+    await seedCounter(dayWithViews, "download_file", "GravityPort-darwin-arm64-0.9.0.zip", 2);
+    await seedCounter(dayWithViews, "download_file", "notes.txt", 1);
+    await seedCounter(dayWithViews, "page_path", "/", 6);
+    await seedCounter(dayWithViews, "page_path", "/en/", 4);
+
+    // On dayWithoutViews: 3 desktop downloads, but 0 home page views -> rate = null
+    await seedCounter(dayWithoutViews, "download_file", "GravityPort-darwin-arm64-1.0.0.dmg", 3);
+    await seedCounter(dayWithoutViews, "page_path", "/manual/", 2);
+
+    const stats = await buildStats(env.STATS, now);
+    const rowWithViews = stats.daily.find((d) => d.date === dayWithViews);
+    expect(rowWithViews).toBeTruthy();
+    expect(rowWithViews.homePageViews).toBe(10);
+    expect(rowWithViews.conversionRate).toBe(0.5);
+    expect(rowWithViews.homeToDownloadRate).toBe(0.5);
+
+    const rowWithoutViews = stats.daily.find((d) => d.date === dayWithoutViews);
+    expect(rowWithoutViews).toBeTruthy();
+    expect(rowWithoutViews.homePageViews).toBe(0);
+    expect(rowWithoutViews.conversionRate).toBeNull();
+    expect(rowWithoutViews.homeToDownloadRate).toBeNull();
+  });
+});

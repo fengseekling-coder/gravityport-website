@@ -26,6 +26,11 @@ export async function buildInstallsPage(db, url, nowMs = Date.now()) {
   const version = VERSION_PATTERN.test(rawVersion) ? rawVersion : "";
   const rawPlatform = params.get("platform") || "";
   const platform = USAGE_PLATFORMS.has(rawPlatform) ? rawPlatform : "";
+  const rawSearch = (params.get("search") || "").trim().toLowerCase();
+  // Valid search is 1–36 characters in [0-9a-f-]. Invalid values are ignored.
+  // Note: SQL wildcard characters like '%' and '_' are inherently excluded
+  // by this pattern, preventing any wildcard injection.
+  const search = /^[0-9a-f-]{1,36}$/.test(rawSearch) ? rawSearch : "";
 
   const conditions = [];
   const bindValues = [];
@@ -36,6 +41,10 @@ export async function buildInstallsPage(db, url, nowMs = Date.now()) {
   if (platform) {
     conditions.push("i.platform = ?");
     bindValues.push(platform);
+  }
+  if (search) {
+    conditions.push("i.install_id LIKE ? || '%'");
+    bindValues.push(search);
   }
   const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 

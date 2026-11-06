@@ -4,242 +4,534 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <title>GravityPort Stats</title>
+  <title>GravityPort 统计</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <main class="dashboard-shell">
-    <header class="dashboard-header">
-      <div>
-        <p class="eyebrow">GravityPort PRIVATE</p>
-        <h1>Usage Stats</h1>
-        <p class="subtitle">App 安装、官网访问、下载：三组分开统计的数据</p>
-      </div>
-      <div class="header-actions">
-        <div class="updated" id="updatedAt">正在读取数据…</div>
-        <a class="logout-button" href="./feedback.html">反馈</a>
-        <button class="refresh-button" id="refreshButton" type="button">刷新</button>
-        <a class="logout-button" href="./logout">退出</a>
+  <div class="app-layout">
+    <!-- Top Navigation Header -->
+    <header class="top-nav">
+      <div class="nav-container">
+        <div class="brand-group">
+          <div class="brand-logo">GP</div>
+          <div class="brand-titles">
+            <div class="brand-main">
+              <span class="brand-name">GravityPort</span>
+              <span class="env-badge">ADMIN</span>
+            </div>
+            <p class="brand-subtitle">统计后台 · 太平洋时间 (PT) 统计日</p>
+          </div>
+        </div>
+
+        <!-- View Switcher Tabs -->
+        <nav class="nav-tabs" aria-label="后台视图导航">
+          <button class="nav-tab active" id="navOverviewBtn" type="button">概览</button>
+          <button class="nav-tab" id="navFeedbackBtn" type="button">
+            反馈
+            <span class="tab-badge" id="navFeedbackBadge" hidden>0</span>
+          </button>
+        </nav>
+
+        <!-- Right Quick Actions -->
+        <div class="header-actions">
+          <div class="status-pill" title="数据实时直连 Cloudflare D1 边缘节点">
+            <span class="status-dot"></span>
+            <span id="updatedAt">正在读取…</span>
+          </div>
+          <button class="action-btn" id="openLinkBuilderBtn" type="button">渠道建链</button>
+          <button class="action-btn" id="refreshButton" type="button">刷新</button>
+          <a class="action-btn logout-link" href="./logout">退出</a>
+        </div>
       </div>
     </header>
 
-    <section class="stat-group" aria-labelledby="installGroupTitle">
-      <div class="group-heading">
-        <h2 id="installGroupTitle">App 安装</h2>
-        <p id="installGroupNote">打开过 GravityPort 并发回匿名统计的电脑，按匿名编号去重；2026-10-29 起记录，之前的没有导入，所以只含 10-29 以后打开过 App 的电脑。</p>
-      </div>
-      <section class="metric-grid" aria-label="App 安装指标">
-        <article class="metric-card primary"><span>安装实例</span><strong id="anonymousInstalls">—</strong><small id="anonymousInstallsNote">按匿名编号去重后的电脑数</small></article>
-        <article class="metric-card"><span>首次启动</span><strong id="firstLaunches">—</strong><small>装好后第一次打开 App 的电脑数</small></article>
-        <article class="metric-card"><span>DAU</span><strong id="dau">—</strong><small>当前统计日打开过 App 的电脑数</small></article>
-        <article class="metric-card"><span>7 日活跃</span><strong id="wau">—</strong><small id="wauNote">最近 7 个统计日打开过 App 的电脑数</small></article>
-        <article class="metric-card"><span>30 日活跃</span><strong id="mau">—</strong><small id="mauNote">最近 30 个统计日打开过 App 的电脑数</small></article>
-      </section>
-      <section class="detail-grid install-detail-grid" aria-label="App 安装分布">
-        <article class="panel">
-          <div class="panel-heading"><div><p class="panel-kicker">PLATFORM</p><h2>平台分布</h2></div></div>
-          <div class="rank-list" id="platformList"></div>
-        </article>
-        <article class="panel">
-          <div class="panel-heading"><div><p class="panel-kicker">VERSION</p><h2>版本分布</h2></div></div>
-          <div class="rank-list" id="versionList"></div>
-        </article>
-        <article class="panel">
-          <div class="panel-heading"><div><p class="panel-kicker">ROLLOUT</p><h2>新版铺开</h2></div></div>
-          <div class="rank-list" id="rolloutList"></div>
-        </article>
-      </section>
-      <article class="panel install-table-panel" aria-labelledby="installDetailsTitle">
-        <div class="panel-heading install-table-heading">
-          <div>
-            <p class="panel-kicker">INSTALLATIONS</p>
-            <h2 id="installDetailsTitle">安装明细</h2>
-            <p class="install-table-note">更新时间按 App 每天一次的上报算，最多晚一天。</p>
-          </div>
-          <div class="install-filters" aria-label="安装明细筛选">
-            <label class="filter-field">
-              <span>版本</span>
-              <select id="installVersionFilter">
-                <option value="">全部版本</option>
-              </select>
-            </label>
-            <label class="filter-field">
-              <span>平台</span>
-              <select id="installPlatformFilter">
-                <option value="">全部平台</option>
-                <option value="macos">macOS</option>
-                <option value="windows">Windows</option>
-                <option value="other">Other</option>
-              </select>
-            </label>
-          </div>
-        </div>
-        <div class="table-scroll">
-          <table class="install-table" aria-label="安装明细表格">
-            <thead>
-              <tr>
-                <th scope="col">编号</th>
-                <th scope="col">平台</th>
-                <th scope="col">安装时间</th>
-                <th scope="col">当前版本</th>
-                <th scope="col">更新时间</th>
-                <th scope="col">最近使用</th>
-                <th scope="col">7 日 / 30 日活跃天数</th>
-              </tr>
-            </thead>
-            <tbody id="installTableBody">
-              <tr><td colspan="7" class="empty">正在读取数据…</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="install-pagination" id="installPagination">
-          <span class="pagination-info" id="installPageInfo">共 0 台</span>
-          <div class="pagination-actions">
-            <button class="refresh-button" id="installPrevPage" type="button" disabled>上一页</button>
-            <button class="refresh-button" id="installNextPage" type="button" disabled>下一页</button>
-          </div>
-        </div>
-      </article>
-    </section>
+    <!-- Main Content Container -->
+    <main class="main-content">
 
-    <section class="stat-group" aria-labelledby="siteGroupTitle">
-      <div class="group-heading">
-        <h2 id="siteGroupTitle">官网访问</h2>
-        <p>官网网页被打开的次数（同一个人刷新也算），2026-10-29 起由 Cloudflare 记录，已排除爬虫，累计。</p>
-      </div>
-      <section class="metric-grid" aria-label="官网访问指标">
-        <article class="metric-card primary">
-          <span>官网页面访问</span>
-          <strong id="pageViews">—</strong>
-          <small>官网各公开页面被打开的次数加总</small>
-          <small class="legacy-note" id="legacyPageViewsNote" hidden></small>
-        </article>
-        <article class="metric-card">
-          <span>首页访问</span>
-          <strong id="homePageViews">—</strong>
-          <small>官网首页被打开的次数</small>
-          <small class="legacy-note" id="legacyHomePageViewsNote" hidden></small>
-        </article>
-        <article class="metric-card" id="botPageViewsCard" hidden><span>爬虫访问</span><strong id="botPageViews">—</strong><small>已识别为爬虫的页面请求，不计入访问量</small></article>
-      </section>
-      <section class="detail-grid site-traffic-grid" id="siteTrafficGrid" hidden aria-label="官网访问分布">
-        <article class="panel">
-          <div class="panel-heading"><div><p class="panel-kicker">REFERRER</p><h2>来源网站</h2></div></div>
-          <div class="rank-list" id="referrerList"></div>
-        </article>
-        <article class="panel">
-          <div class="panel-heading"><div><p class="panel-kicker">COUNTRY</p><h2>国家 / 地区</h2></div></div>
-          <div class="rank-list" id="countryList"></div>
-        </article>
-        <article class="panel">
-          <div class="panel-heading"><div><p class="panel-kicker">DEVICE</p><h2>设备类型</h2></div></div>
-          <div class="rank-list" id="deviceList"></div>
-        </article>
-      </section>
-    </section>
+      <!-- ================= VIEW 1: OVERVIEW ================= -->
+      <div class="view-panel" id="overviewView">
 
-    <section class="stat-group" aria-labelledby="downloadGroupTitle">
-      <div class="group-heading">
-        <h2 id="downloadGroupTitle">下载</h2>
-        <p>下载服务器收到的下载次数，2026-10-29 起记录；分段下载只算一次（本次改动上线前的数据可能多算）。</p>
-      </div>
-      <section class="metric-grid" aria-label="下载指标">
-        <article class="metric-card primary">
-          <span>安装包下载</span>
-          <strong id="desktopDownloads">—</strong>
-          <small>官网下载的 .dmg / .exe</small>
-          <small class="legacy-note" id="legacyDesktopNote" hidden></small>
-        </article>
-        <article class="metric-card">
-          <span>App 内更新</span>
-          <strong id="updateDownloads">—</strong>
-          <small>已安装的 App 下载更新包（.zip）</small>
-          <small class="legacy-note" id="legacyUpdateNote" hidden></small>
-        </article>
-        <article class="metric-card">
-          <span>扩展下载</span>
-          <strong id="extensionDownloads">—</strong>
-          <small>官网下载的浏览器扩展包（.zip）</small>
-          <small class="legacy-note" id="legacyExtensionNote" hidden></small>
-        </article>
-        <article class="metric-card"><span>首页→下载</span><strong id="homeToDownloadRate">—</strong><small>（安装包下载 + 扩展下载）/ 首页访问</small></article>
-      </section>
-      <section class="detail-grid" aria-label="下载明细">
-        <article class="panel">
-          <div class="panel-heading"><div><p class="panel-kicker">SOURCE</p><h2>渠道来源</h2></div></div>
-          <div class="rank-list" id="refList"></div>
-        </article>
-        <article class="panel">
-          <div class="panel-heading"><div><p class="panel-kicker">DOWNLOADS</p><h2>下载文件</h2></div></div>
-          <div class="rank-list" id="downloadList"></div>
-        </article>
-      </section>
-      <article class="panel legacy-downloads-panel" id="legacyDownloadPanel" hidden aria-label="10-29 前旧服务器下载">
-        <div class="panel-heading"><div><p class="panel-kicker">LEGACY SERVER</p><h2>10-29 前（旧服务器）</h2></div></div>
-        <div class="detail-grid">
-          <div>
-            <div class="panel-heading"><div><p class="panel-kicker">DOWNLOADS</p><h2>下载文件</h2></div></div>
-            <div class="rank-list" id="legacyDownloadList"></div>
+        <!-- ZONE 1: 概览与 30 天趋势 -->
+        <section class="console-zone" id="zone-overview">
+          <div class="zone-header">
+            <div>
+              <h2 class="zone-title">概览</h2>
+              <p class="zone-desc">核心活跃指标与近 30 天聚合趋势。</p>
+            </div>
+            <div class="window-tag">近 30 天</div>
           </div>
-          <div>
-            <div class="panel-heading"><div><p class="panel-kicker">SOURCE</p><h2>渠道来源</h2></div></div>
-            <div class="rank-list" id="legacyRefList"></div>
+
+          <!-- 4 KPI Cards -->
+          <div class="kpi-grid">
+            <article class="kpi-card highlight">
+              <div class="kpi-top">
+                <span class="kpi-label">今日活跃 (DAU)</span>
+                <span class="delta-badge" id="dauDelta" hidden></span>
+              </div>
+              <div class="kpi-number-wrap">
+                <span class="kpi-number" id="dauVal">—</span>
+                <span class="kpi-unit">台电脑</span>
+              </div>
+              <div class="kpi-sparkline" id="sparklineDau"></div>
+              <div class="kpi-footer">
+                <span>当前统计日已上报活跃的电脑</span>
+              </div>
+            </article>
+
+            <article class="kpi-card">
+              <div class="kpi-top">
+                <span class="kpi-label">7 日活跃 (WAU)</span>
+                <span class="delta-badge" id="wauRatioBadge" hidden></span>
+              </div>
+              <div class="kpi-number-wrap">
+                <span class="kpi-number" id="wauVal">—</span>
+                <span class="kpi-unit">台电脑</span>
+              </div>
+              <div class="kpi-sparkline" id="sparklineWau"></div>
+              <div class="kpi-footer">
+                <span>最近 7 个统计日活跃去重</span>
+              </div>
+            </article>
+
+            <article class="kpi-card">
+              <div class="kpi-top">
+                <span class="kpi-label">30 日活跃</span>
+                <span class="delta-badge" id="knownInstallsBadge" hidden></span>
+              </div>
+              <div class="kpi-number-wrap">
+                <span class="kpi-number" id="mauVal">—</span>
+                <span class="kpi-unit">台电脑</span>
+              </div>
+              <div class="kpi-sparkline" id="sparklineMau"></div>
+              <div class="kpi-footer">
+                <span>最近 30 个统计日活跃去重</span>
+              </div>
+            </article>
+
+            <article class="kpi-card">
+              <div class="kpi-top">
+                <span class="kpi-label">7 日首次启动</span>
+                <span class="delta-badge" id="launchRateBadge" hidden></span>
+              </div>
+              <div class="kpi-number-wrap">
+                <span class="kpi-number" id="firstLaunchesVal">—</span>
+                <span class="kpi-unit">台首次打开</span>
+              </div>
+              <div class="kpi-sparkline" id="sparklineFirstLaunches"></div>
+              <div class="kpi-footer">
+                <span>装好后第一次打开 App 的电脑数</span>
+              </div>
+            </article>
           </div>
-        </div>
-      </article>
-    </section>
 
-    <section class="panel trend-panel">
-      <div class="panel-heading">
-        <div><p class="panel-kicker">LAST 30 ANALYTICS DAYS</p><h2>增长趋势</h2></div>
-        <div class="legend" aria-label="图例">
-          <span><i class="legend-dot installs"></i>首次启动</span>
-          <span><i class="legend-dot active"></i>活跃</span>
-          <span><i class="legend-dot downloads"></i>下载请求（不含 App 内更新）</span>
-          <span><i class="legend-dot pageviews"></i>页面访问</span>
-        </div>
-      </div>
-      <div class="chart-wrap" id="trendChart" role="img" aria-label="近 30 天使用趋势"></div>
-    </section>
+          <!-- 30-Day Trend Chart -->
+          <article class="panel chart-panel">
+            <div class="panel-header">
+              <div>
+                <span class="kicker">30-DAY TREND</span>
+                <h3 class="panel-title">30 天趋势</h3>
+                <p class="panel-desc">按日聚合：日活、首次启动、安装包下载请求与官网访问。</p>
+              </div>
+              <div class="chart-legend" id="chartLegend">
+                <label class="legend-item active" data-metric="activeInstalls">
+                  <span class="legend-dot dot-cyan"></span>
+                  <span>日活 (DAU)</span>
+                </label>
+                <label class="legend-item active" data-metric="firstLaunches">
+                  <span class="legend-dot dot-light"></span>
+                  <span>首次启动</span>
+                </label>
+                <label class="legend-item active" data-metric="downloadRequests">
+                  <span class="legend-dot dot-dashed"></span>
+                  <span>下载请求</span>
+                </label>
+                <label class="legend-item active" data-metric="pageViews">
+                  <span class="legend-dot dot-dotted"></span>
+                  <span>官网访问</span>
+                </label>
+              </div>
+            </div>
 
-    <section class="panel link-builder-panel" aria-labelledby="linkBuilderTitle">
-      <div class="panel-heading">
-        <div><p class="panel-kicker">CAMPAIGN LINK</p><h2 id="linkBuilderTitle">渠道链接生成器</h2></div>
-        <p class="builder-help">同一个官网，只增加 ref 标签用于下载来源统计。</p>
-      </div>
-      <div class="builder-grid">
-        <label class="builder-field">
-          <span>渠道标识</span>
-          <input id="campaignRefInput" type="text" maxlength="64" autocomplete="off" spellcheck="false" placeholder="例如 bilibili_makerjackie">
-          <small>支持字母、数字、点、下划线和短横线。空格会自动转成下划线。</small>
-        </label>
-        <div class="builder-field">
-          <span>生成链接</span>
-          <div class="builder-output-row">
-            <input id="campaignUrlOutput" type="text" readonly aria-label="生成的渠道链接" value="https://gravityport.azhuilab.com/">
-            <button class="copy-button" id="copyCampaignUrl" type="button">复制</button>
+            <div class="chart-container" id="trendChartContainer">
+              <svg class="main-trend-svg" id="mainTrendSvg" preserveAspectRatio="none"></svg>
+              <div class="chart-tooltip" id="chartTooltip" hidden></div>
+            </div>
+          </article>
+        </section>
+
+        <!-- ZONE 2: 版本与平台 -->
+        <section class="console-zone" id="zone-rollout">
+          <div class="zone-header">
+            <div>
+              <h2 class="zone-title">版本与平台</h2>
+              <p class="zone-desc">新版本普及覆盖率与操作系统分布。</p>
+            </div>
           </div>
-          <small id="campaignCopyStatus" aria-live="polite">未填写渠道时为普通官网链接。</small>
-        </div>
-      </div>
-      <div class="builder-presets" aria-label="常用渠道">
-        <span>常用：</span>
-        <button type="button" data-ref-preset="bilibili">B站</button>
-        <button type="button" data-ref-preset="xiaohongshu">小红书</button>
-        <button type="button" data-ref-preset="douyin">抖音</button>
-        <button type="button" data-ref-preset="tiktok">TikTok</button>
-        <button type="button" data-ref-preset="reddit_codex">Reddit Codex</button>
-        <button type="button" data-ref-preset="x">X</button>
-        <button type="button" data-ref-preset="weibo">微博</button>
-        <button type="button" data-ref-preset="wechat_official">微信公众号</button>
-        <button type="button" data-ref-preset="youtube">YouTube</button>
-      </div>
-    </section>
 
-    <section class="notice" id="errorNotice" hidden></section>
-    <p class="metrics-note" id="metricsNote" hidden></p>
-    <footer id="statsFooter">数据来自 GravityPort 匿名使用统计与官网边缘计数。页面仅供私有运维使用。</footer>
-  </main>
+          <div class="grid-2col">
+            <!-- Rollout Panel -->
+            <article class="panel equal-col">
+              <div class="panel-header">
+                <div>
+                  <span class="kicker">ROLLOUT</span>
+                  <h3 class="panel-title">版本分布</h3>
+                </div>
+                <div class="version-tag" id="rolloutHeroVersionTag">—</div>
+              </div>
+
+              <div class="hero-rollout-card">
+                <div class="rollout-stats-row">
+                  <div>
+                    <span class="rollout-label">7 日活跃覆盖率</span>
+                    <div class="rollout-big-rate" id="rolloutHeroRate">—</div>
+                  </div>
+                  <div class="rollout-counts">
+                    <div class="count-item">
+                      <span class="count-label">当前运行</span>
+                      <strong class="count-val" id="rolloutHeroInstalls">—</strong>
+                    </div>
+                    <div class="count-item">
+                      <span class="count-label">曾升级</span>
+                      <strong class="count-val" id="rolloutHeroEver">—</strong>
+                    </div>
+                  </div>
+                </div>
+                <div class="progress-track-lg">
+                  <div class="progress-bar-lg" id="rolloutProgressBar"></div>
+                </div>
+              </div>
+
+              <div class="version-breakdown-wrap">
+                <div class="breakdown-title">存量版本分布</div>
+                <div class="version-list" id="versionList"></div>
+              </div>
+
+              <div class="silent-update-strip" id="updateDownloadStrip">
+                <span class="strip-text" id="updateDownloadText">软件内更新下载请求：— 次</span>
+              </div>
+            </article>
+
+            <!-- Platform Panel -->
+            <article class="panel equal-col">
+              <div class="panel-header">
+                <div>
+                  <span class="kicker">PLATFORM</span>
+                  <h3 class="panel-title">操作系统</h3>
+                </div>
+              </div>
+
+              <div class="platform-metrics-grid">
+                <!-- macOS Box -->
+                <div class="platform-box">
+                  <div class="platform-box-header">
+                    <div class="platform-box-title">macOS</div>
+                    <strong class="platform-box-count" id="macosCount">—</strong>
+                  </div>
+                  <div class="arch-split-row">
+                    <span class="arch-tag" id="macosArm64Tag">Apple Silicon (arm64): —</span>
+                    <span class="arch-tag dim" id="macosX64Tag">Intel (x64): —</span>
+                  </div>
+                  <div class="progress-track-sm">
+                    <div class="progress-bar-sm" id="macosBar"></div>
+                  </div>
+                </div>
+
+                <!-- Windows Box -->
+                <div class="platform-box">
+                  <div class="platform-box-header">
+                    <div class="platform-box-title">Windows</div>
+                    <strong class="platform-box-count" id="windowsCount">—</strong>
+                  </div>
+                  <div class="arch-split-row">
+                    <span class="arch-tag" id="windowsX64Tag">x64: —</span>
+                  </div>
+                  <div class="progress-track-sm">
+                    <div class="progress-bar-sm bar-neutral" id="windowsBar"></div>
+                  </div>
+                </div>
+
+                <!-- Other Box -->
+                <div class="platform-box" id="otherPlatformBox" hidden>
+                  <div class="platform-box-header">
+                    <div class="platform-box-title">Other</div>
+                    <strong class="platform-box-count" id="otherCount">—</strong>
+                  </div>
+                  <div class="progress-track-sm">
+                    <div class="progress-bar-sm bar-dim" id="otherBar"></div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- ZONE 3: 获客漏斗与渠道 -->
+        <section class="console-zone" id="zone-funnel">
+          <div class="zone-header">
+            <div>
+              <h2 class="zone-title">获客与渠道</h2>
+              <p class="zone-desc">官网访问到下载请求、首次启动的转化漏斗与流量来源。</p>
+            </div>
+          </div>
+
+          <div class="grid-2col">
+            <!-- Conversion Funnel Panel -->
+            <article class="panel equal-col">
+              <div class="panel-header">
+                <div>
+                  <span class="kicker">CONVERSION FUNNEL</span>
+                  <h3 class="panel-title">转化漏斗</h3>
+                </div>
+              </div>
+
+              <div class="funnel-container">
+                <div class="funnel-step">
+                  <div class="funnel-step-head">
+                    <span class="step-badge">1</span>
+                    <span class="step-name">官网首页访问</span>
+                    <strong class="step-num" id="funnelHomeViews">—</strong>
+                  </div>
+                  <div class="funnel-bar-track">
+                    <div class="funnel-bar-fill fill-1" id="funnelBar1"></div>
+                  </div>
+                </div>
+
+                <div class="funnel-connector">
+                  <span class="conversion-pill" id="funnelDownloadRatePill">下载请求 / 首页访问：—</span>
+                </div>
+
+                <div class="funnel-step">
+                  <div class="funnel-step-head">
+                    <span class="step-badge">2</span>
+                    <span class="step-name">安装包与扩展下载请求</span>
+                    <strong class="step-num" id="funnelDownloads">—</strong>
+                  </div>
+                  <div class="funnel-bar-track">
+                    <div class="funnel-bar-fill fill-2" id="funnelBar2"></div>
+                  </div>
+                </div>
+
+                <div class="funnel-connector">
+                  <span class="conversion-pill" id="funnelLaunchRatePill">首次启动 / 下载请求：—</span>
+                </div>
+
+                <div class="funnel-step">
+                  <div class="funnel-step-head">
+                    <span class="step-badge">3</span>
+                    <span class="step-name">首次启动</span>
+                    <strong class="step-num" id="funnelFirstLaunches">—</strong>
+                  </div>
+                  <div class="funnel-bar-track">
+                    <div class="funnel-bar-fill fill-3" id="funnelBar3"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="subtle-note-box">
+                <p class="subtle-note">断点续传会把一次下载记成多次请求，所以转化率偏低估。</p>
+                <p class="subtle-note" id="botFilterNote" hidden>已过滤 Cloudflare 识别的爬虫请求。</p>
+              </div>
+            </article>
+
+            <!-- Channels & Geo Panel -->
+            <article class="panel equal-col">
+              <div class="panel-header">
+                <div>
+                  <span class="kicker">CHANNELS & GEOGRAPHY</span>
+                  <h3 class="panel-title">来源与地区</h3>
+                </div>
+              </div>
+
+              <div class="traffic-split-grid">
+                <div>
+                  <div class="sub-table-header">渠道来源 (Referrer / Ref)</div>
+                  <div class="bar-rank-list" id="referrerRankList"></div>
+                </div>
+
+                <div>
+                  <div class="sub-table-header">国家 / 地区 (Country)</div>
+                  <div class="bar-rank-list" id="countryRankList"></div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- ZONE 4: 设备明细 -->
+        <section class="console-zone" id="zone-installs">
+          <div class="zone-header">
+            <div>
+              <h2 class="zone-title">设备明细</h2>
+              <p class="zone-desc">按编号前缀搜索，点击行查看单机升级历程。</p>
+            </div>
+            <div class="installs-count-label" id="installsCountLabel">共 0 台</div>
+          </div>
+
+          <article class="panel table-panel">
+            <div class="table-toolbar">
+              <div class="search-box">
+                <input id="installSearchInput" type="text" placeholder="按编号搜索 (支持 1–36 位 UUID 前缀)..." autocomplete="off" spellcheck="false">
+              </div>
+
+              <div class="filter-group">
+                <select id="installVersionFilter" class="styled-select">
+                  <option value="">全部版本</option>
+                </select>
+
+                <select id="installPlatformFilter" class="styled-select">
+                  <option value="">全部平台</option>
+                  <option value="macos">macOS</option>
+                  <option value="windows">Windows</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-scroll-wrap">
+              <table class="modern-table" aria-label="设备明细表格">
+                <thead>
+                  <tr>
+                    <th scope="col" class="col-uuid">编号</th>
+                    <th scope="col" class="col-platform">平台 / 架构</th>
+                    <th scope="col" class="col-version">当前版本</th>
+                    <th scope="col" class="col-heat">7 日活跃</th>
+                    <th scope="col" class="col-days">30 日天数</th>
+                    <th scope="col" class="col-first">安装时间</th>
+                    <th scope="col" class="col-last">最近使用</th>
+                    <th scope="col" class="col-toggle"></th>
+                  </tr>
+                </thead>
+                <tbody id="installTableBody">
+                  <tr><td colspan="8" class="empty-cell">正在读取数据…</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="table-footer-pagination">
+              <div class="pagination-info" id="installPageInfo">共 0 台</div>
+              <div class="pagination-btns">
+                <button class="page-btn" id="installPrevPage" disabled type="button">上一页</button>
+                <span class="page-indicator" id="installPageIndicator">第 1 / 1 页</span>
+                <button class="page-btn" id="installNextPage" disabled type="button">下一页</button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- ZONE 5: 最近反馈 (5 条预览) -->
+        <section class="console-zone" id="zone-recent-feedback">
+          <div class="zone-header">
+            <div>
+              <div class="zone-title-row">
+                <h2 class="zone-title">反馈</h2>
+                <span class="tab-badge" id="recentFeedbackUnreadBadge" hidden>0 未读</span>
+              </div>
+              <p class="zone-desc">用户提交的反馈与诊断信息。</p>
+            </div>
+            <div class="feedback-zone-actions">
+              <button class="action-btn" id="goToAllFeedbackBtn" type="button">查看全部反馈</button>
+            </div>
+          </div>
+
+          <div class="feedback-preview-container">
+            <div class="feedback-stream" id="recentFeedbackList">
+              <div class="empty-card">正在读取反馈…</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CAMPAIGN LINK STUDIO -->
+        <section class="console-zone" id="zone-link-builder">
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <span class="kicker">CAMPAIGN LINK</span>
+                <h3 class="panel-title">渠道链接生成器</h3>
+                <p class="panel-desc">同一个官网地址，仅追加 ref 标签用于下载请求来源统计。</p>
+              </div>
+            </div>
+
+            <div class="builder-inputs">
+              <div class="input-row">
+                <label class="input-label" for="campaignRefInput">
+                  <span>渠道标识</span>
+                  <input class="builder-input" id="campaignRefInput" type="text" maxlength="64" placeholder="例如 bilibili_intro">
+                </label>
+                <div class="presets-row">
+                  <span class="presets-label">常用：</span>
+                  <button class="preset-tag" data-preset="bilibili" type="button">B站</button>
+                  <button class="preset-tag" data-preset="xiaohongshu" type="button">小红书</button>
+                  <button class="preset-tag" data-preset="douyin" type="button">抖音</button>
+                  <button class="preset-tag" data-preset="x" type="button">X</button>
+                  <button class="preset-tag" data-preset="reddit_codex" type="button">Reddit</button>
+                  <button class="preset-tag" data-preset="youtube" type="button">YouTube</button>
+                </div>
+              </div>
+
+              <div class="input-row">
+                <label class="input-label" for="campaignUrlOutput">
+                  <span>生成链接</span>
+                  <div class="copy-input-row">
+                    <input class="builder-input" id="campaignUrlOutput" readonly type="text" value="https://gravityport.azhuilab.com/">
+                    <button class="btn-primary" id="copyCampaignUrl" type="button">复制</button>
+                  </div>
+                </label>
+                <small class="builder-status-text" id="campaignCopyStatus">未填写渠道时为普通官网链接。</small>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- Legacy Archive Drawer -->
+        <footer class="console-footer">
+          <details class="legacy-archive-details" id="legacyDetails" hidden>
+            <summary id="legacySummary">10-29 前旧服务器下载记录（折叠）</summary>
+            <div class="legacy-archive-content" id="legacyContent"></div>
+          </details>
+          <div class="footer-meta">
+            <span>GravityPort 统计后台 · 数据来自匿名使用统计与边缘计数</span>
+          </div>
+        </footer>
+      </div>
+
+      <!-- ================= VIEW 2: FULL FEEDBACK ================= -->
+      <div class="view-panel" id="feedbackView" hidden>
+        <section class="console-zone">
+          <div class="zone-header">
+            <div class="feedback-view-header">
+              <button class="action-btn back-btn" id="backToOverviewBtn" type="button">← 返回概览</button>
+              <h2 class="zone-title">全部反馈</h2>
+              <span class="tab-badge" id="allFeedbackUnreadCount">0 未读</span>
+            </div>
+            <div class="feedback-view-actions">
+              <button class="action-btn" id="markAllReadBtn" type="button">全部标为已读</button>
+            </div>
+          </div>
+
+          <!-- Kind Filter Pills -->
+          <div class="feedback-filters" id="feedbackFilters">
+            <button class="filter-pill active" data-kind="all" type="button">全部 (<span id="countKindAll">0</span>)</button>
+            <button class="filter-pill" data-kind="bug" type="button">缺陷 (<span id="countKindBug">0</span>)</button>
+            <button class="filter-pill" data-kind="idea" type="button">建议 (<span id="countKindIdea">0</span>)</button>
+            <button class="filter-pill" data-kind="other" type="button">其他 (<span id="countKindOther">0</span>)</button>
+          </div>
+
+          <div class="feedback-stream" id="allFeedbackList">
+            <div class="empty-card">正在读取反馈列表…</div>
+          </div>
+
+          <div class="feedback-more" id="feedbackMoreWrap">
+            <button class="action-btn" id="loadMoreFeedbackBtn" type="button" hidden>加载更多</button>
+          </div>
+        </section>
+      </div>
+
+    </main>
+
+    <!-- Global Toast Notification -->
+    <div class="toast-notification" id="toastNotice" hidden>已复制到剪贴板</div>
+  </div>
+
   <script type="module" src="./app.js"></script>
 </body>
 </html>

@@ -114,7 +114,7 @@ describe("admin behind Cloudflare Access", () => {
     const index = await adminFetch("/admin/", token);
     expect(index.status).toBe(200);
     expect(index.headers.get("content-type")).toContain("text/html");
-    expect(await index.text()).toContain("Usage Stats");
+    expect(await index.text()).toContain("GravityPort");
     expect(index.headers.get("cache-control")).toBe("no-store, private");
     expect(index.headers.get("x-robots-tag")).toBe("noindex, nofollow, noarchive");
 
@@ -289,5 +289,59 @@ describe("admin behind Cloudflare Access", () => {
     expect(list[0]).toEqual({ version: "0.3.7", firstSeenAt: null, fromVersion: null });
     expect(list[1]).toEqual({ version: "0.3.8", firstSeenAt: 2000, fromVersion: "0.3.7" });
     expect(list[2]).toEqual({ version: "0.3.9", firstSeenAt: 3000, fromVersion: "0.3.8" });
+  });
+
+  it("filters installs by valid search prefix and ignores invalid search params", async () => {
+    await resetStats();
+    const token = await makeToken(goodKey, claims);
+    const now = Date.now();
+
+    const ids = [
+      "00000001-0000-4000-8000-000000000000",
+      "00000002-0000-4000-8000-000000000000",
+      "abcdef12-0000-4000-8000-000000000000",
+    ];
+    for (const id of ids) {
+      await env.STATS.prepare(
+        "INSERT INTO installs (install_id, first_seen_at, last_seen_at, platform, arch, version, first_launch) " +
+          "VALUES (?, ?, ?, 'macos', 'arm64', '0.3.9', 0)"
+      ).bind(id, now - 10000, now).run();
+    }
+
+    // 1. Valid prefix matches exactly
+    const res1 = await adminFetch("/admin/installs.json?search=00000001", token);
+    const data1 = await res1.json();
+    expect(data1.total).toBe(1);
+    expect(data1.items.length).toBe(1);
+    expect(data1.items[0].installId).toBe("00000001-0000-4000-8000-000000000000");
+
+    // Common prefix matches multiple
+    const res2 = await adminFetch("/admin/installs.json?search=0000000", token);
+    const data2 = await res2.json();
+    expect(data2.total).toBe(2);
+
+    // Case insensitive
+    const resUpper = await adminFetch("/admin/installs.json?search=ABCDEF", token);
+    const dataUpper = await resUpper.json();
+    expect(dataUpper.total).toBe(1);
+    expect(dataUpper.items[0].installId).toBe("abcdef12-0000-4000-8000-000000000000");
+
+    // 2. Invalid characters ignored (not treated as error, treated as absent)
+    const resInvalid = await adminFetch("/admin/installs.json?search=xyz", token);
+    const dataInvalid = await resInvalid.json();
+    expect(dataInvalid.total).toBe(3); // ignored, returns all
+
+    // 3. '%' and '_' cannot act as wildcards: they contain invalid characters so are ignored
+    const resWildcard1 = await adminFetch("/admin/installs.json?search=%", token);
+    const dataWildcard1 = await resWildcard1.json();
+    expect(dataWildcard1.total).toBe(3); // ignored, returns all
+
+    const resWildcard2 = await adminFetch("/admin/installs.json?search=_", token);
+    const dataWildcard2 = await resWildcard2.json();
+    expect(dataWildcard2.total).toBe(3); // ignored, returns all
+
+    const resWildcard3 = await adminFetch("/admin/installs.json?search=00000001%", token);
+    const dataWildcard3 = await resWildcard3.json();
+    expect(dataWildcard3.total).toBe(3); // contains '%', ignored
   });
 });
