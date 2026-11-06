@@ -87,7 +87,7 @@
     <link rel="icon" href="./assets/gravityport-mark.svg?v=20261029-w2" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
     <link rel="preload" href="./assets/fonts/archivo-latin.woff2?v=20261029-w2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="./assets/fonts/noto-sans-sc-900.woff2?v=20261021e" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="./assets/fonts/noto-sans-sc-900.woff2?v=20261106a" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="./assets/fonts/fragment-mono-latin.woff2?v=20261029-w2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="./site/press.css?v=20261102-discord" />
     <script src="./site/boot.js?v=20261102-seo"></script>
@@ -707,13 +707,29 @@
       <p class="colophon__slug mono"><span>© <span data-year>2026</span> GravityPort</span><span data-i18n="footer.local">素材只在你的电脑上</span></p>
     </footer>
 
-    <dialog class="qr" data-community-dialog aria-labelledby="qr-title">
-      <h2 id="qr-title" data-i18n="community.title">WeChat</h2>
-      <img src="./assets/gravityport-wechat-qr.svg" alt="" width="488" height="488" loading="lazy" data-i18n-attr="alt:community.alt" />
-      <p class="qr__or" data-i18n="community.discordLead">或者加入 Discord</p>
-      <a class="btn-line qr__discord" href="https://discord.gg/rArXAShSkQ" target="_blank" rel="noreferrer"><span data-i18n="community.discord">加入 Discord</span><svg aria-hidden="true"><use href="#i-external" /></svg></a>
-      <p class="qr__mail"><span data-i18n="community.mailLead">或者发邮件</span> <a href="mailto:fengseekling@gmail.com">fengseekling@gmail.com</a></p>
-      <form method="dialog"><button class="btn-line" type="submit" data-i18n="community.close">关闭</button></form>
+    <dialog class="contact" data-community-dialog aria-labelledby="contact-title">
+      <div class="contact__trim">
+        <span class="crop crop--tl" aria-hidden="true"></span><span class="crop crop--tr" aria-hidden="true"></span><span class="crop crop--bl" aria-hidden="true"></span><span class="crop crop--br" aria-hidden="true"></span>
+        <img class="contact__code" src="./assets/gravityport-wechat-qr.svg" alt="" width="488" height="488" loading="lazy" data-i18n-attr="alt:community.alt" />
+        <div class="contact__head">
+          <h2 id="contact-title" data-i18n="community.title">联系</h2>
+          <form method="dialog"><button class="contact__close" type="submit" aria-label="关闭" data-i18n-attr="aria-label:community.close"><svg aria-hidden="true"><use href="#i-close" /></svg></button></form>
+        </div>
+        <dl class="contact__rows">
+          <div class="contact__row">
+            <dt data-i18n="community.wechat">WeChat</dt>
+            <dd><button class="contact__copy" type="button" data-copy-text="TrueSeaAi" aria-label="复制微信号 TrueSeaAi" data-i18n-attr="aria-label:community.copyLabel">TrueSeaAi<svg class="contact__icon-copy" aria-hidden="true"><use href="#i-copy" /></svg><svg class="contact__icon-done" aria-hidden="true"><use href="#i-check" /></svg></button><span class="contact__status" role="status" data-copy-status></span></dd>
+          </div>
+          <div class="contact__row">
+            <dt>Discord</dt>
+            <dd><a href="https://discord.gg/rArXAShSkQ" target="_blank" rel="noreferrer">discord.gg/rArXAShSkQ<svg aria-hidden="true"><use href="#i-external" /></svg></a></dd>
+          </div>
+          <div class="contact__row">
+            <dt data-i18n="community.mail">邮箱</dt>
+            <dd><a href="mailto:fengseekling@gmail.com">fengseekling@gmail.com</a></dd>
+          </div>
+        </dl>
+      </div>
     </dialog>
 
     <dialog class="handoff" data-handoff-dialog aria-labelledby="handoff-title">

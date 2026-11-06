@@ -201,11 +201,12 @@ window.GP_STRINGS = {
     "footer.community": "WeChat",
     "footer.local": "素材只在你的电脑上",
 
-    "community.title": "WeChat",
+    "community.title": "联系",
+    "community.wechat": "WeChat",
+    "community.copyLabel": "复制微信号 TrueSeaAi",
+    "community.copied": "已复制",
     "community.alt": "WeChat QR code",
-    "community.discordLead": "或者加入 Discord",
-    "community.mailLead": "或者发邮件",
-    "community.discord": "加入 Discord",
+    "community.mail": "邮箱",
     "community.close": "关闭",
 
     "handoff.title": "到电脑上下载",
@@ -419,11 +420,12 @@ window.GP_STRINGS = {
     "footer.community": "WeChat",
     "footer.local": "Your assets stay on your computer",
 
-    "community.title": "WeChat",
+    "community.title": "Contact",
+    "community.wechat": "WeChat",
+    "community.copyLabel": "Copy WeChat ID TrueSeaAi",
+    "community.copied": "Copied",
     "community.alt": "WeChat QR code",
-    "community.discordLead": "Or join us on Discord",
-    "community.mailLead": "Or email",
-    "community.discord": "Join on Discord",
+    "community.mail": "Email",
     "community.close": "Close",
 
     "handoff.title": "Download on your computer",

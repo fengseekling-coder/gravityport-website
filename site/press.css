@@ -34,7 +34,7 @@
 /* Noto Sans SC Black, subset to the display lines only (scripts/fetch-site-fonts.py). */
 @font-face {
   font-family: "GP Hei";
-  src: url("../assets/fonts/noto-sans-sc-900.woff2?v=20261021e") format("woff2");
+  src: url("../assets/fonts/noto-sans-sc-900.woff2?v=20261106a") format("woff2");
   font-weight: 100 900;
   font-display: swap;
 }
@@ -712,17 +712,37 @@ p, li, dd { text-wrap: pretty; }
 .colophon__slug { display: flex; flex-wrap: wrap; gap: 6px 22px; color: var(--muted); text-transform: uppercase; }
 
 /* ---------- Dialog, tooltip ---------- */
-.qr { border: 0; padding: 32px; background: var(--stock); color: var(--ink); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35); text-align: center; display: none; }
-.qr[open] { display: grid; gap: 14px; justify-items: center; }
-.qr::backdrop { background: rgba(18, 18, 18, 0.6); }
-.qr h2 { font-family: var(--font-display); font-weight: 860; font-stretch: 70%; font-size: 30px; }
-.qr p { color: var(--muted); }
-.qr img { width: 260px; max-width: calc(100vw - 96px); height: auto; box-sizing: border-box; padding: 30px; background: #fff; }
-.qr .qr__or { font-size: 14px; margin-top: 4px; }
-.qr .qr__mail { font-size: 14px; }
-.qr .qr__mail a { color: var(--ink); }
-.qr .qr__discord { color: var(--ink); }
-.qr .qr__discord:hover { background: var(--ink); color: var(--stock); box-shadow: inset 0 0 0 1.5px var(--ink); }
+/* Contact: a small stock sheet. Crop marks sit in a 48px margin around the trim; inside it, two 320px
+   columns with a 48px gutter: the WeChat code is the picture on the left, a ticket runs on the right
+   (display title, 3px head rule, one ruled row per channel). Both columns share their top and bottom
+   lines: the title starts on the code's top edge and the last row rule lands on its bottom edge.
+   Every size steps in 8px; rules are the only exception. */
+.contact { border: 0; padding: 48px; width: 784px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); overflow: auto; background: var(--stock); color: var(--ink); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35); display: none; }
+.contact[open] { display: block; animation: contact-print 420ms var(--ease); }
+.contact::backdrop { background: rgba(18, 18, 18, 0.6); }
+@keyframes contact-print { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+.contact__trim { position: relative; display: grid; grid-template-columns: 320px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "code head" "code rows"; column-gap: 48px; }
+.contact .crop { --len: 16px; --off: 8px; }
+.contact__code { grid-area: code; width: 320px; height: 320px; padding: 32px; background: #fff; }
+.contact__head { grid-area: head; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.contact__head h2 { font-family: var(--font-display); font-weight: 860; font-stretch: 68%; font-size: 56px; line-height: 56px; letter-spacing: -0.02em; }
+/* The cross sits in a 40px square on the title's centre line, pulled 8px right so its stroke ends on the column edge. */
+.contact__close { display: grid; place-items: center; width: 40px; height: 40px; margin: 8px -8px 0 0; transition: background-color 250ms var(--ease), color 250ms var(--ease); }
+.contact__close svg { width: 24px; height: 24px; }
+.contact__close:hover { background: var(--ink); color: var(--stock); }
+.contact__rows { grid-area: rows; display: flex; flex-direction: column; margin-top: 16px; border-top: 3px solid var(--ink); }
+.contact__row { flex: 1 0 auto; display: grid; align-content: center; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--ink); }
+.contact__row dt { font-size: 14px; line-height: 16px; color: var(--muted); }
+.contact__row dd { font-size: 18px; line-height: 24px; min-width: 0; }
+/* Every way in reads the same: the address itself, underlined, with a 16px icon for what a click does. */
+.contact__row dd { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; }
+.contact__row a, .contact__copy { display: inline-flex; align-items: center; gap: 8px; text-decoration: underline; text-underline-offset: 0.22em; text-decoration-thickness: 1px; text-decoration-color: rgba(18, 18, 18, 0.3); transition: text-decoration-color 200ms linear; }
+.contact__row a:hover, .contact__copy:hover { text-decoration-color: var(--ink); }
+.contact__row dd svg { width: 16px; height: 16px; flex: none; }
+.contact__icon-done, .contact__copy.is-copied .contact__icon-copy { display: none; }
+.contact__copy.is-copied .contact__icon-done { display: block; }
+.contact__status { font-size: 14px; line-height: 24px; color: var(--muted); }
+.contact__field { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 /* Phones and tablets: a download button opens this, with the address to open on a computer. */
 .handoff { border: 0; padding: 28px 24px 24px; width: min(420px, calc(100vw - 32px)); background: var(--stock); color: var(--ink); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35); display: none; }
 .handoff[open] { display: grid; gap: 14px; }
@@ -854,6 +874,18 @@ p, li, dd { text-wrap: pretty; }
 /* On phones the organize demo keeps its groups as a strip above the grid. */
 @media (max-width: 720px) {
   .app--demo .app__main { position: relative; }
+}
+/* Narrow screens: one column. Title, then the code, then the rows; the scan arrow turns to point up at it. */
+@media (max-width: 832px) {
+  .contact { padding: 24px; width: 480px; }
+  .contact .crop { --len: 12px; --off: 4px; }
+  .contact__trim { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "head" "code" "rows"; row-gap: 24px; }
+  .contact__head h2 { font-size: 40px; line-height: 40px; }
+  .contact__close { margin-top: 0; }
+  .contact__code { width: 100%; max-width: 288px; height: auto; aspect-ratio: 1; padding: 24px; }
+  .contact__rows { margin-top: 0; }
+  .contact__row:last-child { border-bottom: 0; }
+}
 }
 
 @media (prefers-reduced-motion: reduce) {
