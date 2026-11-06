@@ -91,6 +91,9 @@ https://:version.gravityport-site.pages.dev/*
 /assets/*.jpg
   Cache-Control: public, max-age=2592000
 
+/assets/*.png
+  Cache-Control: public, max-age=2592000
+
 /assets/*.webp
   Cache-Control: public, max-age=2592000
 
