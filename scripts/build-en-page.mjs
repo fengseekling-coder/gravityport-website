@@ -223,7 +223,7 @@ export function buildEnglishPage(indexHtml, strings) {
     `<link rel="canonical" href="${SITE}/en/" />`, "canonical link");
   // The privacy pages get their own English twins (/en/privacy/), so these links stay inside
   // /en/ instead of being rewritten to the Chinese page one level up.
-  html = replaceCount(html, /(\shref=")\.\/privacy\//g, "$1privacy/", "privacy links", 2);
+  html = replaceCount(html, /(\shref=")\.\/privacy\//g, "$1privacy/", "privacy links", 1);
   // en/ sits one level down.
   html = html.replace(/(\s(?:href|src)=")\.\//g, "$1../");
   html = html.replace(/(\ssrcset=")([^"]*)(")/g, (_, a, list, b) => `${a}${list.replace(/(^|,\s*)\.\//g, "$1../")}${b}`);

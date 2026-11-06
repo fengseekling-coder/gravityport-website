@@ -70,7 +70,7 @@ Website constraints (technical):
 - Real app screenshots can be captured from the installed app; `docs/images/gravityport-app.webp` in the app repository is a real-library screenshot the user approved for public use.
 - Images for marketing visuals will come from the user's own generated work, chosen by the user (they approve every image before it goes public).
 - There are no testimonials, user counts, download numbers, press quotes, customer logos or benchmarks. None may be invented.
-- WeChat QR code: `assets/gravityport-wechat-qr.png`.
+- WeChat QR code: `assets/gravityport-wechat-qr.svg` (vector; use the SVG, a PNG export looked blurry).
 - GitHub repository: `fengseekling-coder/gravityport` (source available).
 
 ## Product Principles

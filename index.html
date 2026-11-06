@@ -145,6 +145,7 @@
           <a href="#local" data-i18n="nav.privacy">隐私</a>
           <a href="#download" data-i18n="nav.download">下载</a>
           <a href="#install" data-i18n="nav.guide">指南</a>
+          <button class="masthead__contact" type="button" data-community-open data-i18n="nav.contact">联系</button>
         </nav>
         <div class="masthead__tools">
           <a class="lang" href="/en/" data-lang-toggle data-i18n-attr="aria-label:nav.langLabel" aria-label="切换到英文">
@@ -558,11 +559,6 @@
                 <p data-i18n="local.trash.body">删除的图在回收站保留 90 天，每张都有倒计时；刚删完还能直接撤销。</p>
               </section>
             </div>
-            <p class="disclosure" data-print>
-              <strong data-i18n="local.signal.title">桌面版自动联网只做两件事：</strong>
-              <span data-i18n="local.signal.body">检查更新，以及每天最多一次的匿名活跃信号（随机安装 ID、版本、系统和芯片架构）。都不含素材、Prompt、文件名或路径。活跃信号可以关闭，方法见</span>
-              <a href="./privacy/#online" data-i18n="local.signal.link">隐私政策</a><span data-i18n="local.signal.end">。</span>
-            </p>
           </div>
         </div>
         <p class="slug slug--sheet" aria-hidden="true"><span class="mono">SHEET 08 / 12</span><span class="mono">K + 802 FLUO</span><span class="mono">LOCAL · NO ACCOUNT · 90-DAY TRASH</span></p>
@@ -717,9 +713,10 @@
 
     <dialog class="qr" data-community-dialog aria-labelledby="qr-title">
       <h2 id="qr-title" data-i18n="community.title">WeChat</h2>
-      <img src="./assets/gravityport-wechat-qr.png" alt="" width="704" height="704" loading="lazy" data-i18n-attr="alt:community.alt" />
+      <img src="./assets/gravityport-wechat-qr.svg" alt="" width="488" height="488" loading="lazy" data-i18n-attr="alt:community.alt" />
       <p class="qr__or" data-i18n="community.discordLead">或者加入 Discord</p>
       <a class="btn-line qr__discord" href="https://discord.gg/rArXAShSkQ" target="_blank" rel="noreferrer"><span data-i18n="community.discord">加入 Discord</span><svg aria-hidden="true"><use href="#i-external" /></svg></a>
+      <p class="qr__mail"><span data-i18n="community.mailLead">或者发邮件</span> <a href="mailto:fengseekling@gmail.com">fengseekling@gmail.com</a></p>
       <form method="dialog"><button class="btn-line" type="submit" data-i18n="community.close">关闭</button></form>
     </dialog>
 
