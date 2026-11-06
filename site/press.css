@@ -168,6 +168,8 @@ html { scrollbar-color: var(--ink) var(--stock-2); }
 .masthead__nav { display: flex; gap: clamp(14px, 2.2vw, 30px); margin-left: auto; font-size: 14px; font-weight: 520; }
 .masthead__nav a { text-decoration: none; padding: 6px 0; background: linear-gradient(var(--ink), var(--ink)) 0 100% / 0 1px no-repeat; transition: background-size 400ms var(--ease); }
 .masthead__nav a:hover, .masthead__nav a[aria-current="true"] { background-size: 100% 1px; }
+.masthead__contact { font: inherit; color: inherit; border: 0; cursor: pointer; padding: 6px 0; background: linear-gradient(var(--ink), var(--ink)) 0 100% / 0 1px no-repeat; transition: background-size 400ms var(--ease); }
+.masthead__contact:hover { background-size: 100% 1px; }
 .masthead__tools { display: flex; align-items: center; gap: 14px; }
 .lang { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 12px; padding: 6px 2px; color: var(--muted); text-decoration: none; }
 .lang i { font-style: normal; opacity: 0.5; }
@@ -720,6 +722,8 @@ p, li, dd { text-wrap: pretty; }
 .qr p { color: var(--muted); }
 .qr img { width: 260px; max-width: calc(100vw - 96px); height: auto; box-sizing: border-box; padding: 30px; background: #fff; }
 .qr .qr__or { font-size: 14px; margin-top: 4px; }
+.qr .qr__mail { font-size: 14px; }
+.qr .qr__mail a { color: var(--ink); }
 .qr .qr__discord { color: var(--ink); }
 .qr .qr__discord:hover { background: var(--ink); color: var(--stock); box-shadow: inset 0 0 0 1.5px var(--ink); }
 /* Phones and tablets: a download button opens this, with the address to open on a computer. */
@@ -806,6 +810,7 @@ p, li, dd { text-wrap: pretty; }
   .masthead__nav { display: none; position: absolute; left: 0; right: 0; top: 64px; flex-direction: column; gap: 0; padding: 8px var(--margin) 16px; background: var(--stock); border-bottom: 1px solid var(--ink); font-size: 17px; }
   .masthead__nav.is-open { display: flex; }
   .masthead__nav a { padding: 12px 0; border-bottom: 1px solid rgba(18, 18, 18, 0.12); background: none; }
+  .masthead__contact { padding: 12px 0; text-align: left; background: none; }
   .masthead__menu { display: inline-flex; }
   .intro { grid-template-columns: 1fr; align-items: start; }
   .honesty__cases { grid-template-columns: 1fr; }

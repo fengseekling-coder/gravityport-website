@@ -102,7 +102,7 @@
       menuBtn.setAttribute("aria-label", t(open ? "nav.menuClose" : "nav.menu"));
     };
     menuBtn.addEventListener("click", () => setMenu(!nav.classList.contains("is-open")));
-    nav.addEventListener("click", (e) => { if (e.target.closest("a")) setMenu(false); });
+    nav.addEventListener("click", (e) => { if (e.target.closest("a, button")) setMenu(false); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(false); });
   }
 

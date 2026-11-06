@@ -15,6 +15,7 @@ window.GP_STRINGS = {
     "nav.privacy": "隐私",
     "nav.download": "下载",
     "nav.guide": "指南",
+    "nav.contact": "联系",
     "nav.langLabel": "切换到英文",
     "nav.langHint": "View this page in English",
     "nav.langHintLang": "en",
@@ -205,6 +206,7 @@ window.GP_STRINGS = {
     "community.title": "WeChat",
     "community.alt": "WeChat QR code",
     "community.discordLead": "或者加入 Discord",
+    "community.mailLead": "或者发邮件",
     "community.discord": "加入 Discord",
     "community.close": "关闭",
 
@@ -233,6 +235,7 @@ window.GP_STRINGS = {
     "nav.privacy": "Privacy",
     "nav.download": "Download",
     "nav.guide": "Guide",
+    "nav.contact": "Contact",
     "nav.langLabel": "Switch to Chinese",
     "nav.langHint": "查看中文版",
     "nav.langHintLang": "zh-CN",
@@ -423,6 +426,7 @@ window.GP_STRINGS = {
     "community.title": "WeChat",
     "community.alt": "WeChat QR code",
     "community.discordLead": "Or join us on Discord",
+    "community.mailLead": "Or email",
     "community.discord": "Join on Discord",
     "community.close": "Close",
 
