@@ -1148,6 +1148,37 @@
     if (dialog && typeof dialog.showModal === "function") dialog.showModal();
   }));
   if (dialog) dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
+  // WeChat ID: one click copies it; the icon turns to a tick and "Copied" shows for a moment.
+  $$("[data-copy-text]").forEach((btn) => {
+    const status = btn.parentElement.querySelector("[data-copy-status]");
+    let timer = 0;
+    btn.addEventListener("click", async () => {
+      const text = btn.getAttribute("data-copy-text");
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      } catch (e) {
+        // No clipboard API: copy a selection. The field goes inside the open dialog, since the rest of the page is inert.
+        const field = document.createElement("textarea");
+        field.className = "contact__field";
+        field.value = text;
+        field.setAttribute("readonly", "");
+        (btn.closest("dialog") || document.body).append(field);
+        field.select();
+        try { copied = document.execCommand("copy"); } catch (err) { copied = false; }
+        field.remove();
+      }
+      if (!copied) return;
+      btn.classList.add("is-copied");
+      if (status) status.textContent = t("community.copied");
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        btn.classList.remove("is-copied");
+        if (status) status.textContent = "";
+      }, 2000);
+    });
+  });
   $$("[data-year]").forEach((el) => { el.textContent = String(new Date().getFullYear()); });
 
   /* ---------------- Boot ---------------- */
