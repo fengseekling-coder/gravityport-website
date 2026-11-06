@@ -731,17 +731,17 @@ p, li, dd { text-wrap: pretty; }
 .contact__close svg { width: 24px; height: 24px; }
 .contact__close:hover { background: var(--ink); color: var(--stock); }
 .contact__rows { grid-area: rows; display: flex; flex-direction: column; margin-top: 16px; border-top: 3px solid var(--ink); }
-.contact__row { flex: 1 0 auto; display: grid; align-content: center; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--ink); }
+.contact__row { position: relative; flex: 1 0 auto; display: grid; align-content: center; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--ink); }
 .contact__row dt { font-size: 14px; line-height: 16px; color: var(--muted); }
 .contact__row dd { font-size: 18px; line-height: 24px; min-width: 0; }
 /* Every way in reads the same: the address itself, underlined, with a 16px icon for what a click does. */
-.contact__row dd { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; }
 .contact__row a, .contact__copy { display: inline-flex; align-items: center; gap: 8px; text-decoration: underline; text-underline-offset: 0.22em; text-decoration-thickness: 1px; text-decoration-color: rgba(18, 18, 18, 0.3); transition: text-decoration-color 200ms linear; }
 .contact__row a:hover, .contact__copy:hover { text-decoration-color: var(--ink); }
 .contact__row dd svg { width: 16px; height: 16px; flex: none; }
 .contact__icon-done, .contact__copy.is-copied .contact__icon-copy { display: none; }
 .contact__copy.is-copied .contact__icon-done { display: block; }
-.contact__status { font-size: 14px; line-height: 24px; color: var(--muted); }
+/* "Copied" sits at the right end of the name line, where every width has room, so nothing reflows. */
+.contact__status { position: absolute; top: 16px; right: 0; font-size: 14px; line-height: 16px; color: var(--muted); }
 .contact__field { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 /* Phones and tablets: a download button opens this, with the address to open on a computer. */
 .handoff { border: 0; padding: 28px 24px 24px; width: min(420px, calc(100vw - 32px)); background: var(--stock); color: var(--ink); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35); display: none; }
