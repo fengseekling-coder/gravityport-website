@@ -141,7 +141,6 @@ window.GP_STRINGS = {
 
     "free.title": "免费。",
     "free.body": "免费下载 · macOS · Windows",
-    "free.github": "源码公开在 GitHub",
 
     "download.title": "装上它，<br />从下一张图<wbr />开始。",
     "download.mac.detail": "Apple 芯片（M 系列）· DMG",
@@ -199,7 +198,6 @@ window.GP_STRINGS = {
     "footer.label": "页脚导航",
     "footer.guide": "安装扩展",
     "footer.privacy": "隐私政策",
-    "footer.releases": "版本发布",
     "footer.community": "WeChat",
     "footer.local": "素材只在你的电脑上",
 
@@ -361,7 +359,6 @@ window.GP_STRINGS = {
 
     "free.title": "Free.",
     "free.body": "Free download · macOS · Windows",
-    "free.github": "Source available on GitHub",
 
     "download.title": "Install it. Start with your next image.",
     "download.mac.detail": "Apple silicon (M-series) · DMG",
@@ -419,7 +416,6 @@ window.GP_STRINGS = {
     "footer.label": "Footer",
     "footer.guide": "Install the extension",
     "footer.privacy": "Privacy",
-    "footer.releases": "Releases",
     "footer.community": "WeChat",
     "footer.local": "Your assets stay on your computer",
 
