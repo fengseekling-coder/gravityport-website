@@ -153,7 +153,7 @@ GRAVITYPORT_DISABLE_TELEMETRY=1 /Applications/GravityPort.app/Contents/MacOS/Gra
 <span class="tok-dim"># macOS，从程序坞或访达打开也生效，直到重启电脑</span>
 launchctl setenv GRAVITYPORT_DISABLE_TELEMETRY 1
 <span class="tok-dim"># Windows，之后每次启动都生效</span>
-setx GRAVITYPORT_DISABLE_TELEMETRY 1</code></pre><p>Windows 上要恢复，在「系统属性 → 环境变量」里删掉它。</p><h3>网站和服务</h3><ul><li>官网页面、安装包下载、更新清单、使用统计和反馈都由 Cloudflare 提供。请求会经过 Cloudflare 的网络，Cloudflare 能看到 IP 地址；我们不存 IP，Workers 的日志功能是关着的。</li><li>使用统计按安装 ID 记：每个安装一行（首次和最近出现时间、平台、架构、版本），外加每天的活跃记录；超过 90 天没再出现的安装，记录折进总数后删除，每日活跃记录 32 天后删除。这些数据只有开发者通过要登录的后台能看。</li><li>官网访问只记每天的计数：页面路径、来源网站的域名、国家、设备类型；不记 IP，不设 Cookie。</li><li>下载只按文件和来源标签（如 <code>ref=reddit_codex</code>）记每天的次数，不需要登录。</li></ul><p>App 不下载任何模型。在 Windows 上，部分系统语言下，内置浏览器可能会从 Google 下载拼写检查词典文件；只下载词典，不会发送你输入的任何内容，中文系统不会下载。</p></div>
+setx GRAVITYPORT_DISABLE_TELEMETRY 1</code></pre><p>Windows 上要恢复，在「系统属性 → 环境变量」里删掉它。</p><h3>网站和服务</h3><ul><li>官网页面、安装包下载、更新清单、使用统计和反馈都由 Cloudflare 提供。请求会经过 Cloudflare 的网络，Cloudflare 能看到 IP 地址；我们不存 IP，Workers 的日志功能是关着的。</li><li>使用统计按安装 ID 记：每个安装一行（首次和最近出现时间、平台、架构、版本、用过的各个版本和每个版本第一次出现的时间），外加每天的活跃记录；超过 90 天没再出现的安装，记录折进总数后删除，每日活跃记录 32 天后删除。这些数据只有开发者通过要登录的后台能看。</li><li>官网访问只记每天的计数：页面路径、来源网站的域名、国家、设备类型；不记 IP，不设 Cookie。</li><li>下载只按文件和来源标签（如 <code>ref=reddit_codex</code>）记每天的次数，不需要登录。</li></ul><p>App 不下载任何模型。在 Windows 上，部分系统语言下，内置浏览器可能会从 Google 下载拼写检查词典文件；只下载词典，不会发送你输入的任何内容，中文系统不会下载。</p></div>
               </section>
               <section class="policy__sec" id="pinterest" aria-labelledby="pinterest-title">
                 <h2 id="pinterest-title" data-i18n="pp.pinterest.title">Pinterest（尚未开放）</h2>

@@ -29,6 +29,10 @@ async function dailyRows() {
   return (await env.STATS.prepare("SELECT * FROM daily_active").all()).results;
 }
 
+async function installVersionRows() {
+  return (await env.STATS.prepare("SELECT * FROM install_versions ORDER BY install_id, version").all()).results;
+}
+
 describe("telemetry", () => {
   it("records valid HEAD and GET reports on both feed paths", async () => {
     await resetStats();
@@ -107,6 +111,70 @@ describe("telemetry", () => {
     const etag = object.httpEtag;
     await fetchWorker(telemetryUrl("/releases/latest.json", VALID), { headers: { "if-none-match": etag } });
     expect((await installRows()).length).toBe(0);
+  });
+
+  it("records install_versions: new install, repeat, upgrade, downgrade, unknown version", async () => {
+    await resetStats();
+    await env.RELEASES.put("releases/latest.json", '{"version":"0.3.9"}');
+
+    // 1. New install: from_version is null
+    await fetchWorker(telemetryUrl("/releases/latest.json", { ...VALID, version: "0.3.8" }), { method: "GET" });
+    let versions = await installVersionRows();
+    expect(versions.length).toBe(1);
+    expect(versions[0].version).toBe("0.3.8");
+    expect(versions[0].from_version).toBeNull();
+    expect(typeof versions[0].first_seen_at).toBe("number");
+    const v038FirstSeen = versions[0].first_seen_at;
+
+    // 2. Repeat report of the same version: no new row, first_seen_at unchanged
+    await fetchWorker(telemetryUrl("/releases/latest.json", { ...VALID, version: "0.3.8" }), { method: "GET" });
+    versions = await installVersionRows();
+    expect(versions.length).toBe(1);
+    expect(versions[0].first_seen_at).toBe(v038FirstSeen);
+
+    // 3. Upgrade 0.3.8 -> 0.3.9: new row with from_version = 0.3.8
+    await fetchWorker(telemetryUrl("/releases/latest.json", { ...VALID, version: "0.3.9" }), { method: "GET" });
+    versions = await installVersionRows();
+    expect(versions.length).toBe(2);
+    const v039Row = versions.find((r) => r.version === "0.3.9");
+    expect(v039Row).toBeDefined();
+    expect(v039Row.from_version).toBe("0.3.8");
+    expect(typeof v039Row.first_seen_at).toBe("number");
+
+    // 4. Downgrade back to 0.3.8: no new row in install_versions, installs.version reverts to 0.3.8
+    await fetchWorker(telemetryUrl("/releases/latest.json", { ...VALID, version: "0.3.8" }), { method: "GET" });
+    versions = await installVersionRows();
+    expect(versions.length).toBe(2);
+    const installs = await installRows();
+    expect(installs[0].version).toBe("0.3.8");
+
+    // 5. unknown version is not written to install_versions
+    // Telemetry validation rejects version: "unknown" upfront, and recordTelemetry skips unknown version
+    await fetchWorker(telemetryUrl("/releases/latest.json", { ...VALID, version: "unknown" }), { method: "GET" });
+    versions = await installVersionRows();
+    expect(versions.length).toBe(2);
+    expect(versions.some((r) => r.version === "unknown")).toBe(false);
+  });
+
+  it("manifest response bytes and status stay identical when writing install_versions fails", async () => {
+    await resetStats();
+    const manifestContent = '{"version":"0.3.9","assets":["app.zip"]}';
+    await env.RELEASES.put("releases/latest.json", manifestContent);
+
+    // Drop install_versions so that inserting into it throws an error in the batch
+    await env.STATS.prepare("DROP TABLE IF EXISTS install_versions").run();
+
+    const response = await fetchWorker(telemetryUrl("/releases/latest.json", VALID), { method: "GET" });
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe(manifestContent);
+    expect(response.headers.get("content-type")).toBe("application/json; charset=utf-8");
+
+    // Restore table for subsequent tests
+    await env.STATS.prepare(
+      "CREATE TABLE IF NOT EXISTS install_versions (" +
+        "install_id TEXT NOT NULL, version TEXT NOT NULL, first_seen_at INTEGER, from_version TEXT, " +
+        "PRIMARY KEY (install_id, version))"
+    ).run();
   });
 
   it("never returns a 3xx for the update feed addresses", async () => {

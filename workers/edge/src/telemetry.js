@@ -11,11 +11,11 @@ export const TELEMETRY_VERSION = 2;
 /** @const {Set<string>} */
 export const TELEMETRY_PATHS = new Set(["/releases/latest.json", "/releases/gravityport/latest.json"]);
 
-const INSTALLATION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export const INSTALLATION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const USAGE_EVENTS = new Set(["first_launch", "daily_active"]);
-const USAGE_PLATFORMS = new Set(["macos", "windows", "other"]);
+export const USAGE_PLATFORMS = new Set(["macos", "windows", "other"]);
 const ARCH_PATTERN = /^[0-9A-Za-z._-]{1,24}$/;
-const VERSION_PATTERN = /^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+export const VERSION_PATTERN = /^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 
 /**
  * Validate and extract telemetry parameters from a request URL. Returns null
@@ -60,7 +60,18 @@ export async function recordTelemetry(env, url, nowMs) {
   const { installId, platform, arch, version, event, telemetryVersion } = parsed;
   const firstLaunch = event === "first_launch" ? 1 : 0;
   try {
-    const statements = [
+    const statements = [];
+    if (version !== "unknown") {
+      statements.push(
+        env
+          .prepare(
+            "INSERT OR IGNORE INTO install_versions (install_id, version, first_seen_at, from_version) " +
+              "VALUES (?, ?, ?, (SELECT version FROM installs WHERE install_id = ?))"
+          )
+          .bind(installId, version, nowMs, installId)
+      );
+    }
+    statements.push(
       env
         .prepare(
           // Semantics match report-usage.mjs: first_seen_at is the earliest
@@ -92,8 +103,8 @@ export async function recordTelemetry(env, url, nowMs) {
           nowMs,
           version,
           firstLaunch
-        ),
-    ];
+        )
+    );
     if (telemetryVersion === TELEMETRY_VERSION) {
       statements.push(
         env

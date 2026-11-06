@@ -79,6 +79,7 @@ export async function counterTotal(db, kind, key = undefined) {
  */
 export async function resetStats() {
   await env.STATS.batch([
+    env.STATS.prepare("DELETE FROM install_versions"),
     env.STATS.prepare("DELETE FROM installs"),
     env.STATS.prepare("DELETE FROM daily_active"),
     env.STATS.prepare("DELETE FROM counters"),

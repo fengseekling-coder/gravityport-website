@@ -23,6 +23,10 @@ async function installRows() {
   return (await env.STATS.prepare("SELECT install_id FROM installs").all()).results.map((row) => row.install_id).sort();
 }
 
+async function installVersionRows() {
+  return (await env.STATS.prepare("SELECT install_id, version FROM install_versions").all()).results;
+}
+
 async function dailyDays() {
   return (await env.STATS.prepare("SELECT DISTINCT day FROM daily_active").all()).results.map((row) => row.day).sort();
 }
@@ -55,6 +59,28 @@ describe("scheduled maintenance", () => {
     expect(after.knownInstallationInstances).toBe(8);
     expect(after.reportedFirstLaunches).toBe(6);
     expect(after.platformInstalls).toEqual({ macos: 2, windows: 1 });
+  });
+
+  it("deletes install_versions for expired installs while preserving non-expired installs", async () => {
+    await resetStats();
+    const now = Date.now();
+    await insertInstall("old-91d", now - 91 * DAY, "windows", 0);
+    await insertInstall("kept-89d", now - 89 * DAY, "macos", 0);
+
+    await env.STATS.prepare(
+      "INSERT INTO install_versions (install_id, version, first_seen_at, from_version) VALUES " +
+        "('old-91d', '0.3.0', ?, NULL), " +
+        "('old-91d', '0.3.1', ?, '0.3.0'), " +
+        "('kept-89d', '0.3.1', ?, NULL)"
+    )
+      .bind(now - 95 * DAY, now - 91 * DAY, now - 89 * DAY)
+      .run();
+
+    const { ctx } = makeCtx();
+    await worker.scheduled({ scheduledTime: now, cron: "17 11 * * *" }, env, ctx);
+
+    const remainingVersions = await installVersionRows();
+    expect(remainingVersions).toEqual([{ install_id: "kept-89d", version: "0.3.1" }]);
   });
 
   it("keeps the 32 most recent analytics days of daily_active", async () => {
