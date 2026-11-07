@@ -137,9 +137,28 @@ import { rankRowsWithOther } from "./rank.js";
 
   window.addEventListener("hashchange", updateRoute);
 
+  const SVG_NS = "http://www.w3.org/2000/svg";
+
+  function createLoadingRow(message, colspan = 8) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = colspan;
+    td.className = "empty-cell";
+    td.textContent = message;
+    tr.appendChild(td);
+    return tr;
+  }
+
+  function createEmptyCard(text) {
+    const div = document.createElement("div");
+    div.className = "empty-card";
+    div.textContent = text;
+    return div;
+  }
+
   // --- Render KPI Cards & Sparklines ---
   function createSparkline(dataValues, strokeColor, isDashed = false) {
-    if (!dataValues || dataValues.length < 2) return "";
+    if (!dataValues || dataValues.length < 2) return null;
     const w = 240;
     const h = 28;
     const min = Math.min(...dataValues);
@@ -152,12 +171,23 @@ import { rankRowsWithOther } from "./rank.js";
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     });
 
-    const dashAttr = isDashed ? 'stroke-dasharray="3 3"' : "";
-    return `
-      <svg class="sparkline-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-        <path d="M ${points.join(" L ")}" fill="none" stroke="${strokeColor}" stroke-width="1.8" ${dashAttr} vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-    `;
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", "sparkline-svg");
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    svg.setAttribute("preserveAspectRatio", "none");
+
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("d", `M ${points.join(" L ")}`);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", strokeColor);
+    path.setAttribute("stroke-width", "1.8");
+    if (isDashed) path.setAttribute("stroke-dasharray", "3 3");
+    path.setAttribute("vector-effect", "non-scaling-stroke");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("stroke-linejoin", "round");
+
+    svg.appendChild(path);
+    return svg;
   }
 
   function renderKpiCards() {
@@ -183,7 +213,8 @@ import { rankRowsWithOther } from "./rank.js";
     }
 
     const dauSeries = daily.map((d) => d.activeInstalls || 0);
-    $("sparklineDau").innerHTML = createSparkline(dauSeries, "var(--accent)");
+    const sparkDau = createSparkline(dauSeries, "var(--accent)");
+    if (sparkDau) $("sparklineDau").replaceChildren(sparkDau);
 
     // 2. WAU & Ratio
     const wau = statsData.activeInstalls7d || 0;
@@ -202,7 +233,8 @@ import { rankRowsWithOther } from "./rank.js";
       const window7 = arr.slice(Math.max(0, i - 6), i + 1);
       return Math.round(window7.reduce((acc, it) => acc + (it.activeInstalls || 0), 0) / window7.length * 1.5);
     });
-    $("sparklineWau").innerHTML = createSparkline(wauSeries, "var(--accent)");
+    const sparkWau = createSparkline(wauSeries, "var(--accent)");
+    if (sparkWau) $("sparklineWau").replaceChildren(sparkWau);
 
     // 3. MAU
     const knownInstalls = statsData.knownInstallationInstances || 0;
@@ -211,7 +243,8 @@ import { rankRowsWithOther } from "./rank.js";
     knownBadge.hidden = false;
 
     const mauSeries = daily.map((d, i) => Math.round(30 + i * 0.8));
-    $("sparklineMau").innerHTML = createSparkline(mauSeries, "var(--text-secondary)");
+    const sparkMau = createSparkline(mauSeries, "var(--text-secondary)");
+    if (sparkMau) $("sparklineMau").replaceChildren(sparkMau);
 
     // 4. First Launches (Last 7 days total)
     const recent7Days = daily.slice(-7);
@@ -222,12 +255,13 @@ import { rankRowsWithOther } from "./rank.js";
     if (downloads7d > 0) {
       const launchRate = Math.round((firstLaunches7d / downloads7d) * 100);
       const launchBadge = $("launchRateBadge");
-      launchBadge.textContent = `首次启动 / 下载请求 = ${launchRate}%`;
+      launchBadge.textContent = `近 7 天 首次启动 / 下载请求 = ${launchRate}%`;
       launchBadge.hidden = false;
     }
 
     const firstLaunchSeries = daily.map((d) => d.firstLaunches || 0);
-    $("sparklineFirstLaunches").innerHTML = createSparkline(firstLaunchSeries, "var(--text-primary)");
+    const sparkFirst = createSparkline(firstLaunchSeries, "var(--text-primary)");
+    if (sparkFirst) $("sparklineFirstLaunches").replaceChildren(sparkFirst);
   }
 
   // --- Render 30-Day Trend Chart ---
@@ -268,6 +302,7 @@ import { rankRowsWithOther } from "./rank.js";
 
     function draw() {
       svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.replaceChildren();
 
       let maxVal = 10;
       daily.forEach((d) => {
@@ -282,16 +317,26 @@ import { rankRowsWithOther } from "./rank.js";
       const getX = (i) => padLeft + i * xStep;
       const getY = (val) => padTop + plotH - (val / maxVal) * plotH;
 
-      let svgContent = "";
-
-      // Grid lines
+      // Grid lines & Y axis numbers
       for (let g = 0; g <= 4; g++) {
         const val = Math.round((maxVal / 4) * g);
         const yPos = getY(val);
-        svgContent += `
-          <line class="chart-grid-line" x1="${padLeft}" y1="${yPos}" x2="${width - padRight}" y2="${yPos}" />
-          <text class="chart-axis-text" x="${padLeft - 6}" y="${yPos + 3}" text-anchor="end">${val}</text>
-        `;
+
+        const line = document.createElementNS(SVG_NS, "line");
+        line.setAttribute("class", "chart-grid-line");
+        line.setAttribute("x1", String(padLeft));
+        line.setAttribute("y1", String(yPos));
+        line.setAttribute("x2", String(width - padRight));
+        line.setAttribute("y2", String(yPos));
+        svg.appendChild(line);
+
+        const text = document.createElementNS(SVG_NS, "text");
+        text.setAttribute("class", "chart-axis-text");
+        text.setAttribute("x", String(padLeft - 6));
+        text.setAttribute("y", String(yPos + 3));
+        text.setAttribute("text-anchor", "end");
+        text.textContent = String(val);
+        svg.appendChild(text);
       }
 
       // X dates
@@ -300,33 +345,40 @@ import { rankRowsWithOther } from "./rank.js";
           const xPos = getX(i);
           const parts = d.date.split("-");
           const label = `${parts[1]}/${parts[2]}`;
-          svgContent += `<text class="chart-axis-text" x="${xPos}" y="${height - 6}" text-anchor="middle">${label}</text>`;
+          const text = document.createElementNS(SVG_NS, "text");
+          text.setAttribute("class", "chart-axis-text");
+          text.setAttribute("x", String(xPos));
+          text.setAttribute("y", String(height - 6));
+          text.setAttribute("text-anchor", "middle");
+          text.textContent = label;
+          svg.appendChild(text);
         }
       });
 
-      function buildPath(metricKey, multiplier = 1) {
+      function addPath(metricKey, className, multiplier = 1) {
         const pts = daily.map((d, i) => `${getX(i).toFixed(1)},${getY((d[metricKey] || 0) * multiplier).toFixed(1)}`);
-        return `M ${pts.join(" L ")}`;
+        const path = document.createElementNS(SVG_NS, "path");
+        path.setAttribute("class", className);
+        path.setAttribute("d", `M ${pts.join(" L ")}`);
+        svg.appendChild(path);
       }
 
       // Render lines in order: views (dotted), downloads (dashed), launches (solid light), active (accent)
-      if (visibleMetrics.pageViews) {
-        svgContent += `<path class="path-views" d="${buildPath("pageViews", 0.25)}" />`;
-      }
-      if (visibleMetrics.downloadRequests) {
-        svgContent += `<path class="path-downloads" d="${buildPath("downloadRequests")}" />`;
-      }
-      if (visibleMetrics.firstLaunches) {
-        svgContent += `<path class="path-first" d="${buildPath("firstLaunches", 4)}" />`;
-      }
-      if (visibleMetrics.activeInstalls) {
-        svgContent += `<path class="path-active" d="${buildPath("activeInstalls")}" />`;
-      }
+      if (visibleMetrics.pageViews) addPath("pageViews", "path-views", 0.25);
+      if (visibleMetrics.downloadRequests) addPath("downloadRequests", "path-downloads", 1);
+      if (visibleMetrics.firstLaunches) addPath("firstLaunches", "path-first", 4);
+      if (visibleMetrics.activeInstalls) addPath("activeInstalls", "path-active", 1);
 
       // Hover guide line
-      svgContent += `<line id="trendHoverLine" class="chart-hover-line" x1="0" y1="${padTop}" x2="0" y2="${height - padBottom}" display="none" />`;
-
-      svg.innerHTML = svgContent;
+      const hoverLine = document.createElementNS(SVG_NS, "line");
+      hoverLine.setAttribute("id", "trendHoverLine");
+      hoverLine.setAttribute("class", "chart-hover-line");
+      hoverLine.setAttribute("x1", "0");
+      hoverLine.setAttribute("y1", String(padTop));
+      hoverLine.setAttribute("x2", "0");
+      hoverLine.setAttribute("y2", String(height - padBottom));
+      hoverLine.setAttribute("display", "none");
+      svg.appendChild(hoverLine);
     }
 
     draw();
@@ -352,15 +404,31 @@ import { rankRowsWithOther } from "./rank.js";
       const ttX = Math.min(rect.width - 180, Math.max(8, mouseX + 14));
       tooltip.style.left = `${ttX}px`;
 
-      const convText = typeof d.homeToDownloadRate === "number" ? `${(d.homeToDownloadRate * 100).toFixed(1)}%` : "—";
-      tooltip.innerHTML = `
-        <div class="tooltip-date">${d.date}</div>
-        <div class="tooltip-row"><span>日活 (DAU):</span><strong>${d.activeInstalls}</strong></div>
-        <div class="tooltip-row"><span>首次启动:</span><strong>${d.firstLaunches}</strong></div>
-        <div class="tooltip-row"><span>下载请求:</span><strong>${d.downloadRequests}</strong></div>
-        <div class="tooltip-row"><span>官网访问:</span><strong>${d.pageViews}</strong></div>
-        <div class="tooltip-row"><span>当日转化率:</span><strong>${convText}</strong></div>
-      `;
+      const convText = typeof d.conversionRate === "number" ? `${(d.conversionRate * 100).toFixed(1)}%` : "—";
+      tooltip.replaceChildren();
+
+      const dateEl = document.createElement("div");
+      dateEl.className = "tooltip-date";
+      dateEl.textContent = d.date;
+      tooltip.appendChild(dateEl);
+
+      const rows = [
+        ["日活 (DAU):", String(d.activeInstalls || 0)],
+        ["首次启动:", String(d.firstLaunches || 0)],
+        ["下载请求:", String(d.downloadRequests || 0)],
+        ["官网访问:", String(d.pageViews || 0)],
+        ["当日转化率:", convText],
+      ];
+      for (const [lbl, val] of rows) {
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "tooltip-row";
+        const lblSpan = document.createElement("span");
+        lblSpan.textContent = lbl;
+        const valStrong = document.createElement("strong");
+        valStrong.textContent = val;
+        rowDiv.append(lblSpan, valStrong);
+        tooltip.appendChild(rowDiv);
+      }
     };
 
     container.onmouseleave = () => {
@@ -429,17 +497,41 @@ import { rankRowsWithOther } from "./rank.js";
     $("macosBar").style.width = `${macPct}%`;
     $("windowsBar").style.width = `${winPct}%`;
 
-    const archs = statsData.archInstalls || {};
-    $("macosArm64Tag").textContent = `Apple Silicon (arm64): ${archs.arm64 || 0} 台`;
-    $("macosX64Tag").textContent = `Intel (x64): ${archs.x64 || 0} 台`;
-    $("windowsX64Tag").textContent = `x64: ${winCount} 台`;
+    const platArchs = statsData.platformArchInstalls || {};
+    renderPlatformArchRow("macosArchRow", platArchs.macos, "macos");
+    renderPlatformArchRow("windowsArchRow", platArchs.windows, "windows");
 
     if (otherCount > 0) {
       $("otherPlatformBox").hidden = false;
       const otherPct = Math.round((otherCount / totalKnown) * 1000) / 10;
       $("otherCount").textContent = `${otherCount} 台 (${otherPct}%)`;
       $("otherBar").style.width = `${otherPct}%`;
+      renderPlatformArchRow("otherArchRow", platArchs.other, "other");
+    } else {
+      $("otherPlatformBox").hidden = true;
     }
+  }
+
+  function renderPlatformArchRow(containerId, archMap, platformName) {
+    const container = $(containerId);
+    if (!container) return;
+    container.replaceChildren();
+
+    if (!archMap || typeof archMap !== "object") return;
+    const entries = Object.entries(archMap);
+    if (entries.length === 0) return;
+
+    entries.forEach(([arch, count]) => {
+      const tag = document.createElement("span");
+      tag.className = "arch-tag";
+      let label = arch;
+      if (platformName === "macos") {
+        if (arch === "arm64") label = `Apple Silicon (${arch})`;
+        else if (arch === "x64") label = `Intel (${arch})`;
+      }
+      tag.textContent = `${label}: ${number.format(count)} 台`;
+      container.appendChild(tag);
+    });
   }
 
   // --- Render Funnel & Acquisition ---
@@ -462,7 +554,7 @@ import { rankRowsWithOther } from "./rank.js";
 
     const launchRate = totalSiteDownloads > 0 ? Math.round((firstLaunches / totalSiteDownloads) * 1000) / 10 : 0;
     $("funnelBar3").style.width = `${Math.min(100, Math.max(4, launchRate))}%`;
-    $("funnelLaunchRatePill").textContent = `首次启动 / 下载请求：${launchRate}%`;
+    $("funnelLaunchRatePill").textContent = `累计 首次启动 / 下载请求：${launchRate}%`;
 
     if (statsData.botPageViews > 0) {
       const botNote = $("botFilterNote");
@@ -537,7 +629,7 @@ import { rankRowsWithOther } from "./rank.js";
   // --- Render Installation Table (Live Fetch) ---
   async function loadInstallsPage() {
     const tbody = $("installTableBody");
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-cell">正在读取数据…</td></tr>`;
+    tbody.replaceChildren(createLoadingRow("正在读取数据…", 8));
 
     try {
       const params = new URLSearchParams();
@@ -555,7 +647,7 @@ import { rankRowsWithOther } from "./rank.js";
 
       renderInstallsTableRows(items);
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="8" class="empty-cell">读取设备明细失败：${err.message}</td></tr>`;
+      tbody.replaceChildren(createLoadingRow(`读取设备明细失败：${err.message}`, 8));
     }
   }
 
@@ -571,7 +663,7 @@ import { rankRowsWithOther } from "./rank.js";
     $("installNextPage").disabled = installsCurrentPage >= totalPages;
 
     if (items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="empty-cell">没有找到匹配的电脑记录</td></tr>`;
+      tbody.replaceChildren(createLoadingRow("没有找到匹配的电脑记录", 8));
       return;
     }
 
@@ -584,37 +676,92 @@ import { rankRowsWithOther } from "./rank.js";
       const shortId = `${item.installId.slice(0, 8)}…${item.installId.slice(-4)}`;
       const isLatest = item.version === latestVersion;
 
-      // 7-day heat dots
-      let heatDots = "";
-      for (let i = 0; i < 7; i++) {
-        const active = i < (item.activeDays7 || 0);
-        heatDots += `<span class="heat-dot ${active ? "active" : ""}"></span>`;
-      }
-
       const platText = item.platform === "macos" ? `macOS (${item.arch})` : item.platform === "windows" ? `Windows (${item.arch})` : item.platform;
 
-      tr.innerHTML = `
-        <td class="col-uuid">
-          <div class="uuid-cell">
-            <span title="${item.installId}">${shortId}</span>
-            <button class="copy-uuid-btn" type="button" title="复制完整编号">复制</button>
-          </div>
-        </td>
-        <td class="col-platform"><div class="platform-cell">${platText}</div></td>
-        <td class="col-version"><span class="ver-badge ${isLatest ? "latest" : ""}">${item.version}</span></td>
-        <td class="col-heat"><div class="heat-dots" title="最近 7 天内活跃 ${item.activeDays7} 天">${heatDots}</div></td>
-        <td class="col-days"><strong class="days-active-val">${item.activeDays30}</strong> / 30</td>
-        <td class="col-first"><span class="time-cell">${formatPacificDate(item.firstSeenAt)}</span></td>
-        <td class="col-last"><span class="time-cell">${formatPacificDateTime(item.lastSeenAt)}</span></td>
-        <td class="col-toggle"><span class="action-arrow">›</span></td>
-      `;
-
-      tr.querySelector(".copy-uuid-btn").onclick = (e) => {
+      // Col 1: UUID
+      const tdUuid = document.createElement("td");
+      tdUuid.className = "col-uuid";
+      const uuidCell = document.createElement("div");
+      uuidCell.className = "uuid-cell";
+      const uuidSpan = document.createElement("span");
+      uuidSpan.title = item.installId;
+      uuidSpan.textContent = shortId;
+      const copyBtn = document.createElement("button");
+      copyBtn.className = "copy-uuid-btn";
+      copyBtn.type = "button";
+      copyBtn.title = "复制完整编号";
+      copyBtn.textContent = "复制";
+      copyBtn.onclick = (e) => {
         e.stopPropagation();
         navigator.clipboard.writeText(item.installId).then(() => {
           showToast(`已复制编号：${shortId}`);
         });
       };
+      uuidCell.append(uuidSpan, copyBtn);
+      tdUuid.appendChild(uuidCell);
+
+      // Col 2: Platform
+      const tdPlat = document.createElement("td");
+      tdPlat.className = "col-platform";
+      const platCell = document.createElement("div");
+      platCell.className = "platform-cell";
+      platCell.textContent = platText;
+      tdPlat.appendChild(platCell);
+
+      // Col 3: Version
+      const tdVer = document.createElement("td");
+      tdVer.className = "col-version";
+      const verBadge = document.createElement("span");
+      verBadge.className = `ver-badge ${isLatest ? "latest" : ""}`;
+      verBadge.textContent = item.version;
+      tdVer.appendChild(verBadge);
+
+      // Col 4: Heat
+      const tdHeat = document.createElement("td");
+      tdHeat.className = "col-heat";
+      const heatDots = document.createElement("div");
+      heatDots.className = "heat-dots";
+      heatDots.title = `最近 7 天内活跃 ${item.activeDays7 || 0} 天`;
+      for (let i = 0; i < 7; i++) {
+        const dot = document.createElement("span");
+        dot.className = `heat-dot ${i < (item.activeDays7 || 0) ? "active" : ""}`;
+        heatDots.appendChild(dot);
+      }
+      tdHeat.appendChild(heatDots);
+
+      // Col 5: Days active
+      const tdDays = document.createElement("td");
+      tdDays.className = "col-days";
+      const daysStrong = document.createElement("strong");
+      daysStrong.className = "days-active-val";
+      daysStrong.textContent = String(item.activeDays30 || 0);
+      tdDays.append(daysStrong, document.createTextNode(" / 30"));
+
+      // Col 6: First seen
+      const tdFirst = document.createElement("td");
+      tdFirst.className = "col-first";
+      const firstSpan = document.createElement("span");
+      firstSpan.className = "time-cell";
+      firstSpan.textContent = formatPacificDate(item.firstSeenAt);
+      tdFirst.appendChild(firstSpan);
+
+      // Col 7: Last seen
+      const tdLast = document.createElement("td");
+      tdLast.className = "col-last";
+      const lastSpan = document.createElement("span");
+      lastSpan.className = "time-cell";
+      lastSpan.textContent = formatPacificDateTime(item.lastSeenAt);
+      tdLast.appendChild(lastSpan);
+
+      // Col 8: Toggle
+      const tdToggle = document.createElement("td");
+      tdToggle.className = "col-toggle";
+      const arrowSpan = document.createElement("span");
+      arrowSpan.className = "action-arrow";
+      arrowSpan.textContent = "›";
+      tdToggle.appendChild(arrowSpan);
+
+      tr.append(tdUuid, tdPlat, tdVer, tdHeat, tdDays, tdFirst, tdLast, tdToggle);
 
       tr.onclick = async () => {
         if (expandedInstallIds.has(item.installId)) {
@@ -643,29 +790,37 @@ import { rankRowsWithOther } from "./rank.js";
 
         const timelineTr = document.createElement("tr");
         timelineTr.className = "timeline-row";
+        const tdTimeline = document.createElement("td");
+        tdTimeline.colSpan = 8;
+        const box = document.createElement("div");
+        box.className = "timeline-box";
+        const title = document.createElement("div");
+        title.className = "timeline-title";
+        title.textContent = `版本演进历程 · ${item.installId}`;
+        const itemsWrap = document.createElement("div");
+        itemsWrap.className = "timeline-items";
 
-        let timelineHtml = "";
         history.forEach((h) => {
-          const timeStr = h.firstSeenAt ? formatPacificDateTime(h.firstSeenAt) : "初始接入";
-          const fromStr = h.fromVersion ? `升级自 v${h.fromVersion}` : "首次安装";
-          timelineHtml += `
-            <div class="timeline-item">
-              <span class="timeline-dot"></span>
-              <span class="timeline-ver">v${h.version}</span>
-              <span class="timeline-from">${fromStr}</span>
-              <span class="timeline-time">${timeStr}</span>
-            </div>
-          `;
+          const itemEl = document.createElement("div");
+          itemEl.className = "timeline-item";
+          const dot = document.createElement("span");
+          dot.className = "timeline-dot";
+          const ver = document.createElement("span");
+          ver.className = "timeline-ver";
+          ver.textContent = `v${h.version}`;
+          const from = document.createElement("span");
+          from.className = "timeline-from";
+          from.textContent = h.fromVersion ? `升级自 v${h.fromVersion}` : "首次安装";
+          const time = document.createElement("span");
+          time.className = "timeline-time";
+          time.textContent = h.firstSeenAt ? formatPacificDateTime(h.firstSeenAt) : "初始接入";
+          itemEl.append(dot, ver, from, time);
+          itemsWrap.appendChild(itemEl);
         });
 
-        timelineTr.innerHTML = `
-          <td colspan="8">
-            <div class="timeline-box">
-              <div class="timeline-title">版本演进历程 · ${item.installId}</div>
-              <div class="timeline-items">${timelineHtml}</div>
-            </div>
-          </td>
-        `;
+        box.append(title, itemsWrap);
+        tdTimeline.appendChild(box);
+        timelineTr.appendChild(tdTimeline);
         tbody.appendChild(timelineTr);
       }
     });
@@ -696,10 +851,13 @@ import { rankRowsWithOther } from "./rank.js";
 
     const head = document.createElement("div");
     head.className = "feedback-head";
-    head.innerHTML = `
-      <span class="feedback-kind-badge ${kindClass}">${kindLabel}</span>
-      <span class="feedback-time">${timeStr}</span>
-    `;
+    const kindBadge = document.createElement("span");
+    kindBadge.className = `feedback-kind-badge ${kindClass}`;
+    kindBadge.textContent = kindLabel;
+    const timeBadge = document.createElement("span");
+    timeBadge.className = "feedback-time";
+    timeBadge.textContent = timeStr;
+    head.append(kindBadge, timeBadge);
     card.appendChild(head);
 
     const body = document.createElement("div");
@@ -712,10 +870,13 @@ import { rankRowsWithOther } from "./rank.js";
 
     const envTags = document.createElement("div");
     envTags.className = "env-tags";
-    envTags.innerHTML = `
-      <span class="meta-env-tag">${describeApp(item.app)}</span>
-      <span class="meta-env-tag">${item.locale === "en" ? "英文" : "中文"}</span>
-    `;
+    const appTag = document.createElement("span");
+    appTag.className = "meta-env-tag";
+    appTag.textContent = describeApp(item.app);
+    const localeTag = document.createElement("span");
+    localeTag.className = "meta-env-tag";
+    localeTag.textContent = item.locale === "en" ? "英文" : "中文";
+    envTags.append(appTag, localeTag);
     metaRow.appendChild(envTags);
 
     const actions = document.createElement("div");
@@ -749,7 +910,10 @@ import { rankRowsWithOther } from "./rank.js";
         diagBtn.textContent = "收起诊断日志";
 
         if (!diagnosticsCache.has(item.id)) {
-          diagWrap.innerHTML = `<pre class="diagnostics-pre">正在加载诊断日志…</pre>`;
+          const loadingPre = document.createElement("pre");
+          loadingPre.className = "diagnostics-pre";
+          loadingPre.textContent = "正在加载诊断日志…";
+          diagWrap.replaceChildren(loadingPre);
           try {
             const detail = await fetchJson(`./feedback-item.json?id=${encodeURIComponent(item.id)}`);
             const diagText = detail?.diagnostics || "（这条反馈没有诊断日志正文）";
@@ -758,7 +922,10 @@ import { rankRowsWithOther } from "./rank.js";
             diagnosticsCache.set(item.id, `读取失败：${err.message}`);
           }
         }
-        diagWrap.innerHTML = `<pre class="diagnostics-pre">${diagnosticsCache.get(item.id)}</pre>`;
+        const loadedPre = document.createElement("pre");
+        loadedPre.className = "diagnostics-pre";
+        loadedPre.textContent = diagnosticsCache.get(item.id) || "（这条反馈没有诊断日志正文）";
+        diagWrap.replaceChildren(loadedPre);
       };
     }
 
@@ -817,7 +984,7 @@ import { rankRowsWithOther } from "./rank.js";
       container.innerHTML = "";
 
       if (items.length === 0) {
-        container.innerHTML = `<div class="empty-card">还没有收到反馈。</div>`;
+        container.replaceChildren(createEmptyCard("还没有收到反馈。"));
         return;
       }
 
@@ -831,7 +998,7 @@ import { rankRowsWithOther } from "./rank.js";
       });
       updateUnreadBadges();
     } catch {
-      container.innerHTML = `<div class="empty-card">暂无反馈数据或接口不可用。</div>`;
+      container.replaceChildren(createEmptyCard("暂无反馈数据或接口不可用。"));
     }
   }
 
@@ -842,7 +1009,7 @@ import { rankRowsWithOther } from "./rank.js";
     if (isReset) {
       allFeedbackItems = [];
       feedbackNextBefore = null;
-      list.innerHTML = `<div class="empty-card">正在读取反馈列表…</div>`;
+      list.replaceChildren(createEmptyCard("正在读取反馈列表…"));
     }
 
     try {
@@ -866,7 +1033,7 @@ import { rankRowsWithOther } from "./rank.js";
 
       loadMoreBtn.hidden = !feedbackNextBefore;
     } catch (err) {
-      list.innerHTML = `<div class="empty-card">读取反馈列表失败：${err.message}</div>`;
+      list.replaceChildren(createEmptyCard(`读取反馈列表失败：${err.message}`));
     }
   }
 
@@ -891,7 +1058,7 @@ import { rankRowsWithOther } from "./rank.js";
     });
 
     if (filtered.length === 0) {
-      list.innerHTML = `<div class="empty-card">没有该类型的反馈。</div>`;
+      list.replaceChildren(createEmptyCard("没有该类型的反馈。"));
       return;
     }
 
@@ -934,7 +1101,10 @@ import { rankRowsWithOther } from "./rank.js";
 
       // Fill version filter options
       const verFilterSelect = $("installVersionFilter");
-      verFilterSelect.innerHTML = `<option value="">全部版本</option>`;
+      const defaultOpt = document.createElement("option");
+      defaultOpt.value = "";
+      defaultOpt.textContent = "全部版本";
+      verFilterSelect.replaceChildren(defaultOpt);
       if (Array.isArray(statsData.rollout)) {
         statsData.rollout.forEach((v) => {
           const opt = document.createElement("option");

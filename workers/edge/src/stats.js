@@ -145,12 +145,23 @@ export async function buildStats(env, nowMs = Date.now()) {
 
   const platformInstalls = new Map(folded.install_platform);
   const archInstalls = new Map();
+  const platformArchInstalls = {
+    macos: {},
+    windows: {},
+  };
   const versionInstalls = new Map();
   const currentVersionByInstallId = new Map();
   let liveFirstLaunches = 0;
   for (const install of installRows) {
     platformInstalls.set(install.platform, (platformInstalls.get(install.platform) || 0) + 1);
     archInstalls.set(install.arch, (archInstalls.get(install.arch) || 0) + 1);
+    if (install.platform && install.arch) {
+      if (!platformArchInstalls[install.platform]) {
+        platformArchInstalls[install.platform] = {};
+      }
+      const platArchs = platformArchInstalls[install.platform];
+      platArchs[install.arch] = (platArchs[install.arch] || 0) + 1;
+    }
     versionInstalls.set(install.version, (versionInstalls.get(install.version) || 0) + 1);
     currentVersionByInstallId.set(install.install_id, install.version);
     if (Number(install.first_launch)) liveFirstLaunches += 1;
@@ -230,8 +241,9 @@ export async function buildStats(env, nowMs = Date.now()) {
     const homeViews = (homePageByDay.get(day) || 0) + (homeAllByDay.get(day) || 0);
     const installDownloads = installAndExtensionFileByDay.get(day) || 0;
     // Daily conversion rate: (installer downloads + extension downloads) / home page views.
-    // null when home page views are 0.
-    const conversionRate = homeViews > 0 ? installDownloads / homeViews : null;
+    // null for legacy days (download_all cannot be split) or when home page views are 0.
+    const hasLegacyDownloads = (downloadAllByDay.get(day) || 0) > 0;
+    const conversionRate = !hasLegacyDownloads && homeViews > 0 ? installDownloads / homeViews : null;
     return {
       date: day,
       firstLaunches: firstLaunchByDay.get(day) || 0,
@@ -243,7 +255,6 @@ export async function buildStats(env, nowMs = Date.now()) {
       pageViews: (pagePathByDay.get(day) || 0) + (pageAllByDay.get(day) || 0),
       homePageViews: homeViews,
       conversionRate,
-      homeToDownloadRate: conversionRate,
     };
   });
 
@@ -304,6 +315,7 @@ export async function buildStats(env, nowMs = Date.now()) {
     activeInstalls30d: active30dIds.size,
     platformInstalls: mapToObject(platformInstalls),
     archInstalls: mapToObject(archInstalls),
+    platformArchInstalls,
     versionInstalls: mapToObject(versionInstalls),
     rollout,
     downloadsByFile: mapToObject(downloadsByFile),

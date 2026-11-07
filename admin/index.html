@@ -227,13 +227,10 @@
                     <div class="platform-box-title">macOS</div>
                     <strong class="platform-box-count" id="macosCount">—</strong>
                   </div>
-                  <div class="arch-split-row">
-                    <span class="arch-tag" id="macosArm64Tag">Apple Silicon (arm64): —</span>
-                    <span class="arch-tag dim" id="macosX64Tag">Intel (x64): —</span>
-                  </div>
                   <div class="progress-track-sm">
                     <div class="progress-bar-sm" id="macosBar"></div>
                   </div>
+                  <div class="arch-split-row" id="macosArchRow"></div>
                 </div>
 
                 <!-- Windows Box -->
@@ -242,12 +239,10 @@
                     <div class="platform-box-title">Windows</div>
                     <strong class="platform-box-count" id="windowsCount">—</strong>
                   </div>
-                  <div class="arch-split-row">
-                    <span class="arch-tag" id="windowsX64Tag">x64: —</span>
-                  </div>
                   <div class="progress-track-sm">
                     <div class="progress-bar-sm bar-neutral" id="windowsBar"></div>
                   </div>
+                  <div class="arch-split-row" id="windowsArchRow"></div>
                 </div>
 
                 <!-- Other Box -->
@@ -259,6 +254,7 @@
                   <div class="progress-track-sm">
                     <div class="progress-bar-sm bar-dim" id="otherBar"></div>
                   </div>
+                  <div class="arch-split-row" id="otherArchRow"></div>
                 </div>
               </div>
             </article>
@@ -312,7 +308,7 @@
                 </div>
 
                 <div class="funnel-connector">
-                  <span class="conversion-pill" id="funnelLaunchRatePill">首次启动 / 下载请求：—</span>
+                  <span class="conversion-pill" id="funnelLaunchRatePill">累计 首次启动 / 下载请求：—</span>
                 </div>
 
                 <div class="funnel-step">

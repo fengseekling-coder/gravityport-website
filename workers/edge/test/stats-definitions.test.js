@@ -209,12 +209,17 @@ describe("rollout statistics and semver sorting", () => {
 });
 
 describe("buildStats daily conversion rate", () => {
-  it("calculates daily conversion rate as (desktop + extension downloads) / homePageViews, giving null when homePageViews is 0", async () => {
+  it("calculates daily conversion rate as (desktop + extension downloads) / homePageViews, giving null for legacy days or when homePageViews is 0", async () => {
     await resetStats();
     const now = Date.now();
     const dayKeys = recentDayKeys(now, 30);
+    const legacyDay = dayKeys[dayKeys.length - 3];
     const dayWithViews = dayKeys[dayKeys.length - 2];
     const dayWithoutViews = dayKeys[dayKeys.length - 1];
+
+    // On legacyDay: download_all exists (cannot separate installer downloads), so conversionRate is null even with home views
+    await seedCounter(legacyDay, "download_all", "all", 20);
+    await seedCounter(legacyDay, "page_path", "/", 10);
 
     // On dayWithViews: 4 desktop, 1 extension, 10 home page views -> rate = (4 + 1) / 10 = 0.5
     // Also 2 update downloads and 1 other file which shouldn't count in conversion rate
@@ -230,16 +235,59 @@ describe("buildStats daily conversion rate", () => {
     await seedCounter(dayWithoutViews, "page_path", "/manual/", 2);
 
     const stats = await buildStats(env.STATS, now);
+
+    const legacyRow = stats.daily.find((d) => d.date === legacyDay);
+    expect(legacyRow).toBeTruthy();
+    expect(legacyRow.homePageViews).toBe(10);
+    expect(legacyRow.conversionRate).toBeNull();
+
     const rowWithViews = stats.daily.find((d) => d.date === dayWithViews);
     expect(rowWithViews).toBeTruthy();
     expect(rowWithViews.homePageViews).toBe(10);
     expect(rowWithViews.conversionRate).toBe(0.5);
-    expect(rowWithViews.homeToDownloadRate).toBe(0.5);
 
     const rowWithoutViews = stats.daily.find((d) => d.date === dayWithoutViews);
     expect(rowWithoutViews).toBeTruthy();
     expect(rowWithoutViews.homePageViews).toBe(0);
     expect(rowWithoutViews.conversionRate).toBeNull();
-    expect(rowWithoutViews.homeToDownloadRate).toBeNull();
+  });
+});
+
+describe("buildStats platformArchInstalls", () => {
+  it("counts architecture breakdown per platform correctly", async () => {
+    await resetStats();
+    const now = Date.now();
+
+    // 3 mac (2 arm64, 1 x64) + 2 windows (x64)
+    const samples = [
+      { id: "11111111-0000-4000-8000-000000000000", platform: "macos", arch: "arm64" },
+      { id: "22222222-0000-4000-8000-000000000000", platform: "macos", arch: "arm64" },
+      { id: "33333333-0000-4000-8000-000000000000", platform: "macos", arch: "x64" },
+      { id: "44444444-0000-4000-8000-000000000000", platform: "windows", arch: "x64" },
+      { id: "55555555-0000-4000-8000-000000000000", platform: "windows", arch: "x64" },
+    ];
+
+    for (const s of samples) {
+      await env.STATS.prepare(
+        "INSERT INTO installs (install_id, first_seen_at, last_seen_at, platform, arch, version, first_launch) " +
+          "VALUES (?, ?, ?, ?, ?, '0.3.10', 0)"
+      ).bind(s.id, now - 10000, now, s.platform, s.arch).run();
+    }
+
+    const stats = await buildStats(env.STATS, now);
+
+    expect(stats.platformArchInstalls).toEqual({
+      macos: { arm64: 2, x64: 1 },
+      windows: { x64: 2 },
+    });
+    expect(stats.platformArchInstalls.macos.arm64).toBe(2);
+    expect(stats.platformArchInstalls.macos.x64).toBe(1);
+    expect(stats.platformArchInstalls.windows.x64).toBe(2);
+
+    // Global archInstalls is preserved
+    expect(stats.archInstalls).toEqual({
+      arm64: 2,
+      x64: 3,
+    });
   });
 });
