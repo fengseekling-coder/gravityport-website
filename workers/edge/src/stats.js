@@ -145,12 +145,23 @@ export async function buildStats(env, nowMs = Date.now()) {
 
   const platformInstalls = new Map(folded.install_platform);
   const archInstalls = new Map();
+  const platformArchInstalls = {
+    macos: {},
+    windows: {},
+  };
   const versionInstalls = new Map();
   const currentVersionByInstallId = new Map();
   let liveFirstLaunches = 0;
   for (const install of installRows) {
     platformInstalls.set(install.platform, (platformInstalls.get(install.platform) || 0) + 1);
     archInstalls.set(install.arch, (archInstalls.get(install.arch) || 0) + 1);
+    if (install.platform && install.arch) {
+      if (!platformArchInstalls[install.platform]) {
+        platformArchInstalls[install.platform] = {};
+      }
+      const platArchs = platformArchInstalls[install.platform];
+      platArchs[install.arch] = (platArchs[install.arch] || 0) + 1;
+    }
     versionInstalls.set(install.version, (versionInstalls.get(install.version) || 0) + 1);
     currentVersionByInstallId.set(install.install_id, install.version);
     if (Number(install.first_launch)) liveFirstLaunches += 1;
@@ -171,11 +182,16 @@ export async function buildStats(env, nowMs = Date.now()) {
   // Per-day trend input excludes in-app update zips (the legacy download_all
   // rows cannot be split, see the daily mapping below).
   const downloadFileByDay = new Map();
+  const installAndExtensionFileByDay = new Map();
   for (const row of downloadFileRows) {
     const count = Number(row.count || 0);
     downloadsByFile.set(row.key, (downloadsByFile.get(row.key) || 0) + count);
-    if (classifyDownload(row.key) !== "update") {
+    const kind = classifyDownload(row.key);
+    if (kind !== "update") {
       downloadFileByDay.set(row.day, (downloadFileByDay.get(row.day) || 0) + count);
+    }
+    if (kind === "desktop" || kind === "extension") {
+      installAndExtensionFileByDay.set(row.day, (installAndExtensionFileByDay.get(row.day) || 0) + count);
     }
   }
   const downloadsByRef = new Map();
@@ -221,17 +237,26 @@ export async function buildStats(env, nowMs = Date.now()) {
   const totalDesktopDownloadRequests = sumMap(desktopByFile);
   const totalExtensionDownloadRequests = sumMap(extensionByFile);
 
-  const daily = trendKeys.map((day) => ({
-    date: day,
-    firstLaunches: firstLaunchByDay.get(day) || 0,
-    activeInstalls: (activeByDay.get(day) || new Set()).size,
-    // Edge-era days recompute the per-file counts minus in-app update zips;
-    // legacy days only carry download_all, which cannot be split by kind, so
-    // the line mixes the two methodologies at the 2026-10-29 switchover.
-    downloadRequests: (downloadFileByDay.get(day) || 0) + (downloadAllByDay.get(day) || 0),
-    pageViews: (pagePathByDay.get(day) || 0) + (pageAllByDay.get(day) || 0),
-    homePageViews: (homePageByDay.get(day) || 0) + (homeAllByDay.get(day) || 0),
-  }));
+  const daily = trendKeys.map((day) => {
+    const homeViews = (homePageByDay.get(day) || 0) + (homeAllByDay.get(day) || 0);
+    const installDownloads = installAndExtensionFileByDay.get(day) || 0;
+    // Daily conversion rate: (installer downloads + extension downloads) / home page views.
+    // null for legacy days (download_all cannot be split) or when home page views are 0.
+    const hasLegacyDownloads = (downloadAllByDay.get(day) || 0) > 0;
+    const conversionRate = !hasLegacyDownloads && homeViews > 0 ? installDownloads / homeViews : null;
+    return {
+      date: day,
+      firstLaunches: firstLaunchByDay.get(day) || 0,
+      activeInstalls: (activeByDay.get(day) || new Set()).size,
+      // Edge-era days recompute the per-file counts minus in-app update zips;
+      // legacy days only carry download_all, which cannot be split by kind, so
+      // the line mixes the two methodologies at the 2026-10-29 switchover.
+      downloadRequests: (downloadFileByDay.get(day) || 0) + (downloadAllByDay.get(day) || 0),
+      pageViews: (pagePathByDay.get(day) || 0) + (pageAllByDay.get(day) || 0),
+      homePageViews: homeViews,
+      conversionRate,
+    };
+  });
 
   const coverageDays = [earliestCounterDay, earliestDailyActiveDay].filter(Boolean).sort();
   const coverageStart = coverageDays.length
@@ -290,6 +315,7 @@ export async function buildStats(env, nowMs = Date.now()) {
     activeInstalls30d: active30dIds.size,
     platformInstalls: mapToObject(platformInstalls),
     archInstalls: mapToObject(archInstalls),
+    platformArchInstalls,
     versionInstalls: mapToObject(versionInstalls),
     rollout,
     downloadsByFile: mapToObject(downloadsByFile),
