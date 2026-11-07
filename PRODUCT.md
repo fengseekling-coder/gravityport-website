@@ -28,7 +28,7 @@ The website exists to make a first-time visitor understand that in seconds, see 
 
 - Desktop app: macOS Apple silicon (DMG first install, in-app updates after) and Windows 10/11 x64 (portable ZIP).
 - Optional Chrome / Chromium Web Capture extension, installed from a ZIP. It pairs with the desktop app automatically.
-- Built-in MCP server: Settings → Connections → AI assistant (MCP) copies a ready config, so Claude and Codex can search the library.
+- GravityPort MCP server: Settings → Connections → AI assistant (MCP) copies a ready config, so Claude and Codex can search the library.
 - Smart groups by source and automatic stacking: images from one conversation, Flow project, or Codex task stack themselves; unstacked or pulled-out images are never re-stacked, and named stacks keep their names.
 - In-app feedback (Settings → Feedback) posts to the website's feedback service.
 
@@ -89,5 +89,5 @@ Decided by the owner on 2026-10-22; these override anything above.
 - No limitations, caveats, certification or signing notes, "preview" labels, former names, or internal principles (how missing Prompts are labelled and the like). A good app doesn't need them.
 - Exception: the download area keeps the one-line first-open steps for macOS (Open Anyway) and Windows (Run anyway), and the extension steps say to tick auto-capture. These are steps, not caveats; without them new users cannot open the app or get automatic capture (owner, 10-22).
 - Positioning in one line: AI 素材管理工具 / AI asset manager.
-- Core feature copy (owner, 2026-10-25) is the reference for feature names, the source list and claims: GravityPort｜AI 素材管理工具 (ChatGPT · Gemini · Flow · Google AI Studio · Codex · Grok · 即梦); 100% Local｜纯本地存储; Auto-Capture｜自动收录; Prompts & Context｜完整创作溯源; Version Tree｜多轮版本树; Smart Stacks｜自动分组; Built-in MCP｜内置 MCP (Claude, Codex); Free Download｜免费下载 (macOS · Windows). Copy that conflicts with it is changed to match.
+- Core feature copy (owner, 2026-10-25, revised 2026-11-07) is the reference for feature names, the source list and claims: GravityPort｜AI 素材管理工具 (ChatGPT · Gemini · Flow · Google AI Studio · Codex · Grok · 即梦); Auto-Capture｜自动收录: Saves generated images and videos straight to your library.｜生成的图片与视频直接收进素材库; Prompts & Context｜创作溯源: Keeps prompts, reference images, and sources with every asset.｜同步保存提示词、参考图与来源; Version Tree｜版本树: Records every round of edits in a conversation.｜记录同一对话的多轮修改; Smart Stacks｜自动分组: Groups related assets by source and conversation.｜按生成来源与对话窗口归类同组素材; 100% Local｜本地存储: Stores all assets and records locally on your computer.｜所有素材与记录都保存在本地电脑; GravityPort MCP｜GravityPort MCP: Lets AI assistants manage your library assets directly.｜让 AI 助手直接管理你的素材库资产; Free Download｜免费下载 (macOS · Windows · gravityport.azhuilab.com). Copy that conflicts with it is changed to match.
 - Don't say "open source"; "source on GitHub" is fine. Don't say "free for personal use".
