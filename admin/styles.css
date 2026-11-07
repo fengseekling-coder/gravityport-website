@@ -50,6 +50,11 @@
   padding: 0;
 }
 
+/* Keep the hidden attribute authoritative over any class that sets display. */
+[hidden] {
+  display: none !important;
+}
+
 html {
   background-color: var(--bg-canvas);
   color: var(--text-primary);
