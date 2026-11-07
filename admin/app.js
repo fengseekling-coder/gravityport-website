@@ -229,22 +229,11 @@ import { rankRowsWithOther } from "./rank.js";
       wauBadge.hidden = false;
     }
 
-    const wauSeries = daily.map((d, i, arr) => {
-      const window7 = arr.slice(Math.max(0, i - 6), i + 1);
-      return Math.round(window7.reduce((acc, it) => acc + (it.activeInstalls || 0), 0) / window7.length * 1.5);
-    });
-    const sparkWau = createSparkline(wauSeries, "var(--accent)");
-    if (sparkWau) $("sparklineWau").replaceChildren(sparkWau);
-
     // 3. MAU
     const knownInstalls = statsData.knownInstallationInstances || 0;
     const knownBadge = $("knownInstallsBadge");
     knownBadge.textContent = `累计 ${number.format(knownInstalls)} 台`;
     knownBadge.hidden = false;
-
-    const mauSeries = daily.map((d, i) => Math.round(30 + i * 0.8));
-    const sparkMau = createSparkline(mauSeries, "var(--text-secondary)");
-    if (sparkMau) $("sparklineMau").replaceChildren(sparkMau);
 
     // 4. First Launches (Last 7 days total)
     const recent7Days = daily.slice(-7);
