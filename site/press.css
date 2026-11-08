@@ -738,6 +738,7 @@ p, li, dd { text-wrap: pretty; }
 .contact__row a, .contact__copy { display: inline-flex; align-items: center; gap: 8px; text-decoration: underline; text-underline-offset: 0.22em; text-decoration-thickness: 1px; text-decoration-color: rgba(18, 18, 18, 0.3); transition: text-decoration-color 200ms linear; }
 .contact__row a:hover, .contact__copy:hover { text-decoration-color: var(--ink); }
 .contact__row dd svg { width: 16px; height: 16px; flex: none; }
+.contact__row--links dd { display: flex; flex-wrap: wrap; gap: 8px 32px; }
 .contact__icon-done, .contact__copy.is-copied .contact__icon-copy { display: none; }
 .contact__copy.is-copied .contact__icon-done { display: block; }
 /* "Copied" sits at the right end of the name line, where every width has room, so nothing reflows. */

@@ -208,7 +208,7 @@ window.GP_STRINGS = {
     "community.copied": "已复制",
     "community.alt": "WeChat QR code",
     "community.mail": "邮箱",
-    "community.whatsappJoin": "加入群聊",
+    "community.channels": "社群",
     "community.close": "关闭",
 
     "handoff.title": "到电脑上下载",
@@ -429,7 +429,7 @@ window.GP_STRINGS = {
     "community.copied": "Copied",
     "community.alt": "WeChat QR code",
     "community.mail": "Email",
-    "community.whatsappJoin": "Join the group",
+    "community.channels": "Community",
     "community.close": "Close",
 
     "handoff.title": "Download on your computer",
