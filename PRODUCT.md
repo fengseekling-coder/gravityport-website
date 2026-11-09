@@ -27,7 +27,7 @@ The website exists to make a first-time visitor understand that in seconds, see 
 ## Operating Context
 
 - Desktop app: macOS Apple silicon (DMG first install, in-app updates after) and Windows 10/11 x64 (portable ZIP).
-- Optional Chrome / Chromium Web Capture extension, installed from a ZIP. It pairs with the desktop app automatically.
+- Optional Chrome / Chromium Web Capture extension. From 0.3.11 it comes with the desktop app: load the folder shown in Settings → Connect once and it updates with the app (a ZIP download stays as a fallback). The first connection is allowed in the app.
 - GravityPort MCP server: Settings → Connections → AI assistant (MCP) copies a ready config, so Claude and Codex can search the library.
 - Smart groups by source and automatic stacking: images from one conversation, Flow project, or Codex task stack themselves; unstacked or pulled-out images are never re-stacked, and named stacks keep their names.
 - In-app feedback (Settings → Feedback) posts to the website's feedback service.

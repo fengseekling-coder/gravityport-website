@@ -112,11 +112,11 @@
     <link rel="preload" href="../assets/fonts/fragment-mono-latin.woff2?v=20261029-w2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="../site/press.css?v=20261108-links" />
     <script src="../site/boot.js?v=20261102-seo"></script>
-    <script src="../site-config.js?v=20261107-rel-0.3.10" defer></script>
+    <script src="../site-config.js?v=20261108-rel-0.3.11" defer></script>
     <script src="../desktop-release-feed.js?v=20261029-w2" defer></script>
     <script src="../site/download-links.js?v=20261029-w2" defer></script>
     <script src="../assets/work/work.js?v=20261029-w2" defer></script>
-    <script src="../site/strings.js?v=20261108-links" defer></script>
+    <script src="../site/strings.js?v=20261108-rel-0.3.11" defer></script>
     <script src="../site/press.js?v=20261106-contact" defer></script>
   </head>
   <body>
@@ -636,7 +636,7 @@
                 <svg class="platform__icon" aria-hidden="true"><use href="#i-puzzle" /></svg>
                 <div class="platform__text">
                   <h3 data-i18n="download.ext.title">Browser extension (optional)</h3>
-                  <p data-i18n="download.ext.detail">Chrome / Chromium · ZIP · loads in developer mode</p>
+                  <p data-i18n="download.ext.detail">Comes with GravityPort · Chrome / Chromium · loads in developer mode</p>
                   <p class="platform__meta mono"><span data-extension-version>—</span><span data-extension-size></span></p>
                 </div>
                 <a class="btn-line" href="#download" data-download="extension"><svg aria-hidden="true"><use href="#i-download" /></svg><span data-i18n="download.ext.cta">Download extension</span></a>
@@ -647,7 +647,7 @@
               <ol>
                 <li><strong>macOS</strong><span data-i18n="download.first.mac">The first time, macOS asks whether to open an app downloaded from the internet. Click Open. Only once.</span></li>
                 <li><strong>Windows</strong><span data-i18n="download.first.win">If you see “Windows protected your PC”, click More info → Run anyway.</span></li>
-                <li><strong data-i18n="download.first.extTitle">Extension</strong><span data-i18n="download.first.ext">Open the desktop app first, then load the extension. They pair automatically. In the extension’s options, tick the auto-capture box (“发现新图时自动入库”).</span> <a href="#install" data-i18n="download.first.guide">Full install steps</a></li>
+                <li><strong data-i18n="download.first.extTitle">Extension</strong><span data-i18n="download.first.ext">Load the extension by following Settings → Connect in GravityPort, click Allow Connection the first time it connects, then turn on auto-capture (“自动收录”) in the extension’s options.</span> <a href="#install" data-i18n="download.first.guide">Full install steps</a></li>
               </ol>
             </div>
           </div>
@@ -662,14 +662,14 @@
           <div class="live">
             <div class="intro" data-print>
               <h2 class="display" id="install-title" data-i18n-html="install.title">Install the browser extension in four steps.</h2>
-              <p class="intro__lede" data-i18n="install.lede">The extension sends images made on the web into GravityPort on your computer. It loads in Chrome / Chromium developer mode.</p>
+              <p class="intro__lede" data-i18n="install.lede">The extension sends images made on the web into GravityPort on your computer. GravityPort comes with the extension: load it once in Chrome / Chromium developer mode, and it updates with the app from then on.</p>
             </div>
             <div class="install" data-print>
               <ol class="install__steps">
-                <li><span class="install__n mono">01</span><div><h3 data-i18n="install.s1.title">Download and unzip</h3><p data-i18n-html="install.s1.body">Get the extension ZIP from the downloads above and unzip it into a folder you’ll keep. Don’t load it from inside the archive.</p></div></li>
+                <li><span class="install__n mono">01</span><div><h3 data-i18n="install.s1.title">Copy the extension folder location</h3><p data-i18n-html="install.s1.body">Open GravityPort and click Copy location in Settings → Connect.</p></div></li>
                 <li><span class="install__n mono">02</span><div><h3 data-i18n="install.s2.title">Open the extensions page</h3><p data-i18n-html="install.s2.body">Go to <code>chrome://extensions</code> and turn on “Developer mode” in the top-right corner.</p></div></li>
-                <li><span class="install__n mono">03</span><div><h3 data-i18n="install.s3.title">Load the unzipped folder</h3><p data-i18n-html="install.s3.body">Click “Load unpacked” and choose the unzipped folder.</p></div></li>
-                <li><span class="install__n mono">04</span><div><h3 data-i18n="install.s4.title">Open GravityPort and test</h3><p data-i18n-html="install.s4.body">Open the desktop app, then the extension’s options; it finds GravityPort and pairs on its own. Tick the auto-capture box (“发现新图时自动入库”) and click Save (“保存设置”), then Test connection (“测试连接”); once it succeeds, you’re set.</p></div></li>
+                <li><span class="install__n mono">03</span><div><h3 data-i18n="install.s3.title">Load that folder</h3><p data-i18n-html="install.s3.body">Click “Load unpacked” and choose that folder. On a Mac, press ⌘⇧G in the file picker and paste the location.</p></div></li>
+                <li><span class="install__n mono">04</span><div><h3 data-i18n="install.s4.title">Allow the connection and turn on auto-capture</h3><p data-i18n-html="install.s4.body">The extension connects to GravityPort on its own; the first time, click Allow Connection in GravityPort. In the extension’s options, turn on auto-capture (“自动收录”), click Save (“保存”), then Test connection (“测试连接”); once it succeeds, you’re set.</p></div></li>
               </ol>
               <aside class="install__side">
                 <div>
@@ -682,7 +682,7 @@
                   <ul class="install__fix">
                     <li data-i18n="install.fix.1">The GravityPort desktop app is open.</li>
                     <li data-i18n="install.fix.2">Click “Test connection” again in the extension’s options.</li>
-                    <li data-i18n="install.fix.3">After updating the extension, click refresh on the extensions page.</li>
+                    <li data-i18n="install.fix.3">The extension updates with the app; if it hasn’t, click refresh on the extensions page.</li>
                     <li data-i18n="install.fix.4">Still nothing? Restart GravityPort, then the browser.</li>
                   </ul>
                 </div>
