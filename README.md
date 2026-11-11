@@ -98,6 +98,8 @@ git push origin <分支名>
 # 在 GitHub 上开 PR，等 test 检查通过后合并；合并即自动部署上线
 ```
 
+提交前检查：`scripts/check-repo-hygiene.mjs` 会拦下密钥、带真实用户名的电脑路径、工作文档、超过 5 MB 的文件和白名单目录之外的图片视频，CI 的 `test` 任务会对所有被跟踪的文件跑一遍。想在本机每次提交前自动跑，每个克隆执行一次 `git config core.hooksPath .githooks`；确实要放行的写进 `scripts/repo-hygiene-allow.txt` 并写明原因。
+
 仓库 Actions 需要两个 Secrets：`CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID`。令牌只保存在 GitHub Secrets，不放入仓库。
 
 正式包按以下约定保存：`downloads/GravityPort-Web-Capture-版本.zip`、`downloads/GravityPort-darwin-arm64-版本.dmg`、`downloads/GravityPort-win32-x64-版本.zip`，带安装程序的版本还有 `downloads/GravityPort-win32-x64-版本.exe`。浏览器扩展 ZIP 可以提交并由 Actions 同步；桌面 DMG/ZIP 由本机监控程序直接发布。R2 上只保留最新四组完整的桌面包，旧包不出现在官网页面。
