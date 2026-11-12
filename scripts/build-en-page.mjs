@@ -180,7 +180,7 @@ function englishJsonLd(en) {
         "url": `${SITE}/en/`,
         "description": en["meta.description"],
         "applicationCategory": "MultimediaApplication",
-        "operatingSystem": "macOS (Apple silicon), Windows 10, Windows 11",
+        "operatingSystem": "macOS (Apple silicon, Intel), Windows 10, Windows 11",
         "inLanguage": ["en", "zh-CN"],
         "image": image,
         "screenshot": image,

@@ -17,6 +17,14 @@ window.MOSA_SITE_CONFIG = Object.freeze({
     url: "./downloads/GravityPort-darwin-arm64-0.3.12.dmg",
     label: "下载 macOS 包",
   },
+  // Intel 版和 Apple 芯片版是两个安装包。这个入口只在更新清单真的带
+  // platforms.macosX64 时才生效：某版本没有 Intel 包时 Intel 按钮显示「暂无」，
+  // 绝不指向 Apple 芯片的包，也不指向不存在的文件。
+  macIntel: {
+    version: "v0.3.12",
+    url: "./downloads/GravityPort-darwin-x64-0.3.12.dmg",
+    label: "下载 Intel 版",
+  },
   windows: {
     version: "v0.3.12",
     url: "./downloads/GravityPort-win32-x64-0.3.12.exe",

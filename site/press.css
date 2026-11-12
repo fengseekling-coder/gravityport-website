@@ -669,6 +669,12 @@ p, li, dd { text-wrap: pretty; }
 .platform__sha { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted-ink) !important; }
 .platform__sha code { max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--stock); }
 .platform__sha button { text-decoration: underline; text-underline-offset: 3px; color: var(--stock); }
+/* The macOS card's two chip buttons sit side by side and stack on narrow screens;
+   each carries its own file size. */
+.platform__buttons { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-start; }
+.platform__dl { display: grid; gap: 8px; justify-items: start; }
+.platform__dlsize { font-style: normal; font-size: 13px; color: var(--stock); }
+.platform__dlsize:empty { display: none; }
 .firstrun { margin-top: clamp(40px, 5vw, 72px); display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); gap: clamp(20px, 4vw, 64px); }
 .firstrun h3 { font-family: var(--font-display); font-weight: 820; font-stretch: 78%; font-size: clamp(20px, 1.8vw, 26px); }
 .firstrun ol { display: grid; gap: 14px; }
@@ -866,6 +872,7 @@ p, li, dd { text-wrap: pretty; }
   .sorter { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .platform { grid-template-columns: 34px minmax(0, 1fr); }
   .platform > a { grid-column: 1 / -1; justify-self: start; }
+  .platform__buttons { grid-column: 1 / -1; }
   .firstrun li { grid-template-columns: 1fr; gap: 2px; }
   .case { grid-template-columns: 72px minmax(0, 1fr); }
   .case img { width: 72px; height: 104px; }

@@ -41,7 +41,7 @@ test("retention only ever names the requested product's stale pairs", () => {
   const gravityportDeletions = select(remote, 4, "GravityPort");
   assert.ok(gravityportDeletions.length > 0, "GravityPort run must still trim its own old pairs");
   for (const line of gravityportDeletions) {
-    assert.match(line, /^GravityPort-darwin-arm64-[0-9.][0-9A-Za-z.-]*\.(dmg|zip)\tGravityPort-win32-x64-[0-9.][0-9A-Za-z.-]*\.zip$/);
+    assert.match(line, /^GravityPort-darwin-arm64-[0-9.][0-9A-Za-z.-]*\.(dmg|zip)\tGravityPort-win32-x64-[0-9.][0-9A-Za-z.-]*\.zip(\t-\t-\t-)?$/);
     assert.doesNotMatch(line, /MOSA-/, "a GravityPort retention run must never name a MOSA package");
   }
   assert.deepEqual(
@@ -53,7 +53,7 @@ test("retention only ever names the requested product's stale pairs", () => {
   const mosaDeletions = select(remote, 4, "MOSA");
   assert.ok(mosaDeletions.length > 0, "MOSA run must still trim its own old pairs");
   for (const line of mosaDeletions) {
-    assert.match(line, /^MOSA-darwin-arm64-[0-9.][0-9A-Za-z.-]*\.(dmg|zip)\tMOSA-win32-x64-[0-9.][0-9A-Za-z.-]*\.zip$/);
+    assert.match(line, /^MOSA-darwin-arm64-[0-9.][0-9A-Za-z.-]*\.(dmg|zip)\tMOSA-win32-x64-[0-9.][0-9A-Za-z.-]*\.zip(\t-\t-\t-)?$/);
     assert.doesNotMatch(line, /GravityPort-/, "a MOSA retention run must never name a GravityPort package");
   }
   assert.deepEqual(
@@ -94,7 +94,52 @@ test("a stale release that shipped a Windows installer names it as a third colum
     "MOSA-win32-x64-0.3.4.exe",
   ];
   assert.deepEqual(select(remote, 4, "GravityPort"), [
-    "GravityPort-darwin-arm64-0.3.4.dmg\tGravityPort-win32-x64-0.3.4.zip\tGravityPort-win32-x64-0.3.4.exe",
-    "GravityPort-darwin-arm64-0.3.3.dmg\tGravityPort-win32-x64-0.3.3.zip",
+    "GravityPort-darwin-arm64-0.3.4.dmg\tGravityPort-win32-x64-0.3.4.zip\tGravityPort-win32-x64-0.3.4.exe\t-\t-",
+    "GravityPort-darwin-arm64-0.3.3.dmg\tGravityPort-win32-x64-0.3.3.zip\t-\t-\t-",
   ]);
+});
+
+test("four versions where two carry Intel files: retention keeps and prunes them with their version", () => {
+  const remote = [
+    // 0.3.8 and 0.3.9 are the two oldest releases and both shipped Intel
+    // packages (update ZIP + DMG); 0.3.10 and 0.3.11 are the two that stay.
+    "GravityPort-darwin-arm64-0.3.8.zip",
+    "GravityPort-win32-x64-0.3.8.zip",
+    "GravityPort-darwin-x64-0.3.8.zip",
+    "GravityPort-darwin-x64-0.3.8.dmg",
+    "GravityPort-darwin-arm64-0.3.9.zip",
+    "GravityPort-win32-x64-0.3.9.zip",
+    "GravityPort-darwin-x64-0.3.9.zip",
+    "GravityPort-darwin-x64-0.3.9.dmg",
+    "GravityPort-darwin-arm64-0.3.10.zip",
+    "GravityPort-win32-x64-0.3.10.zip",
+    "GravityPort-darwin-x64-0.3.10.zip",
+    "GravityPort-darwin-arm64-0.3.11.zip",
+    "GravityPort-win32-x64-0.3.11.zip",
+    "GravityPort-darwin-x64-0.3.11.dmg",
+    // Intel files without their arm64/Windows siblings never make a release
+    // complete, and an Intel .exe is not a real package.
+    "GravityPort-darwin-x64-0.3.7.zip",
+    "GravityPort-darwin-x64-0.3.7.dmg",
+    "GravityPort-darwin-x64-0.3.6.exe",
+  ];
+  const deletions = select(remote, 2, "GravityPort");
+  // "-" marks a column the release did not ship, so the Intel columns never
+  // shift into the installer position on the publisher's tab read.
+  assert.deepEqual(deletions, [
+    "GravityPort-darwin-arm64-0.3.9.zip\tGravityPort-win32-x64-0.3.9.zip\t-\tGravityPort-darwin-x64-0.3.9.zip\tGravityPort-darwin-x64-0.3.9.dmg",
+    "GravityPort-darwin-arm64-0.3.8.zip\tGravityPort-win32-x64-0.3.8.zip\t-\tGravityPort-darwin-x64-0.3.8.zip\tGravityPort-darwin-x64-0.3.8.dmg",
+  ]);
+  // Everything that stays must keep its Intel files.
+  assert.doesNotMatch(deletions.join("\n"), /0\.3\.10|0\.3\.11/, "the current and kept releases are never selected");
+});
+
+test("an Intel-only release (no arm64 sibling) is never selected for deletion", () => {
+  const remote = [
+    ...versionList("GravityPort", ["0.3.8", "0.3.9", "0.3.10", "0.3.11"]),
+    "GravityPort-darwin-x64-0.3.5.zip",
+    "GravityPort-darwin-x64-0.3.5.dmg",
+  ];
+  const deletions = select(remote, 2, "GravityPort");
+  assert.equal(deletions.some((line) => line.includes("0.3.5")), false, "the Intel-only leftovers stay untouched");
 });

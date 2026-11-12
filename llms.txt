@@ -2,7 +2,7 @@
 
 > GravityPort is a free AI asset manager for ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng. It saves generated images and videos straight to a library on your own computer, with their prompts, reference images and sources.
 
-GravityPort doesn't generate images. It collects them, automatically, from the tools you already use, and runs on Macs with Apple silicon and on Windows 10/11.
+GravityPort doesn't generate images. It collects them, automatically, from the tools you already use, and runs on Macs with Apple silicon or Intel processors and on Windows 10/11.
 
 ## What it does
 

@@ -66,6 +66,15 @@ test("phones and tablets are told apart from computers", () => {
   assert.equal(links.isHandheld(undefined, undefined, undefined), false);
 });
 
+test("preferredMacChip trusts only a confirmed x86 architecture", () => {
+  // The UA string always says "Intel Mac OS X", even on Apple silicon, so nothing
+  // but the high-entropy architecture may decide this.
+  assert.equal(links.preferredMacChip("x86"), "x64");
+  for (const notIntel of ["arm", "", undefined, null, "ARM", "x86_64", "amd64", 42, {}, ["x86"], "x86 "]) {
+    assert.equal(links.preferredMacChip(notIntel), "arm64", `${typeof notIntel}:${String(notIntel)}`);
+  }
+});
+
 test("the handoff address opens this page's download sheet with a channel tag", () => {
   assert.equal(
     links.handoffUrl("https://gravityport.azhuilab.com/?from=singlemessage&isappinstalled=0", ""),

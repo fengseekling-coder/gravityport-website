@@ -30,6 +30,14 @@
     }
   }
 
+  // Which chip to offer a Mac visitor first. Only the high-entropy architecture
+  // from userAgentData is reliable: the UA string says "Intel Mac OS X" on Apple
+  // silicon too, so it must never decide this. Anything that is not a confirmed
+  // "x86" — "arm", an empty or missing value, junk — stays Apple silicon.
+  function preferredMacChip(architecture) {
+    return architecture === "x86" ? "x64" : "arm64";
+  }
+
   // Phones and tablets, where the desktop app cannot be installed.
   function isHandheld(userAgent, maxTouchPoints, uaDataMobile) {
     if (uaDataMobile === true) return true;
@@ -49,5 +57,5 @@
     return url.href;
   }
 
-  window.GP_DOWNLOAD_LINKS = Object.freeze({ campaignRef, withRef, isHandheld, handoffUrl });
+  window.GP_DOWNLOAD_LINKS = Object.freeze({ campaignRef, withRef, isHandheld, handoffUrl, preferredMacChip });
 })();

@@ -31,8 +31,8 @@ function parseArgs(argv) {
 }
 
 const args = parseArgs(process.argv.slice(2));
-if (!args.manifest || !args["mac-dmg"] || !args["git-sha"]) {
-  throw new Error("Usage: extend-desktop-release-manifest.mjs --manifest <latest.json> --mac-dmg <file> [--dmg-file <expected file name>] --git-sha <sha>");
+if (!args.manifest || !args["git-sha"] || (!args["mac-dmg"] && !args["mac-x64-dmg"])) {
+  throw new Error("Usage: extend-desktop-release-manifest.mjs --manifest <latest.json> (--mac-dmg <file> [--dmg-file <expected file name>] | --mac-x64-dmg <file> [--x64-dmg-file <expected file name>]) --git-sha <sha>");
 }
 
 const manifestPath = resolve(args.manifest);
@@ -44,14 +44,30 @@ if (!manifest.platforms?.macos) throw new Error("Canonical manifest is missing p
 // The DMG name follows the product the release ships: MOSA releases keep the
 // historical name, GravityPort releases use GravityPort-darwin-arm64-…. The
 // default preserves the legacy MOSA name for callers that do not pass it.
+// The Intel DMG is checked the same way, pinned to arch "x64" and the
+// -darwin-x64- file name; it never enters the manifest either.
 const expectedDmgFile = String(args["dmg-file"] || "").trim() || `MOSA-darwin-arm64-${manifest.version}.dmg`;
+const expectedX64DmgFile = String(args["x64-dmg-file"] || "").trim() || `MOSA-darwin-x64-${manifest.version}.dmg`;
 
-await artifactMetadata({
-  path: args["mac-dmg"],
-  expectedFile: expectedDmgFile,
-  platform: "macOS",
-  arch: "arm64",
-});
+if (args["mac-dmg"]) {
+  await artifactMetadata({
+    path: args["mac-dmg"],
+    expectedFile: expectedDmgFile,
+    platform: "macOS",
+    arch: "arm64",
+  });
+}
+if (args["mac-x64-dmg"]) {
+  if (!manifest.platforms?.macosX64) {
+    throw new Error("A macOS x64 DMG ships with the platforms.macosX64 update ZIP, which is missing from the canonical manifest.");
+  }
+  await artifactMetadata({
+    path: args["mac-x64-dmg"],
+    expectedFile: expectedX64DmgFile,
+    platform: "macOS",
+    arch: "x64",
+  });
+}
 
 const originalKeyId = String(manifest.signature?.keyId || "").trim().toLowerCase();
 if (!/^[0-9a-f]{64}$/.test(originalKeyId)) {
