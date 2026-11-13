@@ -1763,3 +1763,22 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* Login-expired / network-failure notice (399) */
+.network-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-bright);
+}
+
+.network-notice[hidden] {
+  display: none;
+}

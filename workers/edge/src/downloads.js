@@ -8,6 +8,8 @@ import { objectKeyFromPath } from "./keys.js";
 import { applySecurityHeaders, methodNotAllowedResponse, notFoundResponse } from "./headers.js";
 import { ifNoneMatchSatisfied } from "./conditional.js";
 import { analyticsDayKey } from "./util.js";
+import { counterUpsert } from "./counters.js";
+import { isBotUserAgent } from "./bots.js";
 
 const CACHE_CONTROL = "public, max-age=86400, must-revalidate";
 
@@ -60,8 +62,18 @@ function downloadContentType(key) {
  * @param {number} nowMs Request time, epoch milliseconds.
  * @returns {Promise<void>}
  */
-export async function recordDownload(env, key, url, nowMs) {
+export async function recordDownload(env, key, url, nowMs, userAgent = null) {
   const file = key.split("/").pop() || "unknown";
+  if (isBotUserAgent(userAgent)) {
+    // Crawlers, link previews and scanners still get the file, but only the
+    // bot_download counter moves. Neither IP nor user agent is stored.
+    try {
+      await counterUpsert(env, analyticsDayKey(nowMs), "bot_download", file, 1).run();
+    } catch {
+      // Recording must never break the response.
+    }
+    return;
+  }
   // Same channel rule as report-usage.mjs: any non-empty ?ref= counts as-is,
   // everything else (including an empty value) counts as "direct".
   const ref = url.searchParams.get("ref") || "direct";
@@ -148,7 +160,7 @@ export async function serveDownload(request, env, url, ctx) {
     headers.set("content-length", String(length));
     // Only the first segment counts; resume/multi-connection segments would
     // otherwise inflate one real download into several.
-    if (range.start === 0 && ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(recordDownload(env.STATS, key, url, Date.now()));
+    if (range.start === 0 && ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(recordDownload(env.STATS, key, url, Date.now(), request.headers.get("user-agent")));
     return new Response(ranged.body, { status: 206, headers });
   }
 
@@ -156,6 +168,6 @@ export async function serveDownload(request, env, url, ctx) {
   if (!full) return notFoundResponse();
   const headers = baseHeaders();
   headers.set("content-length", String(size));
-  if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(recordDownload(env.STATS, key, url, Date.now()));
+  if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(recordDownload(env.STATS, key, url, Date.now(), request.headers.get("user-agent")));
   return new Response(full.body, { status: 200, headers });
 }

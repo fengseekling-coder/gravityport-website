@@ -9,6 +9,10 @@ import { recentDayKeys, ANALYTICS_TIME_ZONE } from "./util.js";
 import { classifyDownload } from "./counters.js";
 
 const HOME_PAGE_PATHS = new Set(["/", "/en/"]);
+// A day on which one installer file was requested at least this many times is
+// flagged as suspicious in the trend (399; the 2026-11-04 spike was 167).
+const SUSPECT_DOWNLOAD_DAY_THRESHOLD = 50;
+const SOURCE_TABLE_LIMIT = 20;
 const DATE_SHAPED_DAY_GLOB = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]";
 const SEMVER_PATTERN = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/;
 
@@ -110,6 +114,8 @@ export async function buildStats(env, nowMs = Date.now()) {
   const trendKeys = recentDayKeys(nowMs, 30);
   const dailyActiveRows = await all("SELECT day, install_id, first_launch FROM daily_active WHERE day >= ?", trendKeys[0]);
   const downloadFileRows = await all("SELECT day, key, count FROM counters WHERE kind = 'download_file'");
+  const pageRefRows = await all("SELECT key, SUM(count) AS total FROM counters WHERE kind = 'page_ref' AND day >= ? GROUP BY key", trendKeys[0]);
+  const downloadRefWindowRows = await all("SELECT key, SUM(count) AS total FROM counters WHERE kind = 'download_ref' AND day >= ? GROUP BY key", trendKeys[0]);
   const downloadRefRows = await all("SELECT key, SUM(count) AS total FROM counters WHERE kind = 'download_ref' GROUP BY key");
   const downloadAllRows = await all("SELECT day, SUM(count) AS total FROM counters WHERE kind = 'download_all' GROUP BY day");
   const pagePathRows = await all("SELECT day, key, count FROM counters WHERE kind = 'page_path'");
@@ -183,6 +189,9 @@ export async function buildStats(env, nowMs = Date.now()) {
   // rows cannot be split, see the daily mapping below).
   const downloadFileByDay = new Map();
   const installAndExtensionFileByDay = new Map();
+  const desktopFileByDay = new Map();
+  const extensionFileByDay = new Map();
+  const suspectDownloadDays = new Set();
   for (const row of downloadFileRows) {
     const count = Number(row.count || 0);
     downloadsByFile.set(row.key, (downloadsByFile.get(row.key) || 0) + count);
@@ -190,6 +199,11 @@ export async function buildStats(env, nowMs = Date.now()) {
     if (kind !== "update") {
       downloadFileByDay.set(row.day, (downloadFileByDay.get(row.day) || 0) + count);
     }
+    if (kind === "desktop") {
+      desktopFileByDay.set(row.day, (desktopFileByDay.get(row.day) || 0) + count);
+      if (count >= SUSPECT_DOWNLOAD_DAY_THRESHOLD) suspectDownloadDays.add(row.day);
+    }
+    if (kind === "extension") extensionFileByDay.set(row.day, (extensionFileByDay.get(row.day) || 0) + count);
     if (kind === "desktop" || kind === "extension") {
       installAndExtensionFileByDay.set(row.day, (installAndExtensionFileByDay.get(row.day) || 0) + count);
     }
@@ -244,6 +258,9 @@ export async function buildStats(env, nowMs = Date.now()) {
     // null for legacy days (download_all cannot be split) or when home page views are 0.
     const hasLegacyDownloads = (downloadAllByDay.get(day) || 0) > 0;
     const conversionRate = !hasLegacyDownloads && homeViews > 0 ? installDownloads / homeViews : null;
+    // Installer downloads only (.dmg/.exe). Legacy days only carry download_all,
+    // which cannot be split by kind, so it is added here as before.
+    const desktopDownloads = (desktopFileByDay.get(day) || 0) + (downloadAllByDay.get(day) || 0);
     return {
       date: day,
       firstLaunches: firstLaunchByDay.get(day) || 0,
@@ -251,12 +268,30 @@ export async function buildStats(env, nowMs = Date.now()) {
       // Edge-era days recompute the per-file counts minus in-app update zips;
       // legacy days only carry download_all, which cannot be split by kind, so
       // the line mixes the two methodologies at the 2026-10-29 switchover.
-      downloadRequests: (downloadFileByDay.get(day) || 0) + (downloadAllByDay.get(day) || 0),
+      desktopDownloads,
+      extensionDownloads: extensionFileByDay.get(day) || 0,
+      // Kept so a cached older admin page does not break; equals
+      // desktopDownloads since 399 (it used to include extension zips).
+      downloadRequests: desktopDownloads,
+      suspectDownloads: suspectDownloadDays.has(day),
       pageViews: (pagePathByDay.get(day) || 0) + (pageAllByDay.get(day) || 0),
       homePageViews: homeViews,
       conversionRate,
     };
   });
+
+  const downloadRefWindow = new Map(downloadRefWindowRows.map((row) => [row.key, Number(row.total) || 0]));
+  // Source table over the 30-day window: page views by ?ref= channel against
+  // download_ref of the same key. download_ref is not split by file, so the
+  // download column counts ALL downloads (installer, extension, update zips).
+  const sourceRows = pageRefRows
+    .map((row) => {
+      const visits = Number(row.total) || 0;
+      const downloads = downloadRefWindow.get(row.key) || 0;
+      return { source: row.key, visits, downloads, rate: visits > 0 ? downloads / visits : null };
+    })
+    .sort((a, b) => b.visits - a.visits || String(a.source).localeCompare(String(b.source)))
+    .slice(0, SOURCE_TABLE_LIMIT);
 
   const coverageDays = [earliestCounterDay, earliestDailyActiveDay].filter(Boolean).sort();
   const coverageStart = coverageDays.length
@@ -335,6 +370,7 @@ export async function buildStats(env, nowMs = Date.now()) {
     totalUpdateDownloadRequests: sumMap(updateByFile),
     totalExtensionDownloadRequests,
     totalOtherDownloadRequests: sumMap(otherByFile),
+    extensionDownloads30d: daily.reduce((sum, row) => sum + row.extensionDownloads, 0),
     daily,
   };
 
@@ -343,6 +379,7 @@ export async function buildStats(env, nowMs = Date.now()) {
   if (siteByKind.page_referrer.size) report.pageViewsByReferrer = mapToObject(siteByKind.page_referrer);
   if (siteByKind.page_country.size) report.pageViewsByCountry = mapToObject(siteByKind.page_country);
   if (siteByKind.page_device.size) report.pageViewsByDevice = mapToObject(siteByKind.page_device);
+  if (sourceRows.length) report.sourceStats = sourceRows;
   if (botTotal > 0) report.botPageViews = botTotal;
   if (earliestEdgePageDay) report.metricsNote = `页面访问自 ${earliestEdgePageDay} 起改为边缘计数`;
 

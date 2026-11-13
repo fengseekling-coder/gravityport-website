@@ -63,7 +63,8 @@ async function replayContract() {
   const statuses = [];
   for (const request of feed.requests) {
     const init = { method: request.method };
-    if (request.range) init.headers = { range: request.range };
+    init.headers = { "user-agent": DESKTOP_UA };
+    if (request.range) init.headers.range = request.range;
     const { ctx, waitAll } = makeCtx();
     const response = await worker.fetch(new Request(`https://gravityport.azhuilab.com${request.path}`, init), env, ctx);
     await waitAll();
