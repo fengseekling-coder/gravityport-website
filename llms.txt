@@ -1,17 +1,17 @@
 # GravityPort
 
-> GravityPort is a free AI asset manager for ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng. It saves generated images and videos straight to a library on your own computer, with their prompts, reference images and sources.
+> GravityPort is a free AI asset manager for ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng. It automatically captures generated images and videos into a library on your own computer, preserving their prompts, reference images and provenance.
 
 GravityPort doesn't generate images. It collects them, automatically, from the tools you already use, and runs on Macs with Apple silicon or Intel processors and on Windows 10/11.
 
 ## What it does
 
-- Auto-Capture: Saves generated images and videos straight to your library. ChatGPT, Gemini, Flow, Google AI Studio and Jimeng through the browser extension; Codex and Grok read directly by the desktop app.
-- Prompts & Context: Keeps prompts, reference images, and sources with every asset.
-- Version Tree: Records every round of edits in a conversation. Images from one ChatGPT conversation line up round by round; compare any two side by side and see which line changed it.
-- Smart Stacks: Groups related assets by source and conversation. Images from one conversation, Flow project or Codex task stack into a single card.
-- 100% Local: Stores all assets and records locally on your computer.
-- GravityPort MCP: Lets AI assistants manage your library assets directly. Connect Claude or Codex to search and use assets, prompts, versions and generation history.
+- Auto-Capture: Automatically captures generated images and videos into your library. ChatGPT, Gemini, Flow, Google AI Studio and Jimeng through the browser extension; Codex and Grok read directly by the desktop app.
+- Prompts & Context: Preserves prompts, reference images, and provenance with every asset.
+- Version Tree: Tracks every round of iterations within a conversation. Images from one ChatGPT conversation line up round by round; compare any two side by side and see which line changed it.
+- Smart Stacks: Organizes related assets by generation source and conversation. Images from one conversation, Flow project or Codex task stack into a single card.
+- 100% Local: Stores all assets and metadata locally on your device.
+- GravityPort MCP: Enables AI assistants to access and manage your library directly. Connect Claude or Codex to search and use assets, prompts, versions and generation history.
 - Free Download: macOS · Windows · gravityport.azhuilab.com
 
 ## Privacy

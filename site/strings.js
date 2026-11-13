@@ -2,7 +2,7 @@
 window.GP_STRINGS = {
   zh: {
     "meta.title": "GravityPort：AI 图片视频素材管理工具，免费下载",
-    "meta.description": "GravityPort 是 AI 素材管理工具，支持 ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、即梦：生成的图片与视频直接收进素材库，同步保存提示词、参考图与来源，所有素材与记录都保存在本地电脑，免费下载。",
+    "meta.description": "GravityPort 是 AI 素材管理工具，支持 ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、即梦：自动收录生成的图片与视频素材，同步保存提示词、参考图与生成来源，所有素材与记录均存储于本地设备，免费下载。",
     "meta.ogLocale": "zh_CN",
     "meta.ogImageAlt": "GravityPort：那条提示词去哪了？",
 
@@ -25,7 +25,7 @@ window.GP_STRINGS = {
     "nav.menuClose": "关闭导航",
 
     "hero.title": "让每一次<br />AI 创作，<br />有迹<wbr />可循",
-    "hero.lede": "GravityPort 是一款 AI 素材管理工具，支持 ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、即梦。生成的图片与视频直接收进素材库，同步保存提示词、参考图与来源。",
+    "hero.lede": "GravityPort 是一款 AI 素材管理工具，支持 ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、即梦。自动收录生成的图片与视频素材，同步保存提示词、参考图与生成来源。",
     "hero.cta": "下载 macOS 版",
     "hero.ctaMeta": "Apple 芯片 · 免费",
     "hero.ctaMetaIntel": "Intel 芯片 · 免费",
@@ -64,7 +64,7 @@ window.GP_STRINGS = {
     "slug.gloss": "",
 
     "context.title": "一张图<wbr />离开对话框，<br />就丢了一半。",
-    "context.lede": "Prompt 留在另一段对话里，用的哪个工具记不清，想要的那一版混在一堆相似的图里。创作溯源：同步保存提示词、参考图与来源。",
+    "context.lede": "Prompt 留在另一段对话里，用的哪个工具记不清，想要的那一版混在一堆相似的图里。创作溯源：同步保存提示词、参考图与生成来源。",
     "context.artAlt": "作者用 ChatGPT 生成的海报《WILD SIGHT》",
     "context.f.image": "图片",
     "context.f.source": "来源",
@@ -104,7 +104,7 @@ window.GP_STRINGS = {
     "organize.picked": "已拿起。用方向键选位置，回车放下，Esc 取消。",
 
     "versions.title": "改了几轮，<br />每一轮都在。",
-    "versions.lede": "版本树：记录同一对话的多轮修改。同一段 ChatGPT 对话里的图按轮次排开，任选两版并排对比，看是哪句话改变了它。",
+    "versions.lede": "版本树：完整记录同一对话的多轮生成与修改。同一段 ChatGPT 对话里的图按轮次排开，任选两版并排对比，看是哪句话改变了它。",
     "versions.help": "点两张，下面并排对比",
     "versions.saidLabel": "B 这一轮，你说：",
     "versions.note": "这一句，让它变了样",
@@ -112,7 +112,7 @@ window.GP_STRINGS = {
     "versions.pick": "选为对比",
 
     "sort.title": "不用动手，<br />自己就分好。",
-    "sort.lede": "自动分组：按生成来源与对话窗口归类同组素材。每组在画廊里只占一格。",
+    "sort.lede": "自动分组：按生成来源与所属对话自动归类素材。每组在画廊里只占一格。",
     "sort.n1.title": "按来源",
     "sort.n1.body": "ChatGPT、Gemini、Flow、Google AI Studio、Codex、Grok、即梦各成一组，有图的来源才会显示。",
     "sort.n2.title": "按对话窗口",
@@ -122,13 +122,13 @@ window.GP_STRINGS = {
     "sort.freed": "省出 {n} 格",
 
     "agents.title": "也让 AI&nbsp;代理<br />翻得到<wbr />你的图。",
-    "agents.lede": "GravityPort MCP：让 AI 助手直接管理你的素材库资产。连接 Claude、Codex，就能检索和调用素材、提示词、版本和生成记录。",
+    "agents.lede": "GravityPort MCP：支持 AI 助手直接连接与管理素材库。连接 Claude、Codex，就能检索和调用素材、提示词、版本和生成记录。",
     "agents.ask": "把 10 月 20 号做的那组茶主题系列海报都找出来。",
     "agents.count": "11 个结果 · 同一段 ChatGPT 对话 · 10-20",
     "agents.demo": "示意 · 工具名和参数与真实 MCP 服务器一致",
 
     "local.title": "素材库，<br />只在<wbr />你的电脑上。",
-    "local.lede": "本地存储：所有素材与记录都保存在本地电脑。没有账号，不同步，不上传，原图、Prompt 和来源都在你选的文件夹里。",
+    "local.lede": "本地存储：所有素材与记录均存储于本地设备。没有账号，不同步，不上传，原图、Prompt 和来源都在你选的文件夹里。",
     "local.folder.title": "一个文件夹",
     "local.folder.original": "原图",
     "local.folder.previews": "预览",
@@ -260,7 +260,7 @@ window.GP_STRINGS = {
     "nav.menuClose": "Close menu",
 
     "hero.title": "Every AI creation leaves a trail",
-    "hero.lede": "GravityPort is an AI asset manager for ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng. It saves generated images and videos straight to your library and keeps prompts, reference images, and sources with every asset.",
+    "hero.lede": "GravityPort is an AI asset manager for ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng. It automatically captures generated images and videos into your library and preserves prompts, reference images, and provenance with every asset.",
     "hero.cta": "Download for Mac",
     "hero.ctaMeta": "Apple silicon · Free",
     "hero.ctaMetaIntel": "Intel · Free",
@@ -299,7 +299,7 @@ window.GP_STRINGS = {
     "slug.gloss": "(“Better, but too dark overall, a bit oppressive…”)",
 
     "context.title": "An image that leaves the chat loses half of itself.",
-    "context.lede": "The Prompt is in another conversation, you can’t recall which tool made it, and the version you wanted is lost among near-duplicates. Prompts & Context: Keeps prompts, reference images, and sources with every asset.",
+    "context.lede": "The Prompt is in another conversation, you can’t recall which tool made it, and the version you wanted is lost among near-duplicates. Prompts & Context: Preserves prompts, reference images, and provenance with every asset.",
     "context.artAlt": "WILD SIGHT, a poster the author made with ChatGPT",
     "context.f.image": "Image",
     "context.f.source": "Source",
@@ -339,7 +339,7 @@ window.GP_STRINGS = {
     "organize.picked": "Picked up. Use the arrow keys to choose a spot, Enter to drop, Esc to cancel.",
 
     "versions.title": "Every round you asked for, kept in order.",
-    "versions.lede": "Version Tree: Records every round of edits in a conversation. Images from one ChatGPT conversation line up round by round; compare any two side by side and see which line changed it.",
+    "versions.lede": "Version Tree: Tracks every round of iterations within a conversation. Images from one ChatGPT conversation line up round by round; compare any two side by side and see which line changed it.",
     "versions.help": "Pick two to compare them below",
     "versions.saidLabel": "In round B, you said:",
     "versions.note": "This line changed it",
@@ -347,7 +347,7 @@ window.GP_STRINGS = {
     "versions.pick": "Compare",
 
     "sort.title": "It sorts itself.",
-    "sort.lede": "Smart Stacks: Groups related assets by source and conversation. Each stack takes a single card in the gallery.",
+    "sort.lede": "Smart Stacks: Organizes related assets by generation source and conversation. Each stack takes a single card in the gallery.",
     "sort.n1.title": "By source",
     "sort.n1.body": "ChatGPT, Gemini, Flow, Google AI Studio, Codex, Grok and Jimeng each get a group, shown once it has images.",
     "sort.n2.title": "By conversation",
@@ -357,13 +357,13 @@ window.GP_STRINGS = {
     "sort.freed": "{n} slots freed",
 
     "agents.title": "Let your AI agents look things up, too.",
-    "agents.lede": "GravityPort MCP: Lets AI assistants manage your library assets directly. Connect Claude or Codex to search and use assets, prompts, versions and generation history.",
+    "agents.lede": "GravityPort MCP: Enables AI assistants to access and manage your library directly. Connect Claude or Codex to search and use assets, prompts, versions and generation history.",
     "agents.ask": "Find that series of tea posters I made on October 20.",
     "agents.count": "11 results · one ChatGPT conversation · Oct 20",
     "agents.demo": "Illustration · the tool name and parameters match the real MCP server",
 
     "local.title": "Your library stays on your computer.",
-    "local.lede": "100% Local: Stores all assets and records locally on your computer. No account, no sync, no uploads; originals, Prompts and sources live in a folder you choose.",
+    "local.lede": "100% Local: Stores all assets and metadata locally on your device. No account, no sync, no uploads; originals, Prompts and sources live in a folder you choose.",
     "local.folder.title": "One folder",
     "local.folder.original": "originals",
     "local.folder.previews": "previews",
