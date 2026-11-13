@@ -738,14 +738,18 @@ if [[ "$dry_run" -eq 1 ]]; then
       r2_stale_preview="$(printf '%s\n' "$r2_downloads_files" | node "$retention_selector" "$desktop_retention_count" "$release_product" 2>/dev/null)" || r2_stale_preview=""
       if [[ -n "$r2_stale_preview" ]]; then
         log "R2 清理将删除（保留 ${desktop_retention_count} 版）："
-        while IFS=$'\t' read -r preview_mac preview_windows preview_installer preview_mac_x64_zip preview_mac_x64_dmg; do
+        while IFS=$'\t' read -r preview_mac preview_windows preview_installer preview_mac_x64_zip preview_mac_x64_dmg preview_mac_other; do
           # The retention selector writes "-" for a missing column (consecutive
           # tabs collapse into one separator in read); turn it back into empty.
+          [[ "$preview_mac" == "-" ]] && preview_mac=""
+          [[ "$preview_windows" == "-" ]] && preview_windows=""
           [[ "$preview_installer" == "-" ]] && preview_installer=""
+          [[ "$preview_mac_other" == "-" ]] && preview_mac_other=""
           [[ "$preview_mac_x64_zip" == "-" ]] && preview_mac_x64_zip=""
           [[ "$preview_mac_x64_dmg" == "-" ]] && preview_mac_x64_dmg=""
-          log "  downloads/$preview_mac"
-          log "  downloads/$preview_windows"
+          [[ -n "$preview_mac" ]] && log "  downloads/$preview_mac"
+          [[ -n "$preview_mac_other" ]] && log "  downloads/$preview_mac_other"
+          [[ -n "$preview_windows" ]] && log "  downloads/$preview_windows"
           [[ -n "$preview_installer" ]] && log "  downloads/$preview_installer"
           [[ -n "$preview_mac_x64_zip" ]] && log "  downloads/$preview_mac_x64_zip"
           [[ -n "$preview_mac_x64_dmg" ]] && log "  downloads/$preview_mac_x64_dmg"
@@ -837,17 +841,39 @@ r2_stale_pairs="$(printf '%s\n' "$r2_downloads_files" | node "$retention_selecto
   || die "could not select R2 retained desktop release pairs"
 if [[ -n "$r2_stale_pairs" ]]; then
   r2_removed_versions=0
-  while IFS=$'\t' read -r r2_stale_mac r2_stale_windows r2_stale_installer r2_stale_mac_x64_zip r2_stale_mac_x64_dmg; do
+  while IFS=$'\t' read -r r2_stale_mac r2_stale_windows r2_stale_installer r2_stale_mac_x64_zip r2_stale_mac_x64_dmg r2_stale_mac_other; do
     # "-" marks a column the release did not ship (see the retention selector).
+    [[ "$r2_stale_mac" == "-" ]] && r2_stale_mac=""
+    [[ "$r2_stale_windows" == "-" ]] && r2_stale_windows=""
     [[ "$r2_stale_installer" == "-" ]] && r2_stale_installer=""
+    [[ "$r2_stale_mac_other" == "-" ]] && r2_stale_mac_other=""
     [[ "$r2_stale_mac_x64_zip" == "-" ]] && r2_stale_mac_x64_zip=""
     [[ "$r2_stale_mac_x64_dmg" == "-" ]] && r2_stale_mac_x64_dmg=""
-    [[ "$r2_stale_mac" =~ ^${release_product}-darwin-arm64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.(dmg|zip)$ ]] \
-      || die "invalid macOS R2 retention filename: $r2_stale_mac"
-    [[ "$r2_stale_windows" =~ ^${release_product}-win32-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
-      || die "invalid Windows R2 retention filename: $r2_stale_windows"
-    node "$r2_client" delete "downloads/$r2_stale_mac" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac"
-    node "$r2_client" delete "downloads/$r2_stale_windows" >/dev/null || die "R2 删除失败: downloads/$r2_stale_windows"
+    # Complete stale versions carry both an arm64 file and a Windows ZIP; a
+    # leftover from an earlier run may lack one of them, never both.
+    [[ -n "$r2_stale_mac" || -n "$r2_stale_windows" || -n "$r2_stale_mac_other" ]] \
+      || die "empty R2 retention line (no arm64 or Windows file)"
+    if [[ -n "$r2_stale_mac" ]]; then
+      [[ "$r2_stale_mac" =~ ^${release_product}-darwin-arm64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.(dmg|zip)$ ]] \
+        || die "invalid macOS R2 retention filename: $r2_stale_mac"
+    fi
+    if [[ -n "$r2_stale_mac_other" ]]; then
+      [[ "$r2_stale_mac_other" =~ ^${release_product}-darwin-arm64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.(dmg|zip)$ ]] \
+        || die "invalid macOS R2 retention filename (second arm64 file): $r2_stale_mac_other"
+    fi
+    if [[ -n "$r2_stale_windows" ]]; then
+      [[ "$r2_stale_windows" =~ ^${release_product}-win32-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
+        || die "invalid Windows R2 retention filename: $r2_stale_windows"
+    fi
+    if [[ -n "$r2_stale_mac" ]]; then
+      node "$r2_client" delete "downloads/$r2_stale_mac" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac"
+    fi
+    if [[ -n "$r2_stale_mac_other" ]]; then
+      node "$r2_client" delete "downloads/$r2_stale_mac_other" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac_other"
+    fi
+    if [[ -n "$r2_stale_windows" ]]; then
+      node "$r2_client" delete "downloads/$r2_stale_windows" >/dev/null || die "R2 删除失败: downloads/$r2_stale_windows"
+    fi
     if [[ -n "$r2_stale_installer" ]]; then
       node "$r2_client" delete "downloads/$r2_stale_installer" >/dev/null || die "R2 删除失败: downloads/$r2_stale_installer"
     fi

@@ -447,3 +447,53 @@ test("R2 retention prunes stale Intel files with their version and never the cur
     assert.ok(fake.objects.has(key), `${key} stays inside the retention window (the current release's Intel files are never pruned)`);
   }
 });
+
+// 400: arm64 has both an update ZIP and a DMG on R2 for each old version, and
+// earlier runs left arm64-only leftovers behind. After the run the bucket must
+// hold exactly the retained versions' files plus the unrelated files.
+test("400: R2 retention deletes both arm64 files of a stale version and cleans arm64-only leftovers", async (t) => {
+  const fake = createFakeS3();
+  await fake.listen();
+  t.after(() => fake.close());
+  const work = makeTempDir("mosa-400-run.");
+  t.after(() => fs.rmSync(work, { recursive: true, force: true }));
+
+  const unrelated = [
+    "downloads/GravityPort-Web-Capture-0.15.41.zip",
+    "downloads/MOSA-darwin-arm64-0.3.0-rc.1.zip",
+    "downloads/MOSA-win32-x64-0.3.0-rc.1.zip",
+    "downloads/GravityPort-darwin-x64-0.3.2.zip", // Intel-only: never selected
+  ];
+  for (const key of unrelated) fake.putObject(key, "unrelated");
+  // 0.3.4–0.3.8 are complete with ZIP+DMG; publishing 0.3.9 makes six, keep=4
+  // retains 0.3.6–0.3.9 and prunes 0.3.4 and 0.3.5.
+  for (let minor = 4; minor <= 8; minor += 1) {
+    fake.putObject(`downloads/GravityPort-darwin-arm64-0.3.${minor}.zip`, `mac zip ${minor}`);
+    fake.putObject(`downloads/GravityPort-darwin-arm64-0.3.${minor}.dmg`, `mac dmg ${minor}`);
+    fake.putObject(`downloads/GravityPort-win32-x64-0.3.${minor}.zip`, `win ${minor}`);
+  }
+  // Leftovers of earlier runs (Windows already gone), older than 0.3.6.
+  fake.putObject("downloads/GravityPort-darwin-arm64-0.3.1.zip", "leftover zip");
+  fake.putObject("downloads/GravityPort-darwin-arm64-0.3.1.dmg", "leftover dmg");
+  fake.putObject("downloads/GravityPort-darwin-arm64-0.3.3.dmg", "leftover dmg 3");
+  seedPreviousManifestOnR2(fake, "0.3.8");
+
+  const { root } = makeSourceTree({ macVersion: "0.3.9", windowsVersion: "0.3.9", withDmg: true });
+  t.after(() => fs.rmSync(path.join(root, "..", "..", "web"), { recursive: true, force: true }));
+
+  await runScript(buildEnv({ sourceDir: root, stateFile: path.join(work, "state"), r2Endpoint: fake.endpoint }));
+
+  const expected = new Set([
+    ...unrelated,
+    ...[6, 7, 8].flatMap((minor) => [
+      `downloads/GravityPort-darwin-arm64-0.3.${minor}.zip`,
+      `downloads/GravityPort-darwin-arm64-0.3.${minor}.dmg`,
+      `downloads/GravityPort-win32-x64-0.3.${minor}.zip`,
+    ]),
+    "downloads/GravityPort-darwin-arm64-0.3.9.zip",
+    "downloads/GravityPort-darwin-arm64-0.3.9.dmg",
+    "downloads/GravityPort-win32-x64-0.3.9.zip",
+  ]);
+  const remaining = new Set([...fake.objects.keys()].filter((key) => key.startsWith("downloads/")));
+  assert.deepEqual([...remaining].sort(), [...expected].sort(), "only the retained versions' files and the unrelated files remain");
+});
