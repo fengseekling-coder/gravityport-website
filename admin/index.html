@@ -48,6 +48,11 @@
     <!-- Main Content Container -->
     <main class="main-content">
 
+      <div class="network-notice" id="networkNotice" role="alert" hidden>
+        <span>登录可能已过期，或网络不通。</span>
+        <button class="action-btn" id="networkReloginBtn" type="button">重新登录</button>
+      </div>
+
       <!-- ================= VIEW 1: OVERVIEW ================= -->
       <div class="view-panel" id="overviewView">
 
@@ -130,7 +135,7 @@
               <div>
                 <span class="kicker">30-DAY TREND</span>
                 <h3 class="panel-title">30 天趋势</h3>
-                <p class="panel-desc">按日聚合：日活、首次启动、安装包下载请求与官网访问。</p>
+                <p class="panel-desc">按日聚合：日活、首次启动、安装包下载（不含扩展和更新包）与官网访问。</p>
               </div>
               <div class="chart-legend" id="chartLegend">
                 <label class="legend-item active" data-metric="activeInstalls">
@@ -141,9 +146,9 @@
                   <span class="legend-dot dot-light"></span>
                   <span>首次启动</span>
                 </label>
-                <label class="legend-item active" data-metric="downloadRequests">
+                <label class="legend-item active" data-metric="desktopDownloads">
                   <span class="legend-dot dot-dashed"></span>
-                  <span>下载请求</span>
+                  <span>安装包下载</span>
                 </label>
                 <label class="legend-item active" data-metric="pageViews">
                   <span class="legend-dot dot-dotted"></span>
@@ -208,6 +213,9 @@
 
               <div class="silent-update-strip" id="updateDownloadStrip">
                 <span class="strip-text" id="updateDownloadText">软件内更新下载请求：— 次</span>
+              </div>
+              <div class="silent-update-strip" id="extensionDownloadStrip">
+                <span class="strip-text" id="extensionDownloadText">近 30 天扩展下载：— 次</span>
               </div>
             </article>
 
@@ -351,6 +359,34 @@
               </div>
             </article>
           </div>
+        </section>
+
+        <!-- 来源：访问 → 下载 -->
+        <section class="console-zone" id="zone-source-table">
+          <article class="panel table-panel">
+            <div class="panel-header">
+              <div>
+                <span class="kicker">SOURCE → DOWNLOAD</span>
+                <h3 class="panel-title">来源：访问 → 下载</h3>
+                <p class="panel-desc" id="sourceTableDesc">近 30 天，按 ref 渠道汇总；下载次数是该渠道的全部下载（安装包、扩展、更新包）。</p>
+              </div>
+            </div>
+            <div class="table-scroll-wrap">
+              <table class="modern-table" aria-label="来源统计表格">
+                <thead>
+                  <tr>
+                    <th scope="col">来源</th>
+                    <th scope="col">访问次数</th>
+                    <th scope="col">下载次数（全部下载）</th>
+                    <th scope="col">比例</th>
+                  </tr>
+                </thead>
+                <tbody id="sourceTableBody">
+                  <tr><td colspan="4" class="empty-cell">暂无来源数据</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
         </section>
 
         <!-- ZONE 4: 设备明细 -->

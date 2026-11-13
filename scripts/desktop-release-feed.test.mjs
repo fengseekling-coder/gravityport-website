@@ -231,3 +231,54 @@ test("the installer never stands in for a missing or invalid Windows ZIP, and ne
   const hostile = gravityPortWindows("0.3.4", installerEntry("0.3.4", { url: "https://evil.example/GravityPort.exe" }));
   assert.equal(feed.normalizeDesktopRelease(hostile).windows.url, "https://gravityport.azhuilab.com/downloads/GravityPort-win32-x64-0.3.4.exe");
 });
+
+const macX64Entry = (version, overrides = {}) => ({
+  platform: "macOS",
+  arch: "x64",
+  file: `GravityPort-darwin-x64-${version}.zip`,
+  size: 4,
+  sha256: "d".repeat(64),
+  ...overrides,
+});
+
+test("a platforms.macosX64 entry resolves macIntel without touching mac or windows", () => {
+  const release = {
+    version: "0.3.13",
+    platforms: { macos: macEntry("0.3.13"), macosX64: macX64Entry("0.3.13"), windows: windowsEntry("0.3.13") },
+  };
+  const normalized = feed.normalizeDesktopRelease(release);
+  assert.equal(normalized.version, "0.3.13");
+  assert.equal(normalized.mac.file, "MOSA-darwin-arm64-0.3.13.zip");
+  assert.equal(normalized.macIntel.file, "GravityPort-darwin-x64-0.3.13.zip");
+  assert.equal(normalized.macIntel.url, "https://gravityport.azhuilab.com/downloads/GravityPort-darwin-x64-0.3.13.zip");
+  assert.deepEqual([normalized.macIntel.size, normalized.macIntel.sha256], [4, "d".repeat(64)]);
+  assert.ok(normalized.windows);
+});
+
+test("macIntel is null when macosX64 is absent, and mac is unaffected", () => {
+  const release = { version: "0.3.13", platforms: { macos: macEntry("0.3.13") } };
+  const normalized = feed.normalizeDesktopRelease(release);
+  assert.equal(normalized.macIntel, null);
+  assert.ok(normalized.mac, "macOS arm64 keeps resolving without macosX64");
+  const noPlatforms = feed.normalizeDesktopRelease({ version: "0.3.13", platforms: {} });
+  assert.equal(noPlatforms.macIntel, null);
+  assert.equal(noPlatforms.mac, null);
+});
+
+test("macosX64 must be a macOS x64 artifact whose file is the version's -darwin-x64- ZIP", () => {
+  const cases = [
+    ["wrong arch", macX64Entry("0.3.13", { arch: "arm64" })],
+    ["wrong platform", macX64Entry("0.3.13", { platform: "Windows" })],
+    ["arm64 file name", macX64Entry("0.3.13", { file: "GravityPort-darwin-arm64-0.3.13.zip" })],
+    ["older version", macX64Entry("0.3.12")],
+    ["foreign product", macX64Entry("0.3.13", { file: "OtherApp-darwin-x64-0.3.13.zip" })],
+    ["legacy MOSA prefix", macX64Entry("0.3.13", { file: "MOSA-darwin-x64-0.3.13.zip" })],
+    ["not an object", "GravityPort-darwin-x64-0.3.13.zip"],
+  ];
+  for (const [label, entry] of cases) {
+    const release = { version: "0.3.13", platforms: { macos: macEntry("0.3.13"), macosX64: entry } };
+    const normalized = feed.normalizeDesktopRelease(release);
+    assert.equal(normalized.macIntel, null, label);
+    assert.ok(normalized.mac, `${label}: mac unaffected`);
+  }
+});

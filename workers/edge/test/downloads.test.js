@@ -1,6 +1,6 @@
 // /downloads/*: streaming with Range support, content types, counting rules.
 import { describe, expect, it } from "vitest";
-import { counterRows, counterTotal, env, fetchWorker, resetStats } from "./helpers.js";
+import { counterRows, counterTotal, env, fetchWorker, fetchWorkerRaw, resetStats } from "./helpers.js";
 
 const BASE = "https://gravityport.azhuilab.com";
 const ZIP_BODY = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ"; // 100 bytes
@@ -183,5 +183,42 @@ describe("download serving", () => {
     });
     expect(response.status).toBe(200);
     await expectBody(response, ZIP_BODY);
+  });
+});
+
+describe("crawler downloads (399)", () => {
+  const DMG = `${BASE}/downloads/GravityPort-darwin-arm64-0.3.7.dmg?ref=bilibili`;
+
+  it("crawler user agents get the full file but only bot_download moves", async () => {
+    for (const ua of ["curl/8.0", "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)"]) {
+      await seed();
+      const response = await fetchWorkerRaw(DMG, { headers: { "user-agent": ua } });
+      expect(response.status, ua).toBe(200);
+      await expectBody(response, DMG_BODY);
+      expect(response.headers.get("content-length")).toBe(String(DMG_BODY.length));
+      await expectCount("bot_download", "GravityPort-darwin-arm64-0.3.7.dmg", 1);
+      expect((await counterRows(env.STATS, "download_file")).length, ua).toBe(0);
+      expect((await counterRows(env.STATS, "download_ref")).length, ua).toBe(0);
+    }
+  });
+
+  it("a request without User-Agent counts as a crawler", async () => {
+    await seed();
+    const response = await fetchWorkerRaw(DMG);
+    expect(response.status).toBe(200);
+    await expectBody(response, DMG_BODY);
+    await expectCount("bot_download", "GravityPort-darwin-arm64-0.3.7.dmg", 1);
+    expect((await counterRows(env.STATS, "download_file")).length).toBe(0);
+    expect((await counterRows(env.STATS, "download_ref")).length).toBe(0);
+  });
+
+  it("a normal browser user agent is still counted as before", async () => {
+    await seed();
+    const response = await fetchWorker(DMG);
+    expect(response.status).toBe(200);
+    await expectBody(response, DMG_BODY);
+    await expectCount("download_file", "GravityPort-darwin-arm64-0.3.7.dmg", 1);
+    await expectCount("download_ref", "bilibili", 1);
+    expect((await counterRows(env.STATS, "bot_download")).length).toBe(0);
   });
 });

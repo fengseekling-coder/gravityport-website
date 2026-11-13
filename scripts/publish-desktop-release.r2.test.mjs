@@ -391,10 +391,12 @@ test("R2 retention deletes only the oldest complete desktop pairs", async (t) =>
     "downloads/GravityPort-Web-Capture-0.15.41.zip",
     "downloads/MOSA-darwin-arm64-0.3.0-rc.1.zip",
     "downloads/MOSA-win32-x64-0.3.0-rc.1.zip",
-    "downloads/GravityPort-darwin-arm64-0.2.9.zip",
   ]) {
     assert.ok(fake.objects.has(key), `${key} must never be deleted by retention`);
   }
+  // 400: an unpaired arm64 file older than the oldest retained version
+  // (0.3.4) is a leftover of an earlier run and goes too.
+  assert.equal(fake.objects.has("downloads/GravityPort-darwin-arm64-0.2.9.zip"), false, "old arm64 leftover is cleaned up");
 });
 
 test("curl never receives the secret in its argv and the output never contains it", async (t) => {

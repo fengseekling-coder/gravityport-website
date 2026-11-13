@@ -972,6 +972,12 @@
   // A campaign link (?ref=…) passes its tag on to the download, so the stats panel counts downloads per channel.
   const pageRef = links ? links.campaignRef(location.search) : "";
   let release = null;
+  // Which chip this Mac most likely runs: Apple silicon until the browser confirms
+  // Intel (see the userAgentData check below the feed). Never guessed from the UA string.
+  let defaultChip = "arm64";
+  const otherChip = (chip) => (chip === "x64" ? "arm64" : "x64");
+  const chipConfig = (chip) => (chip === "x64" ? config.macIntel : config.mac);
+  const chipRelease = (chip) => (release && (chip === "x64" ? release.macIntel : release.mac)) || null;
   const fmtSize = (bytes) => {
     if (typeof bytes !== "number" || bytes <= 0) return "";
     return bytes >= 1e6 ? `${Math.round(bytes / 1e6)} MB` : `${Math.max(1, Math.round(bytes / 1e3))} KB`;
@@ -991,6 +997,22 @@
       }
     });
   }
+  // When the release and the checked-in config describe the same version, the config's
+  // link wins (the Mac cards link the DMG, Windows the installer); otherwise the feed's file.
+  const configured = (c, item) => {
+    const cv = c && typeof c.version === "string" ? c.version.replace(/^v/i, "") : "";
+    return release && cv && cv === release.version && c.url ? c.url : item.url;
+  };
+  // The download a chip offers, or "" when this version has no such package. Apple
+  // silicon keeps the checked-in config as its fallback (as it always has); Intel
+  // goes live only on release evidence, so a version without an Intel package can
+  // never link the Apple package or a file that does not exist.
+  const chipDownload = (chip) => {
+    if (!downloadsEnabled) return "";
+    const item = chipRelease(chip);
+    if (item) return configured(chipConfig(chip), item);
+    return chip === "arm64" && config.mac && config.mac.url ? config.mac.url : "";
+  };
   function refreshDownloads() {
     const macVersion = (release && release.mac && release.version) || (config.mac && config.mac.version) || "";
     const winVersion = (release && release.windows && release.version) || (config.windows && config.windows.version) || "";
@@ -999,12 +1021,64 @@
     setAll("[data-mac-version]", v(macVersion));
     setAll("[data-windows-version]", v(winVersion));
     setAll("[data-extension-version]", v(extVersion));
-    const winFile = feedFile("windows");
     const sized = (n) => (n ? ` · ${fmtSize(n)}` : "");
+    // The hero's big button and its meta line follow the chip this Mac most likely runs.
+    const defaultUrl = chipDownload(defaultChip);
+    setDownload("mac", defaultUrl);
+    // The version prints while that chip has a package to offer (or downloads are
+    // switched off, when the release version still describes the page); a version
+    // with no Intel package prints none, so the line never implies one exists.
+    const defaultVersion = downloadsEnabled
+      ? (defaultUrl && (chipRelease(defaultChip) ? release.version : (chipConfig(defaultChip) && chipConfig(defaultChip).version) || "")) || ""
+      : (chipRelease(defaultChip) ? release.version : (defaultChip === "arm64" && config.mac && config.mac.version) || "");
+    // The separator travels with the version, so a line without one ends at 免费 (Free).
+    setAll("[data-default-version]", defaultVersion ? ` · ${v(defaultVersion)}` : "");
+    const defaultReleaseItem = chipRelease(defaultChip);
+    const defaultMatched = defaultReleaseItem && defaultReleaseItem.file === linkedFile("mac") ? defaultReleaseItem : null;
+    setAll("[data-default-size]", defaultUrl ? sized(knownSize("mac", defaultMatched && defaultMatched.size)) : "");
+    // The download sheet's macOS card: the chip this Mac most likely runs gets the
+    // primary style; the buttons never trade packages with each other.
+    setDownload("macApple", chipDownload("arm64"));
+    setDownload("macIntel", chipDownload("x64"));
+    $$('[data-download="macApple"]').forEach((a) => {
+      a.classList.toggle("btn-fluo", defaultChip === "arm64");
+      a.classList.toggle("btn-line", defaultChip === "x64");
+    });
+    $$('[data-download="macIntel"]').forEach((a) => {
+      a.classList.toggle("btn-fluo", defaultChip === "x64");
+      a.classList.toggle("btn-line", defaultChip === "arm64");
+    });
+    // The loaded version has no Intel package: the Intel button reads 暂无 (Unavailable).
+    const intelKey = release && !release.macIntel ? "download.mac.unavailable" : "download.mac.ctaIntel";
+    $$('[data-download="macIntel"] [data-i18n]').forEach((el) => {
+      el.setAttribute("data-i18n", intelKey);
+      el.textContent = t(intelKey);
+    });
+    const appleItem = release && release.mac && release.mac.file === linkedFile("macApple") ? release.mac : null;
+    setAll("[data-macapple-size]", sized(knownSize("macApple", appleItem && appleItem.size)));
+    const intelItem = release && release.macIntel && release.macIntel.file === linkedFile("macIntel") ? release.macIntel : null;
+    setAll("[data-macintel-size]", sized(knownSize("macIntel", intelItem && intelItem.size)));
+    // The hero's small link offers the other chip; while that package does not exist
+    // it only walks to the download sheet, never to a file that does not exist.
+    $$('[data-download="macAlt"]').forEach((a) => {
+      const url = chipDownload(otherChip(defaultChip));
+      a.href = url ? (links ? links.withRef(fromSite(url), pageRef) : fromSite(url)) : "#download";
+    });
+    $$('[data-download="macAlt"][data-i18n]').forEach((el) => {
+      const key = defaultChip === "x64" ? "hero.ctaAltApple" : "hero.ctaAltIntel";
+      el.setAttribute("data-i18n", key);
+      el.textContent = t(key);
+    });
+    const metaKey = defaultChip === "x64" ? "hero.ctaMetaIntel" : "hero.ctaMeta";
+    $$(".hero__meta [data-i18n]").forEach((el) => {
+      el.setAttribute("data-i18n", metaKey);
+      el.textContent = t(metaKey);
+    });
+    const winFile = feedFile("windows");
     setAll("[data-windows-size]", sized(knownSize("windows", winFile && winFile.size)));
-    const macFile = feedFile("mac");
-    setAll("[data-mac-size]", sized(knownSize("mac", macFile && macFile.size)));
     setAll("[data-extension-size]", sized(knownSize("extension", 0)));
+    setDownload("windows", release && release.windows ? configured(config.windows, release.windows) : (config.windows && config.windows.url) || "");
+    setDownload("extension", (config.extension && config.extension.url) || "");
     // The Windows button links the installer once a release ships one, and the portable ZIP before that.
     const winDetail = /\.exe$/i.test(linkedFile("windows")) ? "download.win.detailInstaller" : "download.win.detail";
     $$("[data-windows-detail]").forEach((el) => {
@@ -1028,17 +1102,12 @@
       return "";
     }
   }
-  // The feed's size and SHA-256 describe one file, so they are shown only while the button links
-  // that file: the checked-in config can point it elsewhere (the Mac button links the DMG, while the
-  // feed lists the update ZIP).
+  // The feed's size and SHA-256 describe one file, so they are shown only while the
+  // button links that file: the checked-in config can point it elsewhere (the Mac
+  // buttons link the DMG, while the feed lists the update ZIP).
   const feedFile = (kind) => {
     const item = release && release[kind];
     return item && item.file === linkedFile(kind) ? item : null;
-  };
-  const configured = (kind, item) => {
-    const c = config[kind];
-    const cv = c && typeof c.version === "string" ? c.version.replace(/^v/i, "") : "";
-    return release && cv && cv === release.version && c.url ? c.url : item.url;
   };
   // When the feed carries no size for a file, ask the first-party server for it (same origin only).
   const sizeFromServer = {};
@@ -1060,9 +1129,9 @@
     const a = $(`[data-download="${kind}"]`);
     return a ? sizeFromServer[new URL(a.href, document.baseURI).href] || 0 : 0;
   };
-  ["mac", "windows", "extension"].forEach((kind) => setDownload(kind, config[kind] && config[kind].url));
+  const SIZED_KINDS = ["mac", "macApple", "macIntel", "windows", "extension"];
   refreshDownloads();
-  ["mac", "windows", "extension"].forEach(headSize);
+  SIZED_KINDS.forEach(headSize);
   (async () => {
     const feedUrl = config.desktop && typeof config.desktop.feedUrl === "string" ? config.desktop.feedUrl.trim() : "";
     const lib = window.MOSADesktopReleaseFeed;
@@ -1074,13 +1143,27 @@
       const normalized = lib.normalizeDesktopRelease(data);
       if (!normalized || !normalized.version) return;
       release = normalized;
-      if (release.mac) setDownload("mac", configured("mac", release.mac));
-      if (release.windows) setDownload("windows", configured("windows", release.windows));
       refreshDownloads();
-      ["mac", "windows", "extension"].forEach(headSize);
+      SIZED_KINDS.forEach(headSize);
     } catch (e) {
       /* The checked-in config stays as the fallback. */
     }
+  })();
+  // Chrome and Edge can say which chip this Mac really runs. Safari and Firefox have
+  // no such API, the UA string always says "Intel" (even on Apple silicon), and the
+  // call can fail — anything short of a confirmed "x86" keeps the Apple silicon
+  // default, and a failure here must not touch the rest of the page.
+  (async () => {
+    try {
+      const uaData = navigator.userAgentData;
+      if (!links || !uaData || typeof uaData.getHighEntropyValues !== "function") return;
+      const values = await uaData.getHighEntropyValues(["architecture"]);
+      if (links.preferredMacChip(values && values.architecture) === "x64") {
+        defaultChip = "x64";
+        refreshDownloads();
+        SIZED_KINDS.forEach(headSize);
+      }
+    } catch (e) { /* the Apple silicon default stays */ }
   })();
   document.addEventListener("gp:lang", refreshDownloads);
   $$("[data-download]").forEach((a) => a.addEventListener("click", (e) => {

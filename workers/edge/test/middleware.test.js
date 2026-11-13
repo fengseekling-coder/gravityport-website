@@ -71,6 +71,7 @@ describe("site page-view middleware", () => {
       expect.objectContaining({ kind: "page_referrer", key: "direct" }),
       expect.objectContaining({ kind: "page_country", key: "XX" }),
       expect.objectContaining({ kind: "page_device", key: "desktop" }),
+      expect.objectContaining({ kind: "page_ref", key: "none" }),
     ]);
   });
 
@@ -184,5 +185,28 @@ describe("site page-view middleware", () => {
     await waitCollected(collected);
     const rows = await counterRows(env.STATS, "page_path");
     expect(rows).toEqual([{ day: expect.any(String), kind: "page_path", key: "/privacy/", count: 1 }]);
+  });
+});
+
+describe("page_ref channel counter (399)", () => {
+  async function pageRefRows(path, options) {
+    const { context, batches, collected } = makePageContext(path, options);
+    await onRequest(context);
+    await waitCollected(collected);
+    return flatRows(batches).filter((row) => row.kind === "page_ref");
+  }
+
+  it("normalizes ?ref= into the page_ref key", async () => {
+    expect(await pageRefRows("/?ref=MCP")).toEqual([expect.objectContaining({ kind: "page_ref", key: "mcp" })]);
+    expect(await pageRefRows("/")).toEqual([expect.objectContaining({ kind: "page_ref", key: "none" })]);
+    expect(await pageRefRows("/?ref=%%%")).toEqual([expect.objectContaining({ kind: "page_ref", key: "other" })]);
+    expect(await pageRefRows("/?ref=Shao%20Shu_Pai-1!")).toEqual([expect.objectContaining({ kind: "page_ref", key: "shaoshu_pai-1" })]);
+    const long = await pageRefRows(`/?ref=${"a".repeat(80)}`);
+    expect(long[0].key).toBe("a".repeat(32));
+  });
+
+  it("crawlers and uncounted pages do not record page_ref", async () => {
+    expect(await pageRefRows("/?ref=mcp", { userAgent: GOOGLEBOT_UA })).toEqual([]);
+    expect(await pageRefRows("/some-other-page/?ref=mcp")).toEqual([]);
   });
 });

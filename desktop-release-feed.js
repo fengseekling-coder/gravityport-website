@@ -11,6 +11,9 @@
   // new one. The file name must still be exactly one allowed prefix plus the
   // manifest version plus .zip (.exe for the Windows installer).
   const MAC_STEMS = ["MOSA-darwin-arm64-", "GravityPort-darwin-arm64-"];
+  // Intel builds only ever shipped under the current product name, so this list
+  // keeps just the GravityPort prefix.
+  const MAC_X64_STEMS = ["GravityPort-darwin-x64-"];
   const WINDOWS_STEMS = ["MOSA-win32-x64-", "GravityPort-win32-x64-"];
 
   const isPlainObject = (value) =>
@@ -56,12 +59,12 @@
     return { file, url: downloadUrl(file), ...facts };
   };
 
-  // platforms.macos and platforms.windows are judged independently, so a
-  // release that only ships one desktop platform never blanks the other one.
-  // Windows links the installer when the release ships one, the ZIP before
-  // that. Legacy artifacts.* payloads are intentionally ignored.
+  // platforms.macos, platforms.macosX64 and platforms.windows are judged
+  // independently, so a release that ships only some of them never blanks the
+  // others. Windows links the installer when the release ships one, the ZIP
+  // before that. Legacy artifacts.* payloads are intentionally ignored.
   function normalizeDesktopRelease(release) {
-    const invalid = { version: "", mac: null, windows: null };
+    const invalid = { version: "", mac: null, macIntel: null, windows: null };
     if (!isPlainObject(release)) return invalid;
     const version = cleanText(release.version).replace(/^v/i, "");
     if (!VERSION_PATTERN.test(version)) return invalid;
@@ -71,6 +74,12 @@
       "macOS",
       "arm64",
     );
+    const macIntel = normalizePlatformArtifact(
+      release.platforms?.macosX64,
+      MAC_X64_STEMS.map((stem) => `${stem}${version}.zip`),
+      "macOS",
+      "x64",
+    );
     const windowsZip = normalizePlatformArtifact(
       release.platforms?.windows,
       WINDOWS_STEMS.map((stem) => `${stem}${version}.zip`),
@@ -78,7 +87,7 @@
       "x64",
     );
     const windows = normalizeWindowsInstaller(release.platforms?.windows?.installer, windowsZip) || windowsZip;
-    return { version, mac, windows };
+    return { version, mac, macIntel, windows };
   }
 
   window.MOSADesktopReleaseFeed = {

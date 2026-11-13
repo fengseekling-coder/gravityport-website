@@ -1,5 +1,12 @@
 // Generic per-day counter helpers. Counter "kind" names and their meanings
-// are documented in migrations/0001_init.sql.
+// are documented in migrations/0001_init.sql. Kinds added later (no schema
+// change, the counters table is generic):
+//   bot_download  download request from a crawler / link preview / scanner or
+//                 a request without User-Agent, per file name (399). These do
+//                 not touch download_file or download_ref.
+//   page_ref      site page view per normalized ?ref= value: lowercase,
+//                 [a-z0-9_-] only, at most 32 chars; "none" without ref,
+//                 "other" when nothing is left after normalizing (399).
 
 /**
  * @typedef {Object} StatsDb Minimal D1 surface used by the Worker.

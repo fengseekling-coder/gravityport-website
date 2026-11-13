@@ -41,11 +41,29 @@ export function makeCtx() {
  * @returns {Promise<Response>}
  */
 export async function fetchWorker(url, init = {}, envOverride = undefined) {
+  // Downloads without a User-Agent count as crawlers (399), so requests act
+  // like a browser unless a test sets its own User-Agent.
+  const headers = new Headers(init.headers || {});
+  if (!headers.has("user-agent")) headers.set("user-agent", BROWSER_USER_AGENT);
+  return fetchWorkerRaw(url, { ...init, headers }, envOverride);
+}
+
+/**
+ * Same as fetchWorker but sends exactly the given init (no default
+ * User-Agent), for the crawler tests.
+ * @param {string} url
+ * @param {RequestInit} [init]
+ * @param {Record<string, unknown>} [envOverride]
+ * @returns {Promise<Response>}
+ */
+export async function fetchWorkerRaw(url, init = {}, envOverride = undefined) {
   const { ctx, waitAll } = makeCtx();
   const response = await worker.fetch(new Request(url, init), envOverride ?? env, ctx);
   await waitAll();
   return response;
 }
+
+export const BROWSER_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
 
 /**
  * @param {unknown} db STATS binding.

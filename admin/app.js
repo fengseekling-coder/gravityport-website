@@ -84,8 +84,22 @@ import { rankRowsWithOther } from "./rank.js";
     window.location.replace("./login.html?expired=1");
   }
 
+  // Shown when fetch itself throws (network layer): an expired Cloudflare
+  // Access session redirects cross-site and the browser blocks it, which only
+  // surfaces as a TypeError. No automatic reload, to avoid a reload loop.
+  function showNetworkNotice() {
+    const notice = $("networkNotice");
+    if (notice) notice.hidden = false;
+  }
+
   async function fetchJson(url) {
-    const response = await fetch(url, { cache: "no-store", credentials: "same-origin" });
+    let response;
+    try {
+      response = await fetch(url, { cache: "no-store", credentials: "same-origin" });
+    } catch (err) {
+      if (err instanceof TypeError) showNetworkNotice();
+      throw err;
+    }
     if (response.status === 401) {
       requireLogin();
       return null;
@@ -238,13 +252,13 @@ import { rankRowsWithOther } from "./rank.js";
     // 4. First Launches (Last 7 days total)
     const recent7Days = daily.slice(-7);
     const firstLaunches7d = recent7Days.reduce((acc, d) => acc + (d.firstLaunches || 0), 0);
-    const downloads7d = recent7Days.reduce((acc, d) => acc + (d.downloadRequests || 0), 0);
+    const downloads7d = recent7Days.reduce((acc, d) => acc + (d.desktopDownloads || 0), 0);
     $("firstLaunchesVal").textContent = number.format(firstLaunches7d);
 
     if (downloads7d > 0) {
       const launchRate = Math.round((firstLaunches7d / downloads7d) * 100);
       const launchBadge = $("launchRateBadge");
-      launchBadge.textContent = `近 7 天 首次启动 / 下载请求 = ${launchRate}%`;
+      launchBadge.textContent = `近 7 天 首次启动 / 安装包下载 = ${launchRate}%`;
       launchBadge.hidden = false;
     }
 
@@ -276,7 +290,7 @@ import { rankRowsWithOther } from "./rank.js";
     const visibleMetrics = {
       activeInstalls: true,
       firstLaunches: true,
-      downloadRequests: true,
+      desktopDownloads: true,
       pageViews: true,
     };
 
@@ -297,7 +311,7 @@ import { rankRowsWithOther } from "./rank.js";
       daily.forEach((d) => {
         if (visibleMetrics.activeInstalls) maxVal = Math.max(maxVal, d.activeInstalls || 0);
         if (visibleMetrics.firstLaunches) maxVal = Math.max(maxVal, (d.firstLaunches || 0) * 4);
-        if (visibleMetrics.downloadRequests) maxVal = Math.max(maxVal, d.downloadRequests || 0);
+        if (visibleMetrics.desktopDownloads) maxVal = Math.max(maxVal, d.desktopDownloads || 0);
         if (visibleMetrics.pageViews) maxVal = Math.max(maxVal, (d.pageViews || 0) / 4);
       });
       maxVal = Math.ceil(maxVal * 1.15);
@@ -354,7 +368,7 @@ import { rankRowsWithOther } from "./rank.js";
 
       // Render lines in order: views (dotted), downloads (dashed), launches (solid light), active (accent)
       if (visibleMetrics.pageViews) addPath("pageViews", "path-views", 0.25);
-      if (visibleMetrics.downloadRequests) addPath("downloadRequests", "path-downloads", 1);
+      if (visibleMetrics.desktopDownloads) addPath("desktopDownloads", "path-downloads", 1);
       if (visibleMetrics.firstLaunches) addPath("firstLaunches", "path-first", 4);
       if (visibleMetrics.activeInstalls) addPath("activeInstalls", "path-active", 1);
 
@@ -404,7 +418,7 @@ import { rankRowsWithOther } from "./rank.js";
       const rows = [
         ["日活 (DAU):", String(d.activeInstalls || 0)],
         ["首次启动:", String(d.firstLaunches || 0)],
-        ["下载请求:", String(d.downloadRequests || 0)],
+        ["安装包下载:", String(d.desktopDownloads || 0) + (d.suspectDownloads ? "（疑似异常）" : "")],
         ["官网访问:", String(d.pageViews || 0)],
         ["当日转化率:", convText],
       ];
@@ -472,6 +486,8 @@ import { rankRowsWithOther } from "./rank.js";
     const updateCount = statsData.totalUpdateDownloadRequests || 0;
     $("updateDownloadText").textContent = `软件内更新下载请求：${number.format(updateCount)} 次`;
 
+    $("extensionDownloadText").textContent = `近 30 天扩展下载：${number.format(statsData.extensionDownloads30d || 0)} 次`;
+
     // Platform
     const p = statsData.platformInstalls || {};
     const totalKnown = statsData.knownInstallationInstances || 1;
@@ -523,6 +539,34 @@ import { rankRowsWithOther } from "./rank.js";
     });
   }
 
+  // --- Render source table: page views by ref vs downloads by ref ---
+  function renderSourceTable() {
+    const tbody = $("sourceTableBody");
+    if (!tbody) return;
+    const rows = Array.isArray(statsData.sourceStats) ? statsData.sourceStats : [];
+    if (rows.length === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 4;
+      td.className = "empty-cell";
+      td.textContent = "暂无来源数据";
+      tr.appendChild(td);
+      tbody.replaceChildren(tr);
+      return;
+    }
+    const trs = rows.map((row) => {
+      const tr = document.createElement("tr");
+      const rate = typeof row.rate === "number" ? `${(row.rate * 100).toFixed(1)}%` : "—";
+      for (const value of [row.source, number.format(row.visits || 0), number.format(row.downloads || 0), rate]) {
+        const td = document.createElement("td");
+        td.textContent = String(value);
+        tr.appendChild(td);
+      }
+      return tr;
+    });
+    tbody.replaceChildren(...trs);
+  }
+
   // --- Render Funnel & Acquisition ---
   function renderFunnel() {
     if (!statsData) return;
@@ -550,6 +594,8 @@ import { rankRowsWithOther } from "./rank.js";
       botNote.textContent = `已过滤 Cloudflare 识别的 ${number.format(statsData.botPageViews)} 次爬虫请求。`;
       botNote.hidden = false;
     }
+
+    renderSourceTable();
 
     // Referrers
     const refContainer = $("referrerRankList");
@@ -1127,6 +1173,10 @@ import { rankRowsWithOther } from "./rank.js";
 
   // --- Event Listeners Setup ---
   function setupEventListeners() {
+    $("networkReloginBtn").onclick = () => {
+      window.location.reload();
+    };
+
     // Nav switch
     $("navOverviewBtn").onclick = () => {
       window.location.hash = "#overview";

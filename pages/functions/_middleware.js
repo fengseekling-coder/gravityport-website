@@ -3,7 +3,8 @@
 // listed in pages/_routes.json (HTML pages only) and writes daily counters
 // into the shared gp-stats D1 database using the same `counters` table as the
 // gp-edge Worker (kinds: page_path, page_referrer, page_country, page_device,
-// bot_page; see workers/edge/migrations/0001_init.sql).
+// page_ref, bot_page; see workers/edge/migrations/0001_init.sql and the kind
+// notes in workers/edge/src/counters.js).
 //
 // Recording never breaks the page: every error is swallowed, a missing STATS
 // binding is a no-op, and a not-yet-migrated database is tolerated. No IP
@@ -79,6 +80,20 @@ function referrerKey(referer) {
 }
 
 /**
+ * Channel bucket for a page view from the ?ref= value (399): lowercase,
+ * only [a-z0-9_-], at most 32 characters. "none" when there is no ref at all,
+ * "other" when nothing is left after normalizing. Only this bucket is stored,
+ * never the full URL.
+ * @param {string | null} ref Raw ?ref= value.
+ * @returns {string}
+ */
+function pageRefKey(ref) {
+  if (ref === null || ref === "") return "none";
+  const cleaned = ref.toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32);
+  return cleaned || "other";
+}
+
+/**
  * Device class from the user agent: desktop / mobile / tablet / bot.
  * @param {string | null} userAgent Raw User-Agent header.
  * @returns {"desktop" | "mobile" | "tablet" | "bot"}
@@ -119,6 +134,8 @@ export async function onRequest(context) {
           ["page_country", request.headers.get("cf-ipcountry") || UNKNOWN_COUNTRY],
           ["page_device", device],
         ];
+    // Channel of the page view, only for the counted public pages (399).
+    if (device !== "bot" && pathKey !== OTHER_PATH) rows.push(["page_ref", pageRefKey(url.searchParams.get("ref"))]);
     const statements = rows.map(([kind, key]) =>
       env.STATS.prepare(
         "INSERT INTO counters (day, kind, key, count) VALUES (?, ?, ?, 1) " +

@@ -54,6 +54,18 @@ npx wrangler deploy
 
 发布顺序：先把安装包传到 R2 并核对大小，再确认清单里引用的文件都已存在，然后把旧清单备份到 `releases/gravityport/history/`，最后替换 `releases/gravityport/latest.json`。R2 上只保留最新四个完整的桌面版本，扩展包和不成对的文件不会被清理。
 
+### Intel（x64）Mac 包怎么发
+
+Intel 包是可选的，但一旦这个版本决定带 Intel 包，两个文件都要有：
+
+- 来源：环境变量 `MOSA_RELEASE_MAC_X64_ZIP`、`MOSA_RELEASE_MAC_X64_DMG`，或默认目录 `<gravityport 仓库>/out/make/update/darwin/x64/`、`<gravityport 仓库>/out/make/dmg/darwin/x64/`（文件名 `GravityPort-darwin-x64-<版本>.zip` / `.dmg`）。显式指定的文件不存在会直接报错。
+- 有 Intel ZIP 就写进清单的 `platforms.macosX64`（和苹果芯片条目同结构）；Intel DMG 只做 `hdiutil verify` 和文件名核对，不进清单。
+- 监控等待：同一版本只要出现了任一 Intel 文件，就等 Intel 的 ZIP 和 DMG 都写完、大小稳定再发。完全不出现 Intel 文件时照旧只发苹果芯片版。
+- 强制开关：发 Intel 的版本要设 `MOSA_RELEASE_REQUIRE_MAC_X64=1`，缺 Intel ZIP 或 DMG 任何一个都会报错退出，防止漏发。设成其他值也会报错。
+- Intel 文件的 SHA-256 会拼进防重复发布的 `release_signature`：Intel 包重打包后即使苹果芯片包没变也会重新发布。
+- 清理：一个版本的 Intel 文件跟着这个版本一起保留、一起清理；当前版本的 Intel 文件不会被清。
+- 只有 Intel 包、没有苹果芯片包：报错退出，不会发布。
+
 浏览器扩展包（`downloads/GravityPort-Web-Capture-*.zip`）随仓库提交。Actions 的 “Sync extension packages to R2” 步骤把它们同步到 R2，只增不删。
 
 ## 5. 统计和反馈

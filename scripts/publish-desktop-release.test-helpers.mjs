@@ -23,6 +23,26 @@ export const CANONICAL_WRITER_PATH =
   process.env.MOSA_RELEASE_CANONICAL_WRITER ||
   new URL("../../gravityport-writer-snapshot/scripts/prepare-desktop-release-manifest.mjs", import.meta.url).pathname;
 
+// The Intel (darwin-x64) cases need an app checkout whose manifest writer and
+// update-service parser already know --mac-x64 / platforms.macosX64. The main
+// app checkout next to this repository wins once it carries that support; the
+// Intel worktree is the fallback until then. MOSA_TEST_MAC_X64_SOURCE_ROOT
+// pins one explicitly. With none available the release tests fail loudly
+// rather than skip, so an Intel release is never published unverified.
+export function resolveMacX64SourceRoot() {
+  const candidates = process.env.MOSA_TEST_MAC_X64_SOURCE_ROOT
+    ? [process.env.MOSA_TEST_MAC_X64_SOURCE_ROOT]
+    : ["../../gravityport", "../../gravityport-intel-mac"].map((relative) => new URL(relative, import.meta.url).pathname);
+  for (const root of candidates) {
+    const writer = path.join(root, "scripts/prepare-desktop-release-manifest.mjs");
+    if (fs.existsSync(writer) && fs.readFileSync(writer, "utf8").includes('args["mac-x64"]')) return root;
+  }
+  throw new Error(
+    `No app checkout with an Intel-capable (--mac-x64) manifest writer among: ${candidates.join(", ")}. `
+      + "Update the app checkout or set MOSA_TEST_MAC_X64_SOURCE_ROOT.",
+  );
+}
+
 // Stands in for the packaged app's build identity in tests. The wrapper
 // overrides productVersion with the --version argument of each invocation.
 const FIXTURE_BUILD_IDENTITY = {
@@ -55,13 +75,14 @@ function wrapperSource(writerUrl, signatureUrl) {
     ``,
     `const args = parseArgs(process.argv.slice(2));`,
     `if (!args.version || !args.output) {`,
-    `  throw new Error("Usage: test-manifest-writer.mjs --version <version> --output <latest.json> [--previous <latest.json>] [--mac <zip>] [--mac-app-name <name>] [--mac-team-identifier <id>] [--windows <zip>] [--windows-installer <exe>] [--windows-payload-exe-name <name>] [--windows-signer-thumbprint <id>] [--published-at <iso>] [--notes-zh <text>] [--notes-en <text>]");`,
+    `  throw new Error("Usage: test-manifest-writer.mjs --version <version> --output <latest.json> [--previous <latest.json>] [--mac <zip>] [--mac-x64 <zip>] [--mac-app-name <name>] [--mac-team-identifier <id>] [--windows <zip>] [--windows-installer <exe>] [--windows-payload-exe-name <name>] [--windows-signer-thumbprint <id>] [--published-at <iso>] [--notes-zh <text>] [--notes-en <text>]");`,
     `}`,
     `const previousManifest = args.previous ? JSON.parse(await readFile(resolve(args.previous), "utf8")) : null;`,
     `const identityTemplate = JSON.parse(await readFile(process.env.MOSA_TEST_BUILD_IDENTITY_FILE, "utf8"));`,
     `const manifest = await prepareDesktopReleaseManifest({`,
     `  version: args.version,`,
     `  macArtifactPath: args.mac || "",`,
+    `  macX64ArtifactPath: args["mac-x64"] || "",`,
     `  macAppName: args["mac-app-name"] || "MOSA.app",`,
     `  macTeamIdentifier: args["mac-team-identifier"] || "",`,
     `  windowsArtifactPath: args.windows || "",`,
@@ -79,7 +100,7 @@ function wrapperSource(writerUrl, signatureUrl) {
   ].join("\n");
 }
 
-export async function createWriterHarness() {
+export async function createWriterHarness({ canonicalWriter = CANONICAL_WRITER_PATH } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "mosa-release-writer-harness."));
   process.on("exit", () => fs.rmSync(dir, { recursive: true, force: true }));
 
@@ -94,7 +115,7 @@ export async function createWriterHarness() {
     .digest("hex");
   // Writers from 0.3.8 on require the committed backup public key (public,
   // not a secret) in the build identity; the snapshot carries the same file.
-  const backupKeyPath = path.resolve(path.dirname(CANONICAL_WRITER_PATH), "release-keys/release-manifest-backup-public.pem");
+  const backupKeyPath = path.resolve(path.dirname(canonicalWriter), "release-keys/release-manifest-backup-public.pem");
   let releaseManifestBackupTrust;
   if (fs.existsSync(backupKeyPath)) {
     const backupPem = fs.readFileSync(backupKeyPath, "utf8");
@@ -115,8 +136,8 @@ export async function createWriterHarness() {
     ...(releaseManifestBackupTrust ? { releaseManifestBackupTrust } : {}),
   }, null, 2)}\n`);
 
-  const writerUrl = pathToFileURL(CANONICAL_WRITER_PATH).href;
-  const signatureUrl = pathToFileURL(path.resolve(path.dirname(CANONICAL_WRITER_PATH), "../lib/release-manifest-signature.mjs")).href;
+  const writerUrl = pathToFileURL(canonicalWriter).href;
+  const signatureUrl = pathToFileURL(path.resolve(path.dirname(canonicalWriter), "../lib/release-manifest-signature.mjs")).href;
   const writerPath = path.join(dir, "test-manifest-writer.mjs");
   fs.writeFileSync(writerPath, wrapperSource(writerUrl, signatureUrl));
 

@@ -59,8 +59,11 @@ dry_run_output="${MOSA_RELEASE_DRY_RUN_OUTPUT:-}"
 desktop_retention_count=4
 state_file="${MOSA_RELEASE_STATE_FILE:-$HOME/.config/mosa/desktop-release-monitor.state}"
 mac_dmg_package="${MOSA_RELEASE_MAC_DMG:-}"
+mac_x64_zip_package="${MOSA_RELEASE_MAC_X64_ZIP:-}"
+mac_x64_dmg_package="${MOSA_RELEASE_MAC_X64_DMG:-}"
 windows_installer_package="${MOSA_RELEASE_WINDOWS_INSTALLER:-}"
 release_git_sha="${MOSA_RELEASE_GIT_SHA:-}"
+require_mac_x64="${MOSA_RELEASE_REQUIRE_MAC_X64:-}"
 dry_run=0
 
 if [[ "${1:-}" == "--dry-run" ]]; then
@@ -147,7 +150,10 @@ command -v stat >/dev/null 2>&1 || die "stat is required"
 
 # macOS update artifacts are the .zip update packages (the DMG is not part of
 # the update protocol). The canonical location is out/make/update/darwin/arm64;
-# the forge zip directory is kept as a fallback for older layouts.
+# the forge zip directory is kept as a fallback for older layouts. The Intel
+# (darwin-x64) update ZIP follows the same rule under update/darwin/x64 and
+# zip/darwin/x64, but is optional: a release without Intel packages still
+# publishes the Apple silicon ones.
 mac_source_dirs=()
 if [[ -d "$source_root/update/darwin/arm64" ]]; then
   mac_source_dirs+=("$source_root/update/darwin/arm64")
@@ -156,6 +162,14 @@ if [[ -d "$source_root/zip/darwin/arm64" ]]; then
   mac_source_dirs+=("$source_root/zip/darwin/arm64")
 fi
 [[ "${#mac_source_dirs[@]}" -gt 0 ]] || die "missing macOS update ZIP directory below $source_root"
+
+mac_x64_source_dirs=()
+if [[ -d "$source_root/update/darwin/x64" ]]; then
+  mac_x64_source_dirs+=("$source_root/update/darwin/x64")
+fi
+if [[ -d "$source_root/zip/darwin/x64" ]]; then
+  mac_x64_source_dirs+=("$source_root/zip/darwin/x64")
+fi
 
 # Windows artifacts are optional. A missing directory simply means the release
 # ships macOS-only; an existing directory only ever contributes a package whose
@@ -253,6 +267,23 @@ if [[ "$candidate_status" -eq 3 ]]; then
   die "源目录 ${source_root} 中只发现 ${candidate_pair} 的 macOS 更新包，与 MOSA_RELEASE_PRODUCT=${release_product} 不匹配；请改用 MOSA_RELEASE_PRODUCT=${candidate_pair} 或指向正确的源目录。"
 fi
 if [[ "$candidate_status" -ne 0 ]]; then
+  # An Intel-only source tree is a configuration error, not a quiet skip: the
+  # publisher always ships both macOS architectures together (388), so Intel
+  # packages without an Apple silicon package must fail loudly.
+  intel_only_found=""
+  if [[ "${#mac_x64_source_dirs[@]}" -gt 0 ]]; then
+    for mac_x64_dir in "${mac_x64_source_dirs[@]}"; do
+      if compgen -G "$mac_x64_dir/${release_product}-darwin-x64-*.zip" >/dev/null; then
+        intel_only_found=1
+      fi
+    done
+  fi
+  if compgen -G "$source_root/dmg/darwin/x64/${release_product}-darwin-x64-*.dmg" >/dev/null; then
+    intel_only_found=1
+  fi
+  if [[ -n "$intel_only_found" ]]; then
+    die "源目录 ${source_root} 只发现 ${release_product} 的 macOS Intel（x64）包，缺少苹果芯片（arm64）包：两个架构必须一起发布。"
+  fi
   log "未发现新的 macOS 更新 ZIP，本轮跳过。"
   exit 0
 fi
@@ -263,10 +294,67 @@ IFS=$'\t' read -r release_version mac_package windows_package <<< "$candidate_pa
 
 if [[ -z "$mac_dmg_package" ]]; then
   mac_dmg_candidate="$source_root/dmg/darwin/arm64/${release_product}-darwin-arm64-${release_version}.dmg"
-  [[ -f "$mac_dmg_candidate" ]] && mac_dmg_package="$mac_dmg_candidate"
+  if [[ -f "$mac_dmg_candidate" ]]; then
+    mac_dmg_package="$mac_dmg_candidate"
+  fi
 fi
 if [[ -n "$mac_dmg_package" && ! -f "$mac_dmg_package" ]]; then
   die "macOS DMG release candidate is incomplete: $mac_dmg_package"
+fi
+
+# Intel (darwin-x64) packages are optional, from the same sources as the
+# Apple silicon ones: an explicit env var wins, otherwise the default
+# directories are searched for this exact version. A package that was
+# configured but is missing is an error; packages still being written keep
+# the monitor waiting below (388).
+if [[ -z "$mac_x64_zip_package" && "${#mac_x64_source_dirs[@]}" -gt 0 ]]; then
+  mac_x64_zip_file="${release_product}-darwin-x64-${release_version}.zip"
+  for mac_x64_dir in "${mac_x64_source_dirs[@]}"; do
+    if [[ -f "$mac_x64_dir/$mac_x64_zip_file" ]]; then
+      mac_x64_zip_package="$mac_x64_dir/$mac_x64_zip_file"
+      break
+    fi
+  done
+fi
+if [[ -n "$mac_x64_zip_package" && ! -f "$mac_x64_zip_package" ]]; then
+  die "macOS Intel (x64) release candidate is incomplete: $mac_x64_zip_package"
+fi
+if [[ -z "$mac_x64_dmg_package" ]]; then
+  mac_x64_dmg_candidate="$source_root/dmg/darwin/x64/${release_product}-darwin-x64-${release_version}.dmg"
+  if [[ -f "$mac_x64_dmg_candidate" ]]; then
+    mac_x64_dmg_package="$mac_x64_dmg_candidate"
+  fi
+fi
+if [[ -n "$mac_x64_dmg_package" && ! -f "$mac_x64_dmg_package" ]]; then
+  die "macOS Intel (x64) DMG release candidate is incomplete: $mac_x64_dmg_package"
+fi
+
+# MOSA_RELEASE_REQUIRE_MAC_X64=1 is the release-day guard: with it set, a run
+# without both Intel packages dies immediately instead of publishing an
+# Intel-less release by accident. Values other than 1 or unset are refused so
+# a typo cannot silently disable the guard.
+if [[ -n "$require_mac_x64" ]]; then
+  if [[ "$require_mac_x64" != "1" ]]; then
+    die "MOSA_RELEASE_REQUIRE_MAC_X64 must be unset or 1 (got: ${require_mac_x64})."
+  fi
+  if [[ -z "$mac_x64_zip_package" ]]; then
+    die "MOSA_RELEASE_REQUIRE_MAC_X64=1 but the macOS Intel update ZIP is missing: ${release_product}-darwin-x64-${release_version}.zip"
+  fi
+  if [[ -z "$mac_x64_dmg_package" ]]; then
+    die "MOSA_RELEASE_REQUIRE_MAC_X64=1 but the macOS Intel DMG is missing: ${release_product}-darwin-x64-${release_version}.dmg"
+  fi
+elif [[ -n "$mac_x64_zip_package" || -n "$mac_x64_dmg_package" ]]; then
+  # Any Intel file for this version means an Intel release is being built:
+  # wait for BOTH of them before publishing, so the monitor never ships the
+  # Apple silicon packages ahead of the Intel ones.
+  if [[ -z "$mac_x64_zip_package" ]]; then
+    log "macOS Intel 安装包仍在生成，下一次监控周期会重试。"
+    exit 1
+  fi
+  if [[ -z "$mac_x64_dmg_package" ]]; then
+    log "macOS Intel DMG 仍在生成，下一次监控周期会重试。"
+    exit 1
+  fi
 fi
 
 # The Windows installer the website offers for first installs ships with the
@@ -304,6 +392,14 @@ if [[ -n "$windows_installer_package" ]] && ! wait_for_stable_file "$windows_ins
   log "Windows 安装程序仍在生成，下一次监控周期会重试。"
   exit 1
 fi
+if [[ -n "$mac_x64_zip_package" ]] && ! wait_for_stable_file "$mac_x64_zip_package"; then
+  log "macOS Intel 安装包仍在生成，下一次监控周期会重试。"
+  exit 1
+fi
+if [[ -n "$mac_x64_dmg_package" ]] && ! wait_for_stable_file "$mac_x64_dmg_package"; then
+  log "macOS Intel DMG 仍在生成，下一次监控周期会重试。"
+  exit 1
+fi
 
 unzip -tqq "$mac_package" || die "macOS ZIP integrity check failed: $mac_package"
 # Do not use grep -q in a pipe while pipefail is enabled. A successful early
@@ -320,9 +416,21 @@ if [[ -n "$windows_installer_package" ]]; then
   [[ "$(head -c 2 "$windows_installer_package")" == "MZ" ]] \
     || die "Windows installer is not a Windows program: $windows_installer_package"
 fi
-if [[ -n "$mac_dmg_package" ]]; then
+if [[ -n "$mac_x64_zip_package" ]]; then
+  unzip -tqq "$mac_x64_zip_package" || die "macOS Intel ZIP integrity check failed: $mac_x64_zip_package"
+  unzip -Z1 "$mac_x64_zip_package" | grep -E "^(${mac_app_name}\.app/Contents/MacOS/${mac_app_name}|${release_product}-darwin-x64/${mac_app_name}\.app/Contents/MacOS/${mac_app_name})$" >/dev/null \
+    || die "macOS Intel ZIP does not contain ${mac_app_bundle_name}"
+fi
+if [[ -n "$mac_dmg_package" || -n "$mac_x64_dmg_package" ]]; then
   command -v hdiutil >/dev/null 2>&1 || die "hdiutil is required for macOS DMG integrity checks"
-  hdiutil verify "$mac_dmg_package" >/dev/null || die "macOS DMG integrity check failed: $mac_dmg_package"
+  if [[ -n "$mac_dmg_package" ]]; then
+    hdiutil verify "$mac_dmg_package" >/dev/null || die "macOS DMG integrity check failed: $mac_dmg_package"
+  fi
+  if [[ -n "$mac_x64_dmg_package" ]]; then
+    hdiutil verify "$mac_x64_dmg_package" >/dev/null || die "macOS Intel DMG integrity check failed: $mac_x64_dmg_package"
+  fi
+  # Both DMGs come from the same packaged build, so the identity file is
+  # checked once and pins the release Git SHA for the whole run.
   source_repo_root="$(cd -- "$source_root/../.." && pwd)"
   # The shared UI build writes its identity next to the built bundle
   # (web/gravityport/dist); web/app is the layout older app trees used.
@@ -361,6 +469,22 @@ if [[ -n "$mac_dmg_package" ]]; then
   mac_dmg_size="$(file_size "$mac_dmg_package")" || die "could not read macOS DMG size"
   mac_dmg_sha256="$(shasum -a 256 "$mac_dmg_package" | awk '{print $1}')"
 fi
+mac_x64_zip_name=""
+mac_x64_zip_size=""
+mac_x64_zip_sha256=""
+if [[ -n "$mac_x64_zip_package" ]]; then
+  mac_x64_zip_name="$(basename "$mac_x64_zip_package")"
+  mac_x64_zip_size="$(file_size "$mac_x64_zip_package")" || die "could not read macOS Intel package size"
+  mac_x64_zip_sha256="$(shasum -a 256 "$mac_x64_zip_package" | awk '{print $1}')"
+fi
+mac_x64_dmg_name=""
+mac_x64_dmg_size=""
+mac_x64_dmg_sha256=""
+if [[ -n "$mac_x64_dmg_package" ]]; then
+  mac_x64_dmg_name="$(basename "$mac_x64_dmg_package")"
+  mac_x64_dmg_size="$(file_size "$mac_x64_dmg_package")" || die "could not read macOS Intel DMG size"
+  mac_x64_dmg_sha256="$(shasum -a 256 "$mac_x64_dmg_package" | awk '{print $1}')"
+fi
 windows_installer_name=""
 windows_installer_size=""
 windows_installer_sha256=""
@@ -375,9 +499,17 @@ else
   release_signature="${release_version}|${mac_sha256}|${windows_sha256:-none}"
 fi
 # Appended only when present, so the signature of a release without an
-# installer stays what earlier runs recorded.
+# installer stays what earlier runs recorded. The Intel packages enter the
+# signature the same way (388): a rebuilt Intel package re-triggers the
+# publish even when every Apple silicon file is unchanged.
 if [[ -n "$windows_installer_package" ]]; then
   release_signature+="|installer:${windows_installer_sha256}"
+fi
+if [[ -n "$mac_x64_zip_package" ]]; then
+  release_signature+="|x64zip:${mac_x64_zip_sha256}"
+fi
+if [[ -n "$mac_x64_dmg_package" ]]; then
+  release_signature+="|x64dmg:${mac_x64_dmg_sha256}"
 fi
 
 last_signature=""
@@ -459,6 +591,7 @@ elif [[ "$dry_run" -ne 1 ]]; then
 fi
 
 writer_args=(--version "$release_version" --output "$manifest_file" --mac "$mac_package" --mac-app-name "$mac_app_bundle_name")
+[[ -n "$mac_x64_zip_package" ]] && writer_args+=(--mac-x64 "$mac_x64_zip_package")
 [[ -n "$windows_package" ]] && writer_args+=(--windows "$windows_package" --windows-payload-exe-name "$windows_payload_exe_name")
 [[ -n "$windows_installer_package" ]] && writer_args+=(--windows-installer "$windows_installer_package")
 [[ -f "$previous_file" ]] && writer_args+=(--previous "$previous_file")
@@ -469,12 +602,11 @@ writer_args+=(--published-at "$published_at" --notes-zh "$notes_zh" --notes-en "
 [[ -n "${MOSA_RELEASE_MAC_TEAM_IDENTIFIER:-}" ]] && writer_args+=(--mac-team-identifier "${MOSA_RELEASE_MAC_TEAM_IDENTIFIER}")
 [[ -n "${MOSA_RELEASE_WINDOWS_SIGNER_THUMBPRINT:-}" ]] && writer_args+=(--windows-signer-thumbprint "${MOSA_RELEASE_WINDOWS_SIGNER_THUMBPRINT}")
 node "$manifest_writer" "${writer_args[@]}" >/dev/null
-if [[ -n "$mac_dmg_package" ]]; then
-  node "$manifest_extension" \
-    --manifest "$manifest_file" \
-    --mac-dmg "$mac_dmg_package" \
-    --dmg-file "${release_product}-darwin-arm64-${release_version}.dmg" \
-    --git-sha "$release_git_sha" >/dev/null
+if [[ -n "$mac_dmg_package" || -n "$mac_x64_dmg_package" ]]; then
+  extend_args=(--manifest "$manifest_file" --git-sha "$release_git_sha")
+  [[ -n "$mac_dmg_package" ]] && extend_args+=(--mac-dmg "$mac_dmg_package" --dmg-file "${release_product}-darwin-arm64-${release_version}.dmg")
+  [[ -n "$mac_x64_dmg_package" ]] && extend_args+=(--mac-x64-dmg "$mac_x64_dmg_package" --x64-dmg-file "${release_product}-darwin-x64-${release_version}.dmg")
+  node "$manifest_extension" "${extend_args[@]}" >/dev/null
 fi
 
 # Defense in depth: every platforms.* entry must describe the local artifact
@@ -503,6 +635,7 @@ verify_manifest_artifact() {
   [[ "$entry_sha" == "$(shasum -a 256 "$local_file" | awk '{print $1}')" ]] || die "$key artifact SHA-256 mismatch for $entry_file"
 }
 verify_manifest_artifact "macos" "$mac_package"
+verify_manifest_artifact "macosX64" "$mac_x64_zip_package"
 verify_manifest_artifact "windows" "$windows_package"
 verify_manifest_artifact "windows.installer" "$windows_installer_package"
 if [[ -n "$mac_dmg_package" ]]; then
@@ -524,6 +657,7 @@ node -e '
   const baseKeys = ["arch", "file", "platform", "sha256", "size"];
   const allowedKeys = {
     macos: [...baseKeys, "appName", "teamIdentifier"],
+    macosX64: [...baseKeys, "appName", "teamIdentifier"],
     windows: [...baseKeys, "payloadExeName", "signerThumbprint", "installer"],
   };
   for (const [name, artifact] of Object.entries(manifest.platforms || {})) {
@@ -576,7 +710,7 @@ referenced_files="$(node -e '
 ' "$manifest_file")"
 while IFS= read -r referenced_file; do
   [[ -n "$referenced_file" ]] || continue
-  [[ "$referenced_file" =~ ^${release_product}-((darwin-arm64|win32-x64)-[0-9A-Za-z.-]+\.zip|win32-x64-[0-9A-Za-z.-]+\.exe)$ ]] \
+  [[ "$referenced_file" =~ ^${release_product}-((darwin-arm64|darwin-x64|win32-x64)-[0-9A-Za-z.-]+\.zip|win32-x64-[0-9A-Za-z.-]+\.exe)$ ]] \
     || die "manifest references an unexpected artifact name: $referenced_file"
 done <<< "$referenced_files"
 
@@ -589,8 +723,10 @@ if [[ "$dry_run" -eq 1 ]]; then
     log "R2 配置齐。"
     log "R2 待上传对象:"
     log "  downloads/$mac_name"
+    [[ -n "$mac_x64_zip_name" ]] && log "  downloads/$mac_x64_zip_name"
     [[ -n "$windows_name" ]] && log "  downloads/$windows_name"
     [[ -n "$mac_dmg_name" ]] && log "  downloads/$mac_dmg_name"
+    [[ -n "$mac_x64_dmg_name" ]] && log "  downloads/$mac_x64_dmg_name"
     [[ -n "$windows_installer_name" ]] && log "  downloads/$windows_installer_name"
     log "  ${remote_manifest_path}（最后上传）"
     # The retention preview is a read-only list; a failure here only skips
@@ -602,10 +738,21 @@ if [[ "$dry_run" -eq 1 ]]; then
       r2_stale_preview="$(printf '%s\n' "$r2_downloads_files" | node "$retention_selector" "$desktop_retention_count" "$release_product" 2>/dev/null)" || r2_stale_preview=""
       if [[ -n "$r2_stale_preview" ]]; then
         log "R2 清理将删除（保留 ${desktop_retention_count} 版）："
-        while IFS=$'\t' read -r preview_mac preview_windows preview_installer; do
-          log "  downloads/$preview_mac"
-          log "  downloads/$preview_windows"
+        while IFS=$'\t' read -r preview_mac preview_windows preview_installer preview_mac_x64_zip preview_mac_x64_dmg preview_mac_other; do
+          # The retention selector writes "-" for a missing column (consecutive
+          # tabs collapse into one separator in read); turn it back into empty.
+          [[ "$preview_mac" == "-" ]] && preview_mac=""
+          [[ "$preview_windows" == "-" ]] && preview_windows=""
+          [[ "$preview_installer" == "-" ]] && preview_installer=""
+          [[ "$preview_mac_other" == "-" ]] && preview_mac_other=""
+          [[ "$preview_mac_x64_zip" == "-" ]] && preview_mac_x64_zip=""
+          [[ "$preview_mac_x64_dmg" == "-" ]] && preview_mac_x64_dmg=""
+          [[ -n "$preview_mac" ]] && log "  downloads/$preview_mac"
+          [[ -n "$preview_mac_other" ]] && log "  downloads/$preview_mac_other"
+          [[ -n "$preview_windows" ]] && log "  downloads/$preview_windows"
           [[ -n "$preview_installer" ]] && log "  downloads/$preview_installer"
+          [[ -n "$preview_mac_x64_zip" ]] && log "  downloads/$preview_mac_x64_zip"
+          [[ -n "$preview_mac_x64_dmg" ]] && log "  downloads/$preview_mac_x64_dmg"
         done <<< "$r2_stale_preview"
       else
         log "R2 无需清理。"
@@ -629,8 +776,10 @@ upload_tag="$(date -u '+%Y%m%dT%H%M%SZ')-$$"
 
 r2_upload_names=("$mac_name")
 r2_upload_files=("$mac_package")
+[[ -n "$mac_x64_zip_package" ]] && r2_upload_names+=("$mac_x64_zip_name") && r2_upload_files+=("$mac_x64_zip_package")
 [[ -n "$windows_package" ]] && r2_upload_names+=("$windows_name") && r2_upload_files+=("$windows_package")
 [[ -n "$mac_dmg_package" ]] && r2_upload_names+=("$mac_dmg_name") && r2_upload_files+=("$mac_dmg_package")
+[[ -n "$mac_x64_dmg_package" ]] && r2_upload_names+=("$mac_x64_dmg_name") && r2_upload_files+=("$mac_x64_dmg_package")
 [[ -n "$windows_installer_package" ]] && r2_upload_names+=("$windows_installer_name") && r2_upload_files+=("$windows_installer_package")
 
 # --- R2 target -------------------------------------------------------------
@@ -664,6 +813,11 @@ if [[ -n "$mac_dmg_name" ]]; then
   IFS=$'\t' read -r r2_status r2_size <<< "$r2_pair"
   [[ "$r2_status" == "200" ]] || die "R2 缺少 DMG 包: downloads/$mac_dmg_name"
 fi
+if [[ -n "$mac_x64_dmg_name" ]]; then
+  r2_pair="$(r2_head_status_size "downloads/$mac_x64_dmg_name")" || die "R2 核对失败: downloads/$mac_x64_dmg_name"
+  IFS=$'\t' read -r r2_status r2_size <<< "$r2_pair"
+  [[ "$r2_status" == "200" ]] || die "R2 缺少 Intel DMG 包: downloads/$mac_x64_dmg_name"
+fi
 
 r2_pair="$(r2_head_status_size "$remote_manifest_path")" || die "R2 核对失败: $remote_manifest_path"
 IFS=$'\t' read -r r2_status r2_size <<< "$r2_pair"
@@ -687,15 +841,53 @@ r2_stale_pairs="$(printf '%s\n' "$r2_downloads_files" | node "$retention_selecto
   || die "could not select R2 retained desktop release pairs"
 if [[ -n "$r2_stale_pairs" ]]; then
   r2_removed_versions=0
-  while IFS=$'\t' read -r r2_stale_mac r2_stale_windows r2_stale_installer; do
-    [[ "$r2_stale_mac" =~ ^${release_product}-darwin-arm64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.(dmg|zip)$ ]] \
-      || die "invalid macOS R2 retention filename: $r2_stale_mac"
-    [[ "$r2_stale_windows" =~ ^${release_product}-win32-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
-      || die "invalid Windows R2 retention filename: $r2_stale_windows"
-    node "$r2_client" delete "downloads/$r2_stale_mac" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac"
-    node "$r2_client" delete "downloads/$r2_stale_windows" >/dev/null || die "R2 删除失败: downloads/$r2_stale_windows"
+  while IFS=$'\t' read -r r2_stale_mac r2_stale_windows r2_stale_installer r2_stale_mac_x64_zip r2_stale_mac_x64_dmg r2_stale_mac_other; do
+    # "-" marks a column the release did not ship (see the retention selector).
+    [[ "$r2_stale_mac" == "-" ]] && r2_stale_mac=""
+    [[ "$r2_stale_windows" == "-" ]] && r2_stale_windows=""
+    [[ "$r2_stale_installer" == "-" ]] && r2_stale_installer=""
+    [[ "$r2_stale_mac_other" == "-" ]] && r2_stale_mac_other=""
+    [[ "$r2_stale_mac_x64_zip" == "-" ]] && r2_stale_mac_x64_zip=""
+    [[ "$r2_stale_mac_x64_dmg" == "-" ]] && r2_stale_mac_x64_dmg=""
+    # Complete stale versions carry both an arm64 file and a Windows ZIP; a
+    # leftover from an earlier run may lack one of them, never both.
+    [[ -n "$r2_stale_mac" || -n "$r2_stale_windows" || -n "$r2_stale_mac_other" ]] \
+      || die "empty R2 retention line (no arm64 or Windows file)"
+    if [[ -n "$r2_stale_mac" ]]; then
+      [[ "$r2_stale_mac" =~ ^${release_product}-darwin-arm64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.(dmg|zip)$ ]] \
+        || die "invalid macOS R2 retention filename: $r2_stale_mac"
+    fi
+    if [[ -n "$r2_stale_mac_other" ]]; then
+      [[ "$r2_stale_mac_other" =~ ^${release_product}-darwin-arm64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.(dmg|zip)$ ]] \
+        || die "invalid macOS R2 retention filename (second arm64 file): $r2_stale_mac_other"
+    fi
+    if [[ -n "$r2_stale_windows" ]]; then
+      [[ "$r2_stale_windows" =~ ^${release_product}-win32-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
+        || die "invalid Windows R2 retention filename: $r2_stale_windows"
+    fi
+    if [[ -n "$r2_stale_mac" ]]; then
+      node "$r2_client" delete "downloads/$r2_stale_mac" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac"
+    fi
+    if [[ -n "$r2_stale_mac_other" ]]; then
+      node "$r2_client" delete "downloads/$r2_stale_mac_other" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac_other"
+    fi
+    if [[ -n "$r2_stale_windows" ]]; then
+      node "$r2_client" delete "downloads/$r2_stale_windows" >/dev/null || die "R2 删除失败: downloads/$r2_stale_windows"
+    fi
     if [[ -n "$r2_stale_installer" ]]; then
       node "$r2_client" delete "downloads/$r2_stale_installer" >/dev/null || die "R2 删除失败: downloads/$r2_stale_installer"
+    fi
+    # The Intel files travel with their version (388): when a version goes,
+    # its darwin-x64 update ZIP and DMG go with it.
+    if [[ -n "$r2_stale_mac_x64_zip" ]]; then
+      [[ "$r2_stale_mac_x64_zip" =~ ^${release_product}-darwin-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
+        || die "invalid macOS Intel R2 retention filename: $r2_stale_mac_x64_zip"
+      node "$r2_client" delete "downloads/$r2_stale_mac_x64_zip" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac_x64_zip"
+    fi
+    if [[ -n "$r2_stale_mac_x64_dmg" ]]; then
+      [[ "$r2_stale_mac_x64_dmg" =~ ^${release_product}-darwin-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.dmg$ ]] \
+        || die "invalid macOS Intel DMG R2 retention filename: $r2_stale_mac_x64_dmg"
+      node "$r2_client" delete "downloads/$r2_stale_mac_x64_dmg" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac_x64_dmg"
     fi
     r2_removed_versions=$((r2_removed_versions + 1))
   done <<< "$r2_stale_pairs"
@@ -708,5 +900,5 @@ umask 077
 printf '%s\n' "$release_signature" > "$state_file"
 chmod 0600 "$state_file"
 
-log "已发布 ${release_product} ${release_version}：macOS update ${mac_size} bytes${mac_dmg_package:+，DMG ${mac_dmg_size} bytes}${windows_package:+，Windows ${windows_size} bytes}${windows_installer_package:+，Windows 安装程序 ${windows_installer_size} bytes}。"
+log "已发布 ${release_product} ${release_version}：macOS update ${mac_size} bytes${mac_x64_zip_package:+，Intel update ${mac_x64_zip_size} bytes}${mac_dmg_package:+，DMG ${mac_dmg_size} bytes}${mac_x64_dmg_package:+，Intel DMG ${mac_x64_dmg_size} bytes}${windows_package:+，Windows ${windows_size} bytes}${windows_installer_package:+，Windows 安装程序 ${windows_installer_size} bytes}。"
 log "SHA-256 已在本机核对，R2 上已核对每个包的大小；清单由 canonical writer 生成。"
