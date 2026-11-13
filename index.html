@@ -89,13 +89,13 @@
     <link rel="preload" href="./assets/fonts/archivo-latin.woff2?v=20261029-w2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="./assets/fonts/noto-sans-sc-900.woff2?v=20261106a" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="./assets/fonts/fragment-mono-latin.woff2?v=20261029-w2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="./site/press.css?v=20261108-links" />
+    <link rel="stylesheet" href="./site/press.css?v=20261113-winhint" />
     <script src="./site/boot.js?v=20261102-seo"></script>
     <script src="./site-config.js?v=20261112-intel" defer></script>
     <script src="./desktop-release-feed.js?v=20261112-intel" defer></script>
     <script src="./site/download-links.js?v=20261112-intel" defer></script>
     <script src="./assets/work/work.js?v=20261029-w2" defer></script>
-    <script src="./site/strings.js?v=20261112-intel" defer></script>
+    <script src="./site/strings.js?v=20261113-winhint" defer></script>
     <script src="./site/press.js?v=20261112-intel" defer></script>
   </head>
   <body>
@@ -620,6 +620,29 @@
                   <h3>Windows 10 / 11</h3>
                   <p data-i18n="download.win.detail" data-windows-detail>x64 · 安装程序</p>
                   <p class="platform__meta mono"><span data-windows-version>—</span><span data-windows-size></span></p>
+                  <div class="winhint">
+                    <p class="winhint__title" data-i18n="download.win.hint.title">Windows 会提示一次安全确认</p>
+                    <ol class="winhint__steps">
+                      <li data-i18n="download.win.hint.s1">浏览器提示这个文件「不常下载」时，选择「保留」。</li>
+                      <li data-i18n="download.win.hint.s2">运行安装程序时如果出现「Windows 已保护你的电脑」，点「更多信息」，再点「仍要运行」。</li>
+                    </ol>
+                    <figure class="winhint__fig" aria-hidden="true">
+                      <div class="winhint__panel">
+                        <span class="winhint__num mono">1</span>
+                        <span class="winhint__dlgtitle" data-i18n="download.win.hint.figTitle">Windows 已保护你的电脑</span>
+                        <span class="winhint__lines"><i></i><i></i></span>
+                        <span class="winhint__link winhint__hit" data-i18n="download.win.hint.figMore">更多信息</span>
+                        <span class="winhint__btns"><span class="winhint__btn" data-i18n="download.win.hint.figDont">不运行</span></span>
+                      </div>
+                      <div class="winhint__panel">
+                        <span class="winhint__num mono">2</span>
+                        <span class="winhint__dlgtitle" data-i18n="download.win.hint.figTitle">Windows 已保护你的电脑</span>
+                        <span class="winhint__lines"><i></i><i></i></span>
+                        <span class="winhint__btns"><span class="winhint__btn winhint__hit" data-i18n="download.win.hint.figRun">仍要运行</span><span class="winhint__btn" data-i18n="download.win.hint.figDont">不运行</span></span>
+                      </div>
+                    </figure>
+                    <p class="winhint__note" data-i18n="download.win.hint.note">GravityPort 的 Windows 安装包暂未进行微软代码签名，因此系统会提示一次。安装程序由官网直接提供，可在下方核对 SHA-256。</p>
+                  </div>
                   <p class="platform__sha mono" data-windows-sha hidden><span>SHA-256</span><code data-windows-sha-value></code><button type="button" data-copy-sha="windows" data-i18n="download.copy">复制</button></p>
                 </div>
                 <a class="btn-line" href="#download" data-download="windows"><svg aria-hidden="true"><use href="#i-download" /></svg><span data-i18n="download.win.cta">下载 Windows 版</span></a>
@@ -638,7 +661,7 @@
               <h3 data-i18n="download.first.title">第一次打开</h3>
               <ol>
                 <li><strong>macOS</strong><span data-i18n="download.first.mac">第一次打开时，系统会询问是否打开从互联网下载的 App，点「打开」。只需一次。</span></li>
-                <li><strong>Windows</strong><span data-i18n="download.first.win">如果提示「Windows 已保护你的电脑」，点「更多信息 → 仍要运行」。</span></li>
+                <li><strong>Windows</strong><span data-i18n="download.first.win">运行安装程序时如果出现「Windows 已保护你的电脑」，点「更多信息」，再点「仍要运行」。</span></li>
                 <li><strong data-i18n="download.first.extTitle">扩展</strong><span data-i18n="download.first.ext">在 GravityPort「设置 → 连接」按引导加载扩展，第一次连接时点「允许连接」，再在扩展设置里打开「自动收录」。</span> <a href="#install" data-i18n="download.first.guide">完整安装步骤</a></li>
               </ol>
             </div>

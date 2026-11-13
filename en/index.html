@@ -110,13 +110,13 @@
     <link rel="preload" href="../assets/fonts/archivo-latin.woff2?v=20261029-w2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="../assets/fonts/noto-sans-sc-900.woff2?v=20261106a" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="../assets/fonts/fragment-mono-latin.woff2?v=20261029-w2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="../site/press.css?v=20261108-links" />
+    <link rel="stylesheet" href="../site/press.css?v=20261113-winhint" />
     <script src="../site/boot.js?v=20261102-seo"></script>
     <script src="../site-config.js?v=20261112-intel" defer></script>
     <script src="../desktop-release-feed.js?v=20261112-intel" defer></script>
     <script src="../site/download-links.js?v=20261112-intel" defer></script>
     <script src="../assets/work/work.js?v=20261029-w2" defer></script>
-    <script src="../site/strings.js?v=20261112-intel" defer></script>
+    <script src="../site/strings.js?v=20261113-winhint" defer></script>
     <script src="../site/press.js?v=20261112-intel" defer></script>
   </head>
   <body>
@@ -641,6 +641,29 @@
                   <h3>Windows 10 / 11</h3>
                   <p data-i18n="download.win.detail" data-windows-detail>x64 · installer</p>
                   <p class="platform__meta mono"><span data-windows-version>—</span><span data-windows-size></span></p>
+                  <div class="winhint">
+                    <p class="winhint__title" data-i18n="download.win.hint.title">Windows asks you to confirm once</p>
+                    <ol class="winhint__steps">
+                      <li data-i18n="download.win.hint.s1">If your browser says the file isn't commonly downloaded, choose Keep.</li>
+                      <li data-i18n="download.win.hint.s2">If “Windows protected your PC” appears when you run the installer, click More info, then Run anyway.</li>
+                    </ol>
+                    <figure class="winhint__fig" aria-hidden="true">
+                      <div class="winhint__panel">
+                        <span class="winhint__num mono">1</span>
+                        <span class="winhint__dlgtitle" data-i18n="download.win.hint.figTitle">Windows protected your PC</span>
+                        <span class="winhint__lines"><i></i><i></i></span>
+                        <span class="winhint__link winhint__hit" data-i18n="download.win.hint.figMore">More info</span>
+                        <span class="winhint__btns"><span class="winhint__btn" data-i18n="download.win.hint.figDont">Don't run</span></span>
+                      </div>
+                      <div class="winhint__panel">
+                        <span class="winhint__num mono">2</span>
+                        <span class="winhint__dlgtitle" data-i18n="download.win.hint.figTitle">Windows protected your PC</span>
+                        <span class="winhint__lines"><i></i><i></i></span>
+                        <span class="winhint__btns"><span class="winhint__btn winhint__hit" data-i18n="download.win.hint.figRun">Run anyway</span><span class="winhint__btn" data-i18n="download.win.hint.figDont">Don't run</span></span>
+                      </div>
+                    </figure>
+                    <p class="winhint__note" data-i18n="download.win.hint.note">The GravityPort Windows installer isn't Microsoft code-signed yet, so Windows asks once. The installer comes straight from this site; you can check its SHA-256 below.</p>
+                  </div>
                   <p class="platform__sha mono" data-windows-sha hidden><span>SHA-256</span><code data-windows-sha-value></code><button type="button" data-copy-sha="windows" data-i18n="download.copy">Copy</button></p>
                 </div>
                 <a class="btn-line" href="#download" data-download="windows"><svg aria-hidden="true"><use href="#i-download" /></svg><span data-i18n="download.win.cta">Download for Windows</span></a>
@@ -659,7 +682,7 @@
               <h3 data-i18n="download.first.title">First launch</h3>
               <ol>
                 <li><strong>macOS</strong><span data-i18n="download.first.mac">The first time, macOS asks whether to open an app downloaded from the internet. Click Open. Only once.</span></li>
-                <li><strong>Windows</strong><span data-i18n="download.first.win">If you see “Windows protected your PC”, click More info → Run anyway.</span></li>
+                <li><strong>Windows</strong><span data-i18n="download.first.win">If “Windows protected your PC” appears when you run the installer, click More info, then Run anyway.</span></li>
                 <li><strong data-i18n="download.first.extTitle">Extension</strong><span data-i18n="download.first.ext">Load the extension by following Settings → Connect in GravityPort, click Allow Connection the first time it connects, then turn on auto-capture (“自动收录”) in the extension’s options.</span> <a href="#install" data-i18n="download.first.guide">Full install steps</a></li>
               </ol>
             </div>

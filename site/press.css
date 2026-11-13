@@ -669,6 +669,24 @@ p, li, dd { text-wrap: pretty; }
 .platform__sha { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted-ink) !important; }
 .platform__sha code { max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--stock); }
 .platform__sha button { text-decoration: underline; text-underline-offset: 3px; color: var(--stock); }
+/* Windows first-run hint under the Windows card: two steps, a schematic of
+   the SmartScreen dialog (structure only, not a copy of the system UI), and
+   why it appears. The figure is decorative; the steps carry the meaning. */
+.winhint { display: grid; gap: 10px; margin: 8px 0 4px; padding: 14px 16px; border: 1px solid var(--hair-ink); border-left: 3px solid var(--fluo); }
+.winhint__title { color: var(--stock); font-weight: 700; font-size: 15px; }
+.winhint__steps { display: grid; gap: 4px; margin: 0; padding-left: 1.4em; color: var(--muted-ink); font-size: 15px; }
+.winhint__note { color: var(--muted-ink); font-size: 13px; }
+.winhint__fig { display: flex; flex-wrap: wrap; gap: 12px; margin: 2px 0; }
+.winhint__panel { position: relative; display: grid; align-content: start; gap: 7px; width: 200px; min-height: 118px; padding: 14px 12px 12px; border: 1px solid var(--hair-ink); background: rgba(242, 243, 240, 0.04); font-size: 12px; color: var(--stock); }
+.winhint__num { position: absolute; top: -9px; left: -9px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--fluo); color: var(--ink); font-size: 12px; font-weight: 700; }
+.winhint__dlgtitle { font-weight: 700; font-size: 13px; }
+.winhint__lines { display: grid; gap: 4px; }
+.winhint__lines i { display: block; height: 4px; background: var(--hair-ink); }
+.winhint__lines i:last-child { width: 70%; }
+.winhint__link { justify-self: start; text-decoration: underline; text-underline-offset: 2px; }
+.winhint__btns { display: flex; justify-content: flex-end; gap: 6px; margin-top: auto; }
+.winhint__btn { padding: 3px 8px; border: 1px solid var(--hair-ink); color: var(--muted-ink); }
+.winhint__hit { outline: 2px solid var(--fluo); outline-offset: 2px; color: var(--stock); }
 /* The macOS card's two chip buttons sit side by side and stack on narrow screens;
    each carries its own file size. */
 .platform__buttons { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-start; }
