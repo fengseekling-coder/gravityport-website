@@ -54,6 +54,8 @@ npx wrangler deploy
 
 发布顺序：先把安装包传到 R2 并核对大小，再确认清单里引用的文件都已存在，然后把旧清单备份到 `releases/gravityport/history/`，最后替换 `releases/gravityport/latest.json`。R2 上只保留最新四个完整的桌面版本，扩展包和不成对的文件不会被清理。
 
+官网侧的版本号（`site-config.js` 三段兜底下载、两个首页的 site-config 缓存号、扩展说明里的示例文件名）用一条命令改齐并重建英文页：`node scripts/site-release-prepare.mjs --app <版本> [--extension <版本>] [--tag <YYYYMMDD>]`；合并前用 `node scripts/site-release-prepare.mjs --check` 核对一致性，测试也会查这条。
+
 ### Intel（x64）Mac 包怎么发
 
 Intel 包是可选的，但一旦这个版本决定带 Intel 包，两个文件都要有：
