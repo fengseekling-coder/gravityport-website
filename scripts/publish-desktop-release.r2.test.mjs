@@ -464,11 +464,65 @@ test("dry-run with the r2 target prints the plan and sends no write request", as
   assert.match(stdout, /downloads\/GravityPort-darwin-arm64-0\.3\.7\.zip/);
   assert.match(stdout, /releases\/gravityport\/latest\.json/);
   assert.match(stdout, /R2 清理将删除/);
-  assert.match(stdout, /0\.3\.1/);
+  // Six seeded versions plus this release (0.3.7) make seven; keeping four
+  // deletes 0.3.1 to 0.3.3, the same set the real run would delete.
+  const preview = stdout.slice(stdout.indexOf("R2 清理将删除"), stdout.indexOf("本地校验通过"));
+  for (let minor = 1; minor <= 3; minor += 1) {
+    assert.match(preview, new RegExp(`downloads/GravityPort-darwin-arm64-0\\.3\\.${minor}\\.zip`));
+    assert.match(preview, new RegExp(`downloads/GravityPort-win32-x64-0\\.3\\.${minor}\\.zip`));
+  }
+  assert.equal(preview.includes("0.3.4"), false, "0.3.4 stays inside the retention window");
   assert.equal(stdout.includes(TEST_SECRET_ACCESS_KEY), false, "dry-run output must not contain the secret");
   // Nothing was published.
   const manifest = JSON.parse(fake.objects.get("releases/gravityport/latest.json").body.toString("utf8"));
   assert.equal(manifest.version, "0.3.6");
+});
+
+test("dry-run counts this release's packages, so a full bucket previews the deletion the real run makes", async (t) => {
+  const fake = createFakeS3();
+  await fake.listen();
+  t.after(() => fake.close());
+  const work = makeTempDir("mosa-r2-run.");
+  t.after(() => fs.rmSync(work, { recursive: true, force: true }));
+
+  // Exactly four complete versions (the retention count) are on R2, as before
+  // the 0.3.18 release. Publishing a fifth must delete the oldest one, and
+  // the dry-run must say so instead of "nothing to clean".
+  for (let minor = 3; minor <= 6; minor += 1) {
+    fake.putObject(`downloads/GravityPort-darwin-arm64-0.3.${minor}.zip`, `mac ${minor}`);
+    fake.putObject(`downloads/GravityPort-win32-x64-0.3.${minor}.zip`, `win ${minor}`);
+  }
+  seedPreviousManifestOnR2(fake, "0.3.6");
+
+  const { root } = makeSourceTree({ macVersion: "0.3.7", windowsVersion: "0.3.7" });
+  const env = buildEnv({
+    sourceDir: root,
+    stateFile: path.join(work, "state"),
+    targets: "r2",
+    r2Endpoint: fake.endpoint,
+  });
+
+  const expectedDeleted = [
+    "downloads/GravityPort-darwin-arm64-0.3.3.zip",
+    "downloads/GravityPort-win32-x64-0.3.3.zip",
+  ];
+
+  const dryRun = await runScript(env, ["--dry-run"]);
+  assert.equal(dryRun.stdout.includes("R2 无需清理"), false, "a full bucket must not preview as clean");
+  const preview = dryRun.stdout.slice(dryRun.stdout.indexOf("R2 清理将删除"), dryRun.stdout.indexOf("本地校验通过"));
+  assert.match(preview, /R2 清理将删除（保留 4 版）/);
+  const previewKeys = [...preview.matchAll(/downloads\/\S+/g)].map((match) => match[0]).sort();
+  assert.deepEqual(previewKeys, [...expectedDeleted].sort());
+  for (const key of expectedDeleted) assert.ok(fake.objects.has(key), "dry-run deletes nothing");
+
+  const real = await runScript(env);
+  for (const key of expectedDeleted) {
+    assert.equal(fake.objects.has(key), false, `${key} is deleted by the real run`);
+  }
+  // The real run logs every deleted key by name, and only those.
+  const deletedKeys = [...real.stdout.matchAll(/R2 已删除 (downloads\/\S+)/g)].map((match) => match[1]).sort();
+  assert.deepEqual(deletedKeys, [...expectedDeleted].sort(), "the real run deletes exactly what the dry-run previewed");
+  assert.match(real.stdout, /R2 已清理 1 个超出保留上限的完整桌面版本/);
 });
 
 test("the retired old-server target and any unknown MOSA_RELEASE_TARGETS value fail up front", async (t) => {

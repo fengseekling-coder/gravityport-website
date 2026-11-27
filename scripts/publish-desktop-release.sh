@@ -735,7 +735,15 @@ if [[ "$dry_run" -eq 1 ]]; then
       const lines = require("node:fs").readFileSync(0, "utf8").trim().split("\n").filter(Boolean);
       for (const line of lines) process.stdout.write(`${JSON.parse(line).key.replace(/^downloads\//, "")}\n`);
     ')"; then
-      r2_stale_preview="$(printf '%s\n' "$r2_downloads_files" | node "$retention_selector" "$desktop_retention_count" "$release_product" 2>/dev/null)" || r2_stale_preview=""
+      # The real run lists downloads/ after this release's packages are on R2,
+      # so the preview counts them too; otherwise a bucket already holding
+      # desktop_retention_count versions previews "nothing to clean" while the
+      # real run deletes the oldest version (0.3.18 deleted 0.3.14 that way).
+      r2_preview_files="$({
+        printf '%s\n' "$r2_downloads_files"
+        printf '%s\n' "$mac_name" "$mac_x64_zip_name" "$windows_name" "$mac_dmg_name" "$mac_x64_dmg_name" "$windows_installer_name"
+      } | sed '/^$/d' | sort -u)"
+      r2_stale_preview="$(printf '%s\n' "$r2_preview_files" | node "$retention_selector" "$desktop_retention_count" "$release_product" 2>/dev/null)" || r2_stale_preview=""
       if [[ -n "$r2_stale_preview" ]]; then
         log "R2 清理将删除（保留 ${desktop_retention_count} 版）："
         while IFS=$'\t' read -r preview_mac preview_windows preview_installer preview_mac_x64_zip preview_mac_x64_dmg preview_mac_other; do
@@ -841,6 +849,12 @@ r2_stale_pairs="$(printf '%s\n' "$r2_downloads_files" | node "$retention_selecto
   || die "could not select R2 retained desktop release pairs"
 if [[ -n "$r2_stale_pairs" ]]; then
   r2_removed_versions=0
+  # Every deleted key is logged by name, so the run log says exactly which
+  # files left R2, not only how many versions.
+  r2_delete_stale() {
+    node "$r2_client" delete "downloads/$1" >/dev/null || die "R2 删除失败: downloads/$1"
+    log "R2 已删除 downloads/$1"
+  }
   while IFS=$'\t' read -r r2_stale_mac r2_stale_windows r2_stale_installer r2_stale_mac_x64_zip r2_stale_mac_x64_dmg r2_stale_mac_other; do
     # "-" marks a column the release did not ship (see the retention selector).
     [[ "$r2_stale_mac" == "-" ]] && r2_stale_mac=""
@@ -866,28 +880,28 @@ if [[ -n "$r2_stale_pairs" ]]; then
         || die "invalid Windows R2 retention filename: $r2_stale_windows"
     fi
     if [[ -n "$r2_stale_mac" ]]; then
-      node "$r2_client" delete "downloads/$r2_stale_mac" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac"
+      r2_delete_stale "$r2_stale_mac"
     fi
     if [[ -n "$r2_stale_mac_other" ]]; then
-      node "$r2_client" delete "downloads/$r2_stale_mac_other" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac_other"
+      r2_delete_stale "$r2_stale_mac_other"
     fi
     if [[ -n "$r2_stale_windows" ]]; then
-      node "$r2_client" delete "downloads/$r2_stale_windows" >/dev/null || die "R2 删除失败: downloads/$r2_stale_windows"
+      r2_delete_stale "$r2_stale_windows"
     fi
     if [[ -n "$r2_stale_installer" ]]; then
-      node "$r2_client" delete "downloads/$r2_stale_installer" >/dev/null || die "R2 删除失败: downloads/$r2_stale_installer"
+      r2_delete_stale "$r2_stale_installer"
     fi
     # The Intel files travel with their version (388): when a version goes,
     # its darwin-x64 update ZIP and DMG go with it.
     if [[ -n "$r2_stale_mac_x64_zip" ]]; then
       [[ "$r2_stale_mac_x64_zip" =~ ^${release_product}-darwin-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.zip$ ]] \
         || die "invalid macOS Intel R2 retention filename: $r2_stale_mac_x64_zip"
-      node "$r2_client" delete "downloads/$r2_stale_mac_x64_zip" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac_x64_zip"
+      r2_delete_stale "$r2_stale_mac_x64_zip"
     fi
     if [[ -n "$r2_stale_mac_x64_dmg" ]]; then
       [[ "$r2_stale_mac_x64_dmg" =~ ^${release_product}-darwin-x64-[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\.dmg$ ]] \
         || die "invalid macOS Intel DMG R2 retention filename: $r2_stale_mac_x64_dmg"
-      node "$r2_client" delete "downloads/$r2_stale_mac_x64_dmg" >/dev/null || die "R2 删除失败: downloads/$r2_stale_mac_x64_dmg"
+      r2_delete_stale "$r2_stale_mac_x64_dmg"
     fi
     r2_removed_versions=$((r2_removed_versions + 1))
   done <<< "$r2_stale_pairs"

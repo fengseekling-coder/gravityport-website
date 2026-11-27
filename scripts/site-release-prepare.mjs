@@ -8,8 +8,11 @@
 // so a hand edit that missed a place turns the website tests red.
 //
 //   node scripts/site-release-prepare.mjs --app 0.3.16 [--extension 0.15.50] [--tag 20261120]
-//   node scripts/site-release-prepare.mjs --check
+//   node scripts/site-release-prepare.mjs --check [--base origin/main]
 //
+// --check also runs the cache-tag bump check (scripts/check-cache-tags.mjs): a
+// file the pages load with ?v= whose content changed against --base must get a
+// new tag on every page that loads it.
 // Versions are bare (no "v" prefix); site-config.js keeps its "v" prefix on the
 // version fields. --tag defaults to today's date in US Pacific time and must be
 // <YYYYMMDD>. Installer files (dmg/exe) live in R2 and are not checked; the
@@ -22,6 +25,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { compareReleaseVersions, parseReleaseVersion } from "./release-version.mjs";
 import { buildEnglishPage, loadStrings } from "./build-en-page.mjs";
+import { checkCacheTagBumps, DEFAULT_CACHE_TAG_BASE } from "./check-cache-tags.mjs";
 
 const APP_SECTIONS = ["mac", "macIntel", "windows"];
 const EXTENSION_SECTION = "extension";
@@ -282,11 +286,14 @@ export function prepareSiteRelease({ root, app, extension, tag }) {
  * Read-only consistency check: the three App sections agree with each other and
  * with the versions inside their urls; the extension version agrees with its url
  * and the zip exists; both home pages carry the same cache tag ending in
- * -rel-<App version>; the README example filename carries the extension version.
- * Returns { problems: [{ file, message }] }; empty means consistent.
+ * -rel-<App version>; the README example filename carries the extension version;
+ * every ?v= file that changed against `baseRef` carries a new tag on each page.
+ * Returns { problems: [{ file, message }], notes: [string] }; empty problems
+ * means consistent, notes say which part was skipped and why.
  */
-export function checkSiteConsistency({ root }) {
+export function checkSiteConsistency({ root, baseRef = DEFAULT_CACHE_TAG_BASE }) {
   const problems = [];
+  const notes = [];
   const add = (file, message) => problems.push({ file, message });
 
   let state = null;
@@ -372,11 +379,15 @@ export function checkSiteConsistency({ root }) {
     }
   }
 
-  return { problems };
+  const cacheTags = checkCacheTagBumps({ root, baseRef });
+  if (cacheTags.skipped) notes.push(cacheTags.skipped);
+  problems.push(...cacheTags.problems);
+
+  return { problems, notes, cacheTagBase: cacheTags.base };
 }
 
 export function parsePrepareArgs(argv) {
-  const options = { app: undefined, extension: undefined, tag: undefined, root: undefined, check: false };
+  const options = { app: undefined, extension: undefined, tag: undefined, root: undefined, base: undefined, check: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     const takeValue = (flag) => {
@@ -388,11 +399,15 @@ export function parsePrepareArgs(argv) {
     else if (arg === "--extension") options.extension = takeValue(arg);
     else if (arg === "--tag") options.tag = takeValue(arg);
     else if (arg === "--root") options.root = takeValue(arg);
+    else if (arg === "--base") options.base = takeValue(arg);
     else if (arg === "--check") options.check = true;
     else throw new UsageError(`不认识的参数：${arg}（用法见 scripts/site-release-prepare.mjs 头部注释）`);
   }
   if (options.check && (options.app !== undefined || options.extension !== undefined || options.tag !== undefined)) {
     throw new UsageError("--check 只核对一致性，不和 --app/--extension/--tag 一起用");
+  }
+  if (!options.check && options.base !== undefined) {
+    throw new UsageError("--base 只给 --check 用");
   }
   if (!options.check && options.app === undefined) {
     throw new UsageError("要么给 --app <版本> 改齐发版，要么用 --check 核对一致性");
@@ -410,13 +425,18 @@ export function main(argv) {
     return 2;
   }
   if (options.check) {
-    const { problems } = checkSiteConsistency({ root: options.root });
+    const { problems, notes } = checkSiteConsistency({ root: options.root, baseRef: options.base });
+    for (const note of notes) console.log(note);
     if (problems.length > 0) {
       for (const { file, message } of problems) console.error(`${file}: ${message}`);
       console.error(`site release check 不通过：${problems.length} 处不一致`);
       return 1;
     }
-    console.log("site release check 通过：下载版本、缓存号和扩展说明一致。");
+    console.log(
+      notes.length > 0
+        ? "site release check 通过：下载版本、缓存号和扩展说明一致（缓存号换没换没查，原因见上）。"
+        : "site release check 通过：下载版本、缓存号和扩展说明一致，改过的文件都换了缓存号。"
+    );
     return 0;
   }
   try {

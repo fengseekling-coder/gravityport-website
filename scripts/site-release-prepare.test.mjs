@@ -199,7 +199,11 @@ test("--check：README 示例文件名和扩展版本不一致", (t) => {
 });
 
 test("--check 对仓库真文件通过（手改漏一处 CI 就红）", () => {
-  assert.deepEqual(checkSiteConsistency({ root: REPO_ROOT }).problems, []);
+  const { problems, cacheTagBase } = checkSiteConsistency({ root: REPO_ROOT });
+  assert.deepEqual(problems, []);
+  // CI fetches origin/main before the tests, so the cache-tag check must really
+  // run there instead of skipping (see .github/workflows/deploy.yml).
+  if (process.env.CI) assert.ok(cacheTagBase, "CI 里取不到 origin/main，缓存号检查没跑");
 });
 
 test("CLI 退出码：一致 0、不一致 1、用法错误 2", (t) => {
