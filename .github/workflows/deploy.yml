@@ -37,6 +37,12 @@ jobs:
       - name: Check repo hygiene
         run: node scripts/check-repo-hygiene.mjs
 
+      # The cache-tag check in scripts/site-release-prepare.test.mjs compares the
+      # tree with origin/main: a file loaded with ?v= that changed must get a new
+      # tag on every page. The default checkout carries no origin/main.
+      - name: Fetch origin/main for the cache-tag check
+        run: git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
+
       # The release-publisher tests need the App checkout next to this one
       # (../gravityport, ../gravityport-writer-snapshot) and macOS hdiutil; they run locally
       # at release time instead.

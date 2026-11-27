@@ -52,9 +52,9 @@ npx wrangler deploy
 - 新版本必须带发版说明：`MOSA_RELEASE_NOTES_ZH` 和 `MOSA_RELEASE_NOTES_EN` 都要有内容，缺一个就直接失败。同版本重跑是空操作，降级会被跳过。
 - 只校验不上传：`scripts/publish-desktop-release.sh --dry-run`。
 
-发布顺序：先把安装包传到 R2 并核对大小，再确认清单里引用的文件都已存在，然后把旧清单备份到 `releases/gravityport/history/`，最后替换 `releases/gravityport/latest.json`。R2 上只保留最新四个完整的桌面版本，扩展包和不成对的文件不会被清理。
+发布顺序：先把安装包传到 R2 并核对大小，再确认清单里引用的文件都已存在，然后把旧清单备份到 `releases/gravityport/history/`，最后替换 `releases/gravityport/latest.json`。R2 上只保留最新四个完整的桌面版本，扩展包和不成对的文件不会被清理；`--dry-run` 预览的清理名单已把本次要上传的版本算在内，与正式发布实际删除的一致，正式发布会逐个记下删除的文件。
 
-官网侧的版本号（`site-config.js` 三段兜底下载、两个首页的 site-config 缓存号、扩展说明里的示例文件名）用一条命令改齐并重建英文页：`node scripts/site-release-prepare.mjs --app <版本> [--extension <版本>] [--tag <YYYYMMDD>]`；合并前用 `node scripts/site-release-prepare.mjs --check` 核对一致性，测试也会查这条。
+官网侧的版本号（`site-config.js` 三段兜底下载、两个首页的 site-config 缓存号、扩展说明里的示例文件名）用一条命令改齐并重建英文页：`node scripts/site-release-prepare.mjs --app <版本> [--extension <版本>] [--tag <YYYYMMDD>]`；合并前用 `node scripts/site-release-prepare.mjs --check` 核对一致性，测试也会查这条。`--check` 同时对照 `origin/main`（可用 `--base <ref>` 指定）检查缓存号：页面以 `?v=` 引用的文件（如 `site/strings.js`、`site/press.css`）内容改了，引用它的每个页面都要换新缓存号，英文页随后用 `node scripts/build-en-page.mjs` 重建。
 
 ### Intel（x64）Mac 包怎么发
 
